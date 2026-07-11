@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
+<title>XAUUSD · Pro Trading Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0b0e14; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #eef2f6; }
+.glass-card {
+background: rgba(18, 24, 34, 0.7);
+backdrop-filter: blur(6px);
+-webkit-backdrop-filter: blur(6px);
+border: 1px solid rgba(60, 80, 120, 0.25);
+border-radius: 1.25rem;
+box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+transition: all 0.2s ease;
+}
+.glass-card:hover { border-color: rgba(60, 130, 255, 0.4); box-shadow: 0 16px 40px rgba(0, 40, 100, 0.3); }
+.text-gold { color: #f5c542; }
+.stat-number { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.02em; }
+.chart-wrapper { 
+  position: relative; 
+  height: 160px; 
+  width: 100%; 
+  overflow: hidden;
+}
+.chart-wrapper canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+.nav-link {
+transition: 0.15s;
+border-radius: 0.75rem;
+padding: 0.5rem 1rem;
+cursor: pointer;
+}
+.nav-link:hover { background: #1e2a3a; }
+.active-nav { background: #1a2b44; border-left: 3px solid #3b82f6; }
+.table-wrap { 
+  max-height: 300px; 
+  overflow-y: auto; 
+  overflow-x: hidden;
+}
+.table-wrap::-webkit-scrollbar {
+  width: 4px;
+}
+.table-wrap::-webkit-scrollbar-track {
+  background: #1a2330;
+}
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 2px;
+}
+.btn-primary {
+background: #1e4a7a;
+border: none;
+padding: 0.4rem 1.2rem;
+border-radius: 2rem;
+transition: 0.15s;
+color: white;
+cursor: pointer;
+}
+.btn-primary:hover { background: #2a5f94; }
+.btn-outline { border: 1px solid #3b6a9a; background: transparent; border-radius: 2rem; padding: 0.3rem 1.2rem; cursor: pointer; color: #9ca3af; }
+.btn-outline:hover { background: #1a2f4a; color: white; }
+.btn-danger { background: #dc2626; border: none; padding: 0.2rem 0.6rem; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.7rem; transition: 0.15s; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-sm { padding: 0.15rem 0.5rem; font-size: 0.7rem; }
+.btn-success-sm { background: #16a34a; border: none; padding: 0.15rem 0.5rem; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.7rem; transition: 0.15s; }
+.btn-success-sm:hover { background: #15803d; }
+.risk-badge { background: #3b1f2a; color: #f87171; border-left: 4px solid #ef4444; }
+.glass-input { background: #141c28; border: 1px solid #2a3f58; border-radius: 2rem; padding: 0.3rem 1rem; color: white; width: 100%; }
+.glass-input:focus { border-color: #3b82f6; outline: none; }
+.glass-input-sm { padding: 0.15rem 0.5rem; font-size: 0.7rem; width: 70px; }
+.page { display: none; }
+.page.active { display: block; }
+.rule-card { border-left: 3px solid #3b82f6; padding-left: 1rem; margin-bottom: 1rem; }
+.rule-card.warning { border-left-color: #ef4444; }
+.rule-card.success { border-left-color: #22c55e; }
+.checklist-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-bottom: 1px solid #1a2330; }
+.checklist-item input[type="checkbox"] { accent-color: #3b82f6; width: 1.2rem; height: 1.2rem; cursor: pointer; }
+.journal-delete { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
+.journal-delete:hover { opacity: 1; color: #ef4444; }
+.journal-edit { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
+.journal-edit:hover { opacity: 1; color: #3b82f6; }
+.journal-save { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
+.journal-save:hover { opacity: 1; color: #22c55e; }
+.trade-input { background: #141c28; border: 1px solid #2a3f58; border-radius: 0.3rem; padding: 0.1rem 0.3rem; color: white; width: 60px; font-size: 0.7rem; }
+.trade-input:focus { border-color: #3b82f6; outline: none; }
+@media (max-width: 640px) { .stat-number { font-size: 1.1rem; } }
+</style>
+</head>
+<body>
+<div class="flex h-screen overflow-hidden">
+<!-- SIDEBAR -->
+<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0d121c] border-r border-[#1f2a3a] p-3 flex flex-col items-center md:items-start space-y-3 overflow-y-auto">
+<div class="flex items-center gap-2 text-xl font-bold tracking-tight mt-2">
+<i class="fas fa-chart-line text-blue-400"></i>
+<span class="hidden md:inline bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">XAU<span class="text-white">PRO</span></span>
+</div>
+<div class="w-full border-b border-[#1f2a3a] my-1"></div>
+<nav class="w-full space-y-1 text-sm">
+<a class="nav-link active-nav flex items-center gap-3 text-blue-300" data-page="dashboard"><i class="fas fa-th-large w-5"></i><span class="hidden md:inline">Dashboard</span></a>
+<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="rules"><i class="fas fa-book w-5"></i><span class="hidden md:inline">Trading Rules</span></a>
+<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="checklist"><i class="fas fa-clipboard-list w-5"></i><span class="hidden md:inline">Checklist</span></a>
+<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="analytics"><i class="fas fa-chart-pie w-5"></i><span class="hidden md:inline">Analytics</span></a>
+<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="plan"><i class="fas fa-flag-checkered w-5"></i><span class="hidden md:inline">Trading Plan</span></a>
+</nav>
+<div class="mt-auto w-full border-t border-[#1f2a3a] pt-3 text-xs text-gray-500 hidden md:block">
+<div class="flex items-center gap-2"><i class="fas fa-circle text-green-400 text-[8px]"></i> Live</div>
+<div class="flex items-center gap-2 mt-1"><i class="fas fa-wallet"></i> <span id="sidebarBalance">$1,000</span></div>
+</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0b0e14] space-y-6">
+<!-- PAGE: DASHBOARD -->
+<div id="page-dashboard" class="page active space-y-6">
+<!-- TOP STATS -->
+<section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Balance</div><div class="stat-number text-green-400" id="balanceDisplay">$1,000.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Today P/L</div><div class="stat-number text-green-300" id="todayPL">+$0.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Weekly</div><div class="stat-number text-blue-300" id="weeklyPL">+$0.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Monthly</div><div class="stat-number text-blue-300" id="monthlyPL">+$0.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Win Rate</div><div class="stat-number text-gold" id="winRate">0%</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs uppercase">Profit Factor</div><div class="stat-number text-gold" id="profitFactor">0.00</div></div>
+</section>
+
+<!-- CHARTS -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>Equity Curve</span><i class="fas fa-chart-line text-blue-400"></i></div>
+    <div class="chart-wrapper"><canvas id="equityChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>Monthly Profit</span><i class="fas fa-calendar-alt text-blue-400"></i></div>
+    <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>Win/Loss</span><i class="fas fa-circle text-green-400"></i></div>
+    <div class="chart-wrapper"><canvas id="pieChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>Daily Profit</span><i class="fas fa-chart-bar text-blue-400"></i></div>
+    <div class="chart-wrapper"><canvas id="dailyBarChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>Drawdown</span><i class="fas fa-arrow-down text-red-400"></i></div>
+    <div class="chart-wrapper"><canvas id="drawdownChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3">
+    <div class="text-gray-300 text-xs flex justify-between"><span>R Multiple</span><i class="fas fa-arrow-right text-gold"></i></div>
+    <div class="chart-wrapper"><canvas id="rChart"></canvas></div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="glass-card p-3 md:col-span-1">
+    <div class="text-gray-300 text-xs">Growth to 100K</div>
+    <div class="chart-wrapper" style="height:100px;"><canvas id="growthChart"></canvas></div>
+  </div>
+  <div class="glass-card p-3 md:col-span-2 grid grid-cols-3 gap-2">
+    <div><span class="text-gray-400 text-xs">Total Profit</span><div class="text-green-400 text-sm font-semibold" id="totalProfit">$0</div></div>
+    <div><span class="text-gray-400 text-xs">Total Loss</span><div class="text-red-400 text-sm font-semibold" id="totalLoss">$0</div></div>
+    <div><span class="text-gray-400 text-xs">Net Profit</span><div class="text-blue-300 text-sm font-semibold" id="netProfit">$0</div></div>
+    <div><span class="text-gray-400 text-xs">Expectancy</span><div class="text-gold text-sm font-semibold" id="expectancy">$0.00</div></div>
+    <div><span class="text-gray-400 text-xs">Avg R</span><div class="text-gold text-sm font-semibold" id="avgR">0.0</div></div>
+    <div><span class="text-gray-400 text-xs">Drawdown</span><div class="text-red-300 text-sm font-semibold" id="drawdownPct">0%</div></div>
+    <div><span class="text-gray-400 text-xs">Streak</span><div class="text-gold text-sm font-semibold" id="streakDisplay">0</div></div>
+    <div><span class="text-gray-400 text-xs">Total Trades</span><div class="text-blue-300 text-sm font-semibold" id="totalTradesDisplay">0</div></div>
+    <div><span class="text-gray-400 text-xs">Risk Left</span><div class="text-green-300 text-sm font-semibold" id="riskLeft">$75</div></div>
+  </div>
+</div>
+
+<!-- RISK + ACTIONS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="glass-card p-3 flex flex-col gap-1">
+    <span class="text-xs text-gray-400"><i class="fas fa-shield-alt text-blue-400"></i> Risk Manager</span>
+    <div id="riskMessage" class="text-green-300 text-sm">✅ All good</div>
+    <div id="dailyLossAlert" class="hidden risk-badge p-1 text-xs rounded-lg">Daily loss limit reached</div>
+  </div>
+  <div class="glass-card p-3">
+    <span class="text-xs text-gray-400"><i class="fas fa-calculator"></i> Lot Size</span>
+    <div class="grid grid-cols-3 gap-1 mt-1">
+      <input class="glass-input col-span-1 text-xs" placeholder="Risk %" value="2.5" id="riskInput" />
+      <input class="glass-input col-span-1 text-xs" placeholder="SL pts" value="200" id="slInput" />
+      <button class="btn-primary text-xs col-span-1" id="calcBtn">Calc</button>
+    </div>
+    <div class="text-xs text-gray-300 mt-1" id="lotDisplay">Risk $25 · Lot 0.12</div>
+  </div>
+  <div class="glass-card p-3">
+    <span class="text-xs text-gray-400"><i class="fas fa-chart-simple"></i> Compounding</span>
+    <div class="flex gap-1 text-xs mt-1">
+      <span class="bg-[#1a2a3a] px-2 rounded py-1">$1k → $100k</span>
+      <span class="text-gold" id="estTrades">~120 trades</span>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TRADE SECTION -->
+<div class="glass-card p-4">
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="text-xs text-gray-400"><i class="fas fa-plus-circle text-blue-400"></i> Add Trade:</span>
+    <select id="tradeType" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
+      <option value="win">Win</option>
+      <option value="loss">Loss</option>
+    </select>
+    <input type="number" id="tradeAmount" class="glass-input text-xs" placeholder="Amount ($)" value="100" style="width:100px;" />
+    <input type="text" id="tradeDirection" class="glass-input text-xs" placeholder="Dir (BUY/SELL)" value="BUY" style="width:80px;" />
+    <button id="addCustomTradeBtn" class="btn-primary text-xs"><i class="fas fa-plus"></i> Add Trade</button>
+  </div>
+</div>
+
+<!-- A+ SCORE + JOURNAL - FIXED WITH UNLIMITED TRADES AND EDITABLE P/L -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+  <div class="glass-card p-3 md:col-span-1">
+    <span class="text-xs text-gray-400">A+ Setup Score</span>
+    <div class="text-2xl font-bold text-green-400" id="scoreDisplay">92</div>
+    <div class="text-xs text-green-300" id="scoreLabel">A+ Trade</div>
+    <div class="text-[10px] text-gray-400">1H ✓ 15M ✓ 3M ✓ 1M ✓ RR ✓</div>
+  </div>
+  <div class="glass-card p-3 md:col-span-3">
+    <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+      <span class="text-xs text-gray-400"><i class="fas fa-list-ul"></i> Journal (<span id="tradeCountDisplay">0</span> trades)</span>
+      <div class="flex gap-2">
+        <button id="clearJournalBtn" class="btn-danger btn-sm">Clear All</button>
+      </div>
+    </div>
+    <div class="table-wrap mt-1 text-xs">
+      <table class="w-full text-left text-gray-300">
+        <thead class="text-[10px] uppercase text-gray-500 border-b border-[#1f2a3a] sticky top-0 bg-[#0d121c]">
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Dir</th>
+            <th>Result</th>
+            <th>P/L ($)</th>
+            <th class="text-center" style="min-width:80px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="journalPreview"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="flex flex-wrap gap-3 items-center">
+  <button id="winBtn" class="btn-primary bg-green-700 hover:bg-green-600 text-white px-6 py-1.5 rounded-full text-sm flex items-center gap-2"><i class="fas fa-check"></i> Win (+$100)</button>
+  <button id="lossBtn" class="btn-primary bg-red-700 hover:bg-red-600 text-white px-6 py-1.5 rounded-full text-sm flex items-center gap-2"><i class="fas fa-times"></i> Loss (-$25)</button>
+  <button id="resetBtn" class="btn-outline text-xs"><i class="fas fa-rotate-right"></i> Reset</button>
+  <span class="text-xs text-gray-400 ml-auto"><i class="fas fa-clock"></i> London · New York</span>
+</div>
+</div>
+
+<!-- PAGE: TRADING RULES -->
+<div id="page-rules" class="page space-y-6">
+<h2 class="text-2xl font-bold"><i class="fas fa-book text-blue-400 mr-3"></i>Trading Rules</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="glass-card p-4">
+<h3 class="text-lg font-semibold text-blue-400 mb-3"><i class="fas fa-clock mr-2"></i>Session Rules</h3>
+<div class="rule-card"><strong>Market:</strong> XAUUSD Only</div>
+<div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
+<div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
+<div class="rule-card"><strong>Risk Per Trade:</strong> $25</div>
+<div class="rule-card"><strong>Max Daily Loss:</strong> $75</div>
+<div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
+</div>
+<div class="glass-card p-4">
+<h3 class="text-lg font-semibold text-blue-400 mb-3"><i class="fas fa-chart-line mr-2"></i>Entry Rules</h3>
+<div class="rule-card success"><strong>1H Trend:</strong> EMA50 above EMA100 = Buy only</div>
+<div class="rule-card success"><strong>1H Trend:</strong> EMA50 below EMA100 = Sell only</div>
+<div class="rule-card"><strong>15M Confirmation:</strong> EMA confirmation</div>
+<div class="rule-card"><strong>3M Pullback:</strong> Pullback confirmation</div>
+<div class="rule-card"><strong>1M Entry:</strong> Entry confirmation</div>
+<div class="rule-card"><strong>Stop Loss:</strong> Below previous swing</div>
+<div class="rule-card"><strong>Take Profit:</strong> 4R</div>
+</div>
+</div>
+<div class="glass-card p-4">
+<h3 class="text-lg font-semibold text-red-400 mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Risk Management Rules</h3>
+<div class="rule-card warning"><strong>Never Move Stop Loss</strong> - Let the trade play out</div>
+<div class="rule-card warning"><strong>Never Revenge Trade</strong> - Stick to the plan</div>
+<div class="rule-card warning"><strong>Never Increase Lot Size After Loss</strong> - Maintain discipline</div>
+<div class="rule-card warning"><strong>After Three Losses</strong> - STOP TRADING for the day</div>
+</div>
+</div>
+
+<!-- PAGE: CHECKLIST -->
+<div id="page-checklist" class="page space-y-6">
+<h2 class="text-2xl font-bold"><i class="fas fa-clipboard-list text-blue-400 mr-3"></i>Daily Pre-Trade Checklist</h2>
+<div class="glass-card p-4">
+<p class="text-gray-400 text-sm mb-4">Complete all items before entering a trade. If any item is unchecked, <span class="text-yellow-400">WAIT FOR A BETTER SETUP</span></p>
+<div id="checklistContainer" class="space-y-2">
+<div class="checklist-item"><input type="checkbox" id="chk1" /><label for="chk1">News Checked - No high-impact news during trade</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk2" /><label for="chk2">1H Trend Confirmed - EMA50 above/below EMA100</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk3" /><label for="chk3">15M EMA Confirmed - Price aligned with EMA</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk4" /><label for="chk4">3M Pullback - Retracement to key level</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk5" /><label for="chk5">1M Confirmation - Entry candle confirmed</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk6" /><label for="chk6">Risk $25 - Position size calculated correctly</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk7" /><label for="chk7">1:4 RR - Reward at least 4x risk</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk8" /><label for="chk8">Session Valid - London or New York session</label></div>
+<div class="checklist-item"><input type="checkbox" id="chk9" /><label for="chk9">Emotion Calm - No anxiety, no revenge trading</label></div>
+</div>
+<div id="checklistStatus" class="mt-4 p-3 rounded-lg text-center text-sm bg-green-900/30 text-green-400 border border-green-800/50">✅ All checks passed - Ready to trade</div>
+</div>
+</div>
+
+<!-- PAGE: ANALYTICS -->
+<div id="page-analytics" class="page space-y-6">
+<h2 class="text-2xl font-bold"><i class="fas fa-chart-pie text-blue-400 mr-3"></i>Performance Analytics</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Total Trades</div><div class="text-xl font-bold" id="analyticsTotalTrades">0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Winning Trades</div><div class="text-xl font-bold text-green-400" id="analyticsWins">0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Losing Trades</div><div class="text-xl font-bold text-red-400" id="analyticsLosses">0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Win Rate</div><div class="text-xl font-bold text-gold" id="analyticsWinRate">0%</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Average Win</div><div class="text-xl font-bold text-green-400" id="analyticsAvgWin">$0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Average Loss</div><div class="text-xl font-bold text-red-400" id="analyticsAvgLoss">$0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Profit Factor</div><div class="text-xl font-bold text-gold" id="analyticsPF">0.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Expectancy</div><div class="text-xl font-bold text-blue-300" id="analyticsExpectancy">$0.00</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Best Trade</div><div class="text-xl font-bold text-green-400" id="analyticsBestTrade">$0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Worst Trade</div><div class="text-xl font-bold text-red-400" id="analyticsWorstTrade">$0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Max Consecutive Wins</div><div class="text-xl font-bold text-green-400" id="analyticsMaxWins">0</div></div>
+<div class="glass-card p-3"><div class="text-gray-400 text-xs">Max Consecutive Losses</div><div class="text-xl font-bold text-red-400" id="analyticsMaxLosses">0</div></div>
+</div>
+</div>
+
+<!-- PAGE: TRADING PLAN -->
+<div id="page-plan" class="page space-y-6">
+<h2 class="text-2xl font-bold"><i class="fas fa-flag-checkered text-blue-400 mr-3"></i>Trading Plan</h2>
+<div class="glass-card p-4">
+<h3 class="text-lg font-semibold text-gold mb-3">Complete Trading Rules Summary</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<h4 class="text-blue-400 font-semibold mb-2"><i class="fas fa-bullseye mr-2"></i>Setup Rules</h4>
+<ul class="space-y-1 text-sm text-gray-300">
+<li>• Only XAUUSD</li>
+<li>• Maximum 3 trades/day</li>
+<li>• Risk $25 per trade</li>
+<li>• Maximum Daily Loss $75</li>
+<li>• London & New York Only</li>
+<li>• 1H Trend: EMA50 above/below EMA100</li>
+</ul>
+</div>
+<div>
+<h4 class="text-blue-400 font-semibold mb-2"><i class="fas fa-sign-in-alt mr-2"></i>Entry & Exit</h4>
+<ul class="space-y-1 text-sm text-gray-300">
+<li>• 15M EMA Confirmation</li>
+<li>• 3M Pullback</li>
+<li>• 1M Entry Confirmation</li>
+<li>• Stop Below Swing</li>
+<li>• Target 4R</li>
+</ul>
+</div>
+<div>
+<h4 class="text-red-400 font-semibold mb-2"><i class="fas fa-ban mr-2"></i>Never Rules</h4>
+<ul class="space-y-1 text-sm text-gray-300">
+<li>• Never Move Stop Loss</li>
+<li>• Never Revenge Trade</li>
+<li>• Never Increase Lot Size After Loss</li>
+</ul>
+</div>
+<div>
+<h4 class="text-yellow-400 font-semibold mb-2"><i class="fas fa-stop-circle mr-2"></i>Stop Rules</h4>
+<ul class="space-y-1 text-sm text-gray-300">
+<li>• After Three Losses - Stop Trading</li>
+<li>• Daily Loss >= $75 - Stop Trading</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="text-center text-[10px] text-gray-600 border-t border-[#1a2330] pt-4">XAUUSD Professional Dashboard · v2.0</div>
+</main>
+</div>
+
+<script>
+// ========== STATE ==========
+let state = {
+balance: 1000,
+trades: [],
+dailyLoss: 0,
+streak: 0,
+consecutiveWins: 0,
+consecutiveLosses: 0,
+totalProfit: 0,
+totalLoss: 0,
+winCount: 0,
+lossCount: 0,
+maxBalance: 1000,
+editingIndex: -1
+};
+
+// ========== PAGE NAVIGATION ==========
+document.querySelectorAll('.nav-link').forEach(link => {
+link.addEventListener('click', function(e) {
+e.preventDefault();
+const pageId = this.dataset.page;
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+const targetPage = document.getElementById('page-' + pageId);
+if (targetPage) targetPage.classList.add('active');
+document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
+this.classList.add('active-nav');
+if (pageId === 'analytics') updateAnalytics();
+});
+});
+
+// ========== CHECKLIST ==========
+document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
+cb.addEventListener('change', updateChecklistStatus);
+});
+
+function updateChecklistStatus() {
+const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+const allChecked = Array.from(checks).every(c => c.checked);
+const status = document.getElementById('checklistStatus');
+if (allChecked) {
+status.className = 'mt-4 p-3 rounded-lg text-center text-sm bg-green-900/30 text-green-400 border border-green-800/50';
+status.innerHTML = '✅ All checks passed - Ready to trade';
+} else {
+status.className = 'mt-4 p-3 rounded-lg text-center text-sm bg-yellow-900/30 text-yellow-400 border border-yellow-800/50';
+status.innerHTML = '⚠️ WAIT FOR A BETTER SETUP - Complete all checklist items';
+}
+}
+
+// ========== CHARTS ==========
+let charts = {};
+
+function initCharts() {
+try {
+const equityCtx = document.getElementById('equityChart');
+if (equityCtx) {
+charts.equity = new Chart(equityCtx.getContext('2d'), {
+type: 'line',
+data: { 
+labels: ['Start'], 
+datasets: [{ 
+label: 'Equity', 
+data: [1000], 
+borderColor: '#3b82f6', 
+backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+fill: true, 
+tension: 0.2 
+}] 
+},
+options: { 
+responsive: true, 
+maintainAspectRatio: false, 
+plugins: { legend: { display: false } },
+scales: { y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } }
+}
+});
+}
+
+const monthlyCtx = document.getElementById('monthlyChart');
+if (monthlyCtx) {
+charts.monthly = new Chart(monthlyCtx.getContext('2d'), {
+type: 'bar',
+data: { labels: ['Jan', 'Feb', 'Mar'], datasets: [{ label: 'Profit', data: [0, 0, 0], backgroundColor: ['#22c55e', '#ef4444', '#22c55e'] }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+});
+}
+
+const pieCtx = document.getElementById('pieChart');
+if (pieCtx) {
+charts.pie = new Chart(pieCtx.getContext('2d'), {
+type: 'doughnut',
+data: { labels: ['Win', 'Loss'], datasets: [{ data: [0, 0], backgroundColor: ['#22c55e', '#ef4444'] }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#ccc' } } }, cutout: '60%' }
+});
+}
+
+const dailyCtx = document.getElementById('dailyBarChart');
+if (dailyCtx) {
+charts.dailyBar = new Chart(dailyCtx.getContext('2d'), {
+type: 'bar',
+data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], datasets: [{ label: 'P/L', data: [0, 0, 0, 0, 0], backgroundColor: '#22c55e' }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+});
+}
+
+const drawdownCtx = document.getElementById('drawdownChart');
+if (drawdownCtx) {
+charts.drawdown = new Chart(drawdownCtx.getContext('2d'), {
+type: 'line',
+data: { labels: ['D1', 'D2', 'D3', 'D4'], datasets: [{ label: 'DD %', data: [0, 0, 0, 0], borderColor: '#f87171', fill: false }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+});
+}
+
+const rCtx = document.getElementById('rChart');
+if (rCtx) {
+charts.rChart = new Chart(rCtx.getContext('2d'), {
+type: 'bar',
+data: { labels: ['1R', '2R', '3R', '4R+'], datasets: [{ label: 'Trades', data: [0, 0, 0, 0], backgroundColor: 'rgba(245, 197, 66, 0.5)' }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+});
+}
+
+const growthCtx = document.getElementById('growthChart');
+if (growthCtx) {
+charts.growth = new Chart(growthCtx.getContext('2d'), {
+type: 'line',
+data: { labels: ['0', '20', '40', '60', '80', '100'], datasets: [{ label: 'Growth', data: [1000, 2500, 5000, 15000, 40000, 100000], borderColor: '#f5c542', fill: false }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+});
+}
+} catch (error) {
+console.error('Chart initialization error:', error);
+}
+}
+
+// ========== UPDATE UI ==========
+function updateUI() {
+try {
+const bal = state.balance;
+document.getElementById('balanceDisplay').textContent = `$${bal.toFixed(2)}`;
+document.getElementById('sidebarBalance').textContent = `$${bal.toFixed(2)}`;
+
+const totalPL = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+document.getElementById('todayPL').textContent = `${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`;
+document.getElementById('weeklyPL').textContent = `${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`;
+document.getElementById('monthlyPL').textContent = `${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`;
+
+const totalTrades = state.winCount + state.lossCount;
+const winRate = totalTrades > 0 ? (state.winCount / totalTrades * 100) : 0;
+document.getElementById('winRate').textContent = `${winRate.toFixed(1)}%`;
+
+const pf = (state.lossCount > 0) ? (state.winCount / state.lossCount) : (state.winCount > 0 ? state.winCount : 0);
+document.getElementById('profitFactor').textContent = pf.toFixed(2);
+
+document.getElementById('totalProfit').textContent = `$${state.totalProfit.toFixed(2)}`;
+document.getElementById('totalLoss').textContent = `$${state.totalLoss.toFixed(2)}`;
+document.getElementById('netProfit').textContent = `$${(state.totalProfit - state.totalLoss).toFixed(2)}`;
+
+const exp = totalTrades > 0 ? (state.totalProfit - state.totalLoss) / totalTrades : 0;
+document.getElementById('expectancy').textContent = `$${exp.toFixed(2)}`;
+
+const avgR = totalTrades > 0 ? (state.trades.reduce((a, t) => a + (t.r || 0), 0) / totalTrades) : 0;
+document.getElementById('avgR').textContent = avgR.toFixed(1);
+
+const dd = state.maxBalance > 0 ? ((state.maxBalance - bal) / state.maxBalance * 100) : 0;
+document.getElementById('drawdownPct').textContent = `${Math.max(0, dd).toFixed(1)}%`;
+
+document.getElementById('streakDisplay').textContent = state.streak;
+document.getElementById('totalTradesDisplay').textContent = totalTrades;
+
+// Risk manager
+const riskMsg = document.getElementById('riskMessage');
+const alertDiv = document.getElementById('dailyLossAlert');
+if (state.dailyLoss >= 75) {
+riskMsg.innerHTML = '⚠️ Daily loss limit reached!';
+riskMsg.className = 'text-red-400 text-sm';
+alertDiv.classList.remove('hidden');
+} else if (state.consecutiveLosses >= 3) {
+riskMsg.innerHTML = '🔴 3 consecutive losses! STOP TRADING';
+riskMsg.className = 'text-red-400 text-sm';
+alertDiv.classList.add('hidden');
+} else {
+riskMsg.innerHTML = '✅ All good';
+riskMsg.className = 'text-green-300 text-sm';
+alertDiv.classList.add('hidden');
+}
+
+updateJournal();
+updateCharts();
+updateAnalytics();
+updateLotSize();
+} catch (error) {
+console.error('Update UI error:', error);
+}
+}
+
+// ========== UPDATE JOURNAL ==========
+function updateJournal() {
+const tbody = document.getElementById('journalPreview');
+document.getElementById('tradeCountDisplay').textContent = state.trades.length;
+
+if (state.trades.length === 0) {
+tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">No trades yet</td></tr>';
+return;
+}
+
+// Show all trades (unlimited)
+tbody.innerHTML = state.trades.map((t, index) => {
+const isEditing = state.editingIndex === index;
+if (isEditing) {
+return `<tr>
+  <td>${index + 1}</td>
+  <td><input type="date" class="trade-input" value="${t.date}" id="editDate_${index}" style="width:100px;" /></td>
+  <td><input type="text" class="trade-input" value="${t.dir}" id="editDir_${index}" style="width:60px;" /></td>
+  <td>
+    <select class="trade-input" id="editResult_${index}" style="width:70px;">
+      <option value="win" ${t.result === 'win' ? 'selected' : ''}>Win</option>
+      <option value="loss" ${t.result === 'loss' ? 'selected' : ''}>Loss</option>
+    </select>
+  </td>
+  <td><input type="number" class="trade-input" value="${t.amount}" id="editAmount_${index}" style="width:70px;" /></td>
+  <td class="text-center">
+    <button class="journal-save" onclick="saveEdit(${index})" title="Save"><i class="fas fa-check"></i></button>
+    <button class="journal-delete" onclick="cancelEdit()" title="Cancel"><i class="fas fa-times"></i></button>
+  </td>
+</tr>`;
+}
+
+return `<tr>
+  <td>${index + 1}</td>
+  <td>${t.date || new Date().toISOString().slice(0, 10)}</td>
+  <td>${t.dir || 'BUY'}</td>
+  <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
+  <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
+  <td class="text-center">
+    <button class="journal-edit" onclick="startEdit(${index})" title="Edit"><i class="fas fa-edit"></i></button>
+    <button class="journal-delete" onclick="deleteTrade(${index})" title="Delete"><i class="fas fa-trash-alt"></i></button>
+  </td>
+</tr>`;
+}).join('');
+}
+
+// ========== EDIT FUNCTIONS ==========
+function startEdit(index) {
+state.editingIndex = index;
+updateJournal();
+}
+
+function cancelEdit() {
+state.editingIndex = -1;
+updateJournal();
+}
+
+function saveEdit(index) {
+try {
+const date = document.getElementById(`editDate_${index}`).value;
+const dir = document.getElementById(`editDir_${index}`).value.toUpperCase();
+const result = document.getElementById(`editResult_${index}`).value;
+const amount = parseFloat(document.getElementById(`editAmount_${index}`).value);
+
+if (!date || !dir || isNaN(amount) || amount <= 0) {
+alert('Please fill in all fields correctly');
+return;
+}
+
+const oldTrade = state.trades[index];
+
+// Reverse old trade effects
+if (oldTrade.result === 'win') {
+state.balance -= oldTrade.amount;
+state.totalProfit -= oldTrade.amount;
+state.winCount -= 1;
+} else {
+state.balance += oldTrade.amount;
+state.totalLoss -= oldTrade.amount;
+state.lossCount -= 1;
+}
+
+// Apply new trade effects
+const newTrade = {
+date: date,
+dir: dir,
+result: result,
+amount: amount,
+r: result === 'win' ? 4 : -1
+};
+
+if (result === 'win') {
+state.balance += amount;
+state.totalProfit += amount;
+state.winCount += 1;
+} else {
+state.balance -= amount;
+state.totalLoss += amount;
+state.lossCount += 1;
+}
+
+state.trades[index] = newTrade;
+
+// Recalculate streaks
+recalculateStreaks();
+
+// Recalculate max balance
+state.maxBalance = 1000;
+let runningBalance = 1000;
+state.trades.forEach(t => {
+runningBalance += t.result === 'win' ? t.amount : -t.amount;
+if (runningBalance > state.maxBalance) state.maxBalance = runningBalance;
+});
+
+state.editingIndex = -1;
+updateUI();
+} catch (error) {
+console.error('Save edit error:', error);
+alert('Error saving edit');
+}
+}
+
+function recalculateStreaks() {
+state.streak = 0;
+state.consecutiveWins = 0;
+state.consecutiveLosses = 0;
+let curWins = 0, curLosses = 0;
+state.trades.forEach(t => {
+if (t.result === 'win') {
+curWins++;
+curLosses = 0;
+state.streak = curWins;
+state.consecutiveWins = curWins;
+state.consecutiveLosses = 0;
+} else {
+curLosses++;
+curWins = 0;
+state.streak = -curLosses;
+state.consecutiveLosses = curLosses;
+state.consecutiveWins = 0;
+}
+});
+}
+
+// ========== DELETE TRADE ==========
+function deleteTrade(index) {
+if (confirm('Delete this trade?')) {
+try {
+const trade = state.trades[index];
+if (!trade) return;
+
+// Reverse the trade effects
+if (trade.result === 'win') {
+state.balance -= trade.amount;
+state.totalProfit -= trade.amount;
+state.winCount -= 1;
+} else {
+state.balance += trade.amount;
+state.totalLoss -= trade.amount;
+state.lossCount -= 1;
+}
+
+// Remove the trade
+state.trades.splice(index, 1);
+
+// Recalculate streaks
+recalculateStreaks();
+
+// Recalculate max balance
+state.maxBalance = 1000;
+let runningBalance = 1000;
+state.trades.forEach(t => {
+runningBalance += t.result === 'win' ? t.amount : -t.amount;
+if (runningBalance > state.maxBalance) state.maxBalance = runningBalance;
+});
+
+updateUI();
+} catch (error) {
+console.error('Delete trade error:', error);
+}
+}
+}
+
+// ========== CLEAR ALL JOURNAL ==========
+function clearJournal() {
+if (confirm('Clear all trades? This cannot be undone!')) {
+try {
+state = {
+balance: 1000,
+trades: [],
+dailyLoss: 0,
+streak: 0,
+consecutiveWins: 0,
+consecutiveLosses: 0,
+totalProfit: 0,
+totalLoss: 0,
+winCount: 0,
+lossCount: 0,
+maxBalance: 1000,
+editingIndex: -1
+};
+updateUI();
+} catch (error) {
+console.error('Clear journal error:', error);
+}
+}
+}
+
+// ========== UPDATE LOT SIZE ==========
+function updateLotSize() {
+try {
+const riskPct = parseFloat(document.getElementById('riskInput').value) || 2.5;
+const slPts = parseFloat(document.getElementById('slInput').value) || 200;
+const riskAmount = (state.balance * riskPct) / 100;
+const lotSize = riskAmount / slPts * 10;
+document.getElementById('lotDisplay').textContent = `Risk $${riskAmount.toFixed(2)} · Lot ${lotSize.toFixed(2)}`;
+} catch (error) {
+console.error('Lot size calculation error:', error);
+}
+}
+
+// ========== UPDATE CHARTS ==========
+function updateCharts() {
+try {
+if (charts.pie && charts.pie.data) {
+charts.pie.data.datasets[0].data = [state.winCount || 0, state.lossCount || 0];
+charts.pie.update();
+}
+
+let eqData = [1000];
+let eq = 1000;
+state.trades.forEach(t => {
+eq += t.result === 'win' ? t.amount : -t.amount;
+eqData.push(eq);
+});
+const labels = eqData.map((_, i) => i === 0 ? 'Start' : `T${i}`);
+if (charts.equity && charts.equity.data) {
+charts.equity.data.labels = labels;
+charts.equity.data.datasets[0].data = eqData;
+charts.equity.update();
+}
+
+const dailyPL = [0, 0, 0, 0, 0];
+state.trades.forEach((t, i) => {
+const day = i % 5;
+dailyPL[day] += t.result === 'win' ? t.amount : -t.amount;
+});
+if (charts.dailyBar && charts.dailyBar.data) {
+charts.dailyBar.data.datasets[0].data = dailyPL;
+charts.dailyBar.update();
+}
+
+const ddData = eqData.map(v => Math.max(0, ((1000 - v) / 1000 * 100)).toFixed(1));
+if (charts.drawdown && charts.drawdown.data) {
+charts.drawdown.data.datasets[0].data = ddData;
+charts.drawdown.update();
+}
+
+const rCounts = [0, 0, 0, 0];
+state.trades.forEach(t => {
+if (t.r) {
+const idx = Math.min(Math.floor(t.r - 1), 3);
+if (idx >= 0) rCounts[idx] = (rCounts[idx] || 0) + 1;
+}
+});
+if (charts.rChart && charts.rChart.data) {
+charts.rChart.data.datasets[0].data = rCounts;
+charts.rChart.update();
+}
+
+const monthlyData = [0, 0, 0];
+state.trades.forEach((t, i) => {
+const idx = i % 3;
+monthlyData[idx] += t.result === 'win' ? t.amount : -t.amount;
+});
+if (charts.monthly && charts.monthly.data) {
+charts.monthly.data.datasets[0].data = monthlyData;
+charts.monthly.update();
+}
+} catch (error) {
+console.error('Chart update error:', error);
+}
+}
+
+// ========== UPDATE ANALYTICS ==========
+function updateAnalytics() {
+try {
+const total = state.winCount + state.lossCount;
+document.getElementById('analyticsTotalTrades').textContent = total;
+document.getElementById('analyticsWins').textContent = state.winCount;
+document.getElementById('analyticsLosses').textContent = state.lossCount;
+const wr = total > 0 ? (state.winCount / total * 100) : 0;
+document.getElementById('analyticsWinRate').textContent = `${wr.toFixed(1)}%`;
+
+const avgWin = state.winCount > 0 ? state.totalProfit / state.winCount : 0;
+const avgLoss = state.lossCount > 0 ? state.totalLoss / state.lossCount : 0;
+document.getElementById('analyticsAvgWin').textContent = `$${avgWin.toFixed(2)}`;
+document.getElementById('analyticsAvgLoss').textContent = `$${avgLoss.toFixed(2)}`;
+
+const pf = (state.lossCount > 0) ? (state.winCount / state.lossCount) : (state.winCount > 0 ? state.winCount : 0);
+document.getElementById('analyticsPF').textContent = pf.toFixed(2);
+
+const exp = total > 0 ? (state.totalProfit - state.totalLoss) / total : 0;
+document.getElementById('analyticsExpectancy').textContent = `$${exp.toFixed(2)}`;
+
+let bestTrade = 0, worstTrade = 0;
+state.trades.forEach(t => {
+const pl = t.result === 'win' ? t.amount : -t.amount;
+if (pl > bestTrade) bestTrade = pl;
+if (pl < worstTrade) worstTrade = pl;
+});
+document.getElementById('analyticsBestTrade').textContent = `$${bestTrade}`;
+document.getElementById('analyticsWorstTrade').textContent = `$${worstTrade}`;
+
+let maxWins = 0, maxLosses = 0, curWins = 0, curLosses = 0;
+state.trades.forEach(t => {
+if (t.result === 'win') { curWins++; curLosses = 0; } else { curLosses++; curWins = 0; }
+if (curWins > maxWins) maxWins = curWins;
+if (curLosses > maxLosses) maxLosses = curLosses;
+});
+document.getElementById('analyticsMaxWins').textContent = maxWins;
+document.getElementById('analyticsMaxLosses').textContent = maxLosses;
+} catch (error) {
+console.error('Analytics update error:', error);
+}
+}
+
+// ========== ADD TRADE ==========
+function addTrade(result, customAmount = null, customDir = null) {
+try {
+const isWin = result === 'win';
+const amount = customAmount !== null ? Math.abs(customAmount) : (isWin ? 100 : 25);
+const dir = customDir || (isWin ? 'BUY' : 'SELL');
+
+state.balance += isWin ? amount : -amount;
+state.trades.push({
+date: new Date().toISOString().slice(0, 10),
+dir: dir,
+result: isWin ? 'win' : 'loss',
+amount: amount,
+r: isWin ? 4 : -1
+});
+
+if (isWin) {
+state.winCount += 1;
+state.totalProfit += amount;
+state.consecutiveWins += 1;
+state.consecutiveLosses = 0;
+state.streak = state.streak > 0 ? state.streak + 1 : 1;
+} else {
+state.lossCount += 1;
+state.totalLoss += amount;
+state.dailyLoss += amount;
+state.consecutiveLosses += 1;
+state.consecutiveWins = 0;
+state.streak = state.streak < 0 ? state.streak - 1 : -1;
+}
+
+if (state.balance > state.maxBalance) state.maxBalance = state.balance;
+
+const score = Math.min(100, Math.floor(60 + Math.random() * 40));
+document.getElementById('scoreDisplay').textContent = score;
+const label = document.getElementById('scoreLabel');
+if (score >= 90) { label.textContent = 'A+ Trade'; label.className = 'text-xs text-green-300'; } 
+else if (score >= 70) { label.textContent = 'Acceptable Trade'; label.className = 'text-xs text-yellow-300'; } 
+else { label.textContent = 'Skip Trade'; label.className = 'text-xs text-red-300'; }
+
+updateUI();
+} catch (error) {
+console.error('Add trade error:', error);
+}
+}
+
+// ========== ADD CUSTOM TRADE ==========
+function addCustomTrade() {
+try {
+const type = document.getElementById('tradeType').value;
+const amount = parseFloat(document.getElementById('tradeAmount').value);
+const dir = document.getElementById('tradeDirection').value.toUpperCase();
+
+if (isNaN(amount) || amount <= 0) {
+alert('Please enter a valid amount');
+return;
+}
+
+if (!dir || (dir !== 'BUY' && dir !== 'SELL')) {
+alert('Direction must be BUY or SELL');
+return;
+}
+
+addTrade(type, amount, dir);
+} catch (error) {
+console.error('Add custom trade error:', error);
+}
+}
+
+// ========== RESET ==========
+function resetAll() {
+try {
+if (confirm('Reset all data?')) {
+state = {
+balance: 1000,
+trades: [],
+dailyLoss: 0,
+streak: 0,
+consecutiveWins: 0,
+consecutiveLosses: 0,
+totalProfit: 0,
+totalLoss: 0,
+winCount: 0,
+lossCount: 0,
+maxBalance: 1000,
+editingIndex: -1
+};
+document.getElementById('scoreDisplay').textContent = '92';
+document.getElementById('scoreLabel').textContent = 'A+ Trade';
+document.getElementById('scoreLabel').className = 'text-xs text-green-300';
+document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(c => c.checked = false);
+updateChecklistStatus();
+updateUI();
+}
+} catch (error) {
+console.error('Reset error:', error);
+}
+}
+
+// ========== EVENT LISTENERS ==========
+document.addEventListener('DOMContentLoaded', function() {
+document.getElementById('winBtn').addEventListener('click', () => addTrade('win'));
+document.getElementById('lossBtn').addEventListener('click', () => addTrade('loss'));
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+document.getElementById('calcBtn').addEventListener('click', updateLotSize);
+document.getElementById('riskInput').addEventListener('change', updateLotSize);
+document.getElementById('slInput').addEventListener('change', updateLotSize);
+document.getElementById('clearJournalBtn').addEventListener('click', clearJournal);
+document.getElementById('addCustomTradeBtn').addEventListener('click', addCustomTrade);
+
+// Enter key support for custom trade
+document.getElementById('tradeAmount').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') addCustomTrade();
+});
+document.getElementById('tradeDirection').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') addCustomTrade();
+});
+
+// ========== INIT ==========
+initCharts();
+updateUI();
+});
+</script>
+</body>
+</html>
