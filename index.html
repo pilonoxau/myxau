@@ -308,7 +308,7 @@ cursor: pointer;
     <div><span class="text-gray-400 text-xs">Drawdown</span><div class="text-red-300 text-sm font-semibold" id="drawdownPct">0%</div></div>
     <div><span class="text-gray-400 text-xs">Streak</span><div class="text-gold text-sm font-semibold" id="streakDisplay">0</div></div>
     <div><span class="text-gray-400 text-xs">Total Trades</span><div class="text-blue-300 text-sm font-semibold" id="totalTradesDisplay">0</div></div>
-    <div><span class="text-gray-400 text-xs">Daily Loss</span><div class="text-red-300 text-sm font-semibold" id="dailyLossDisplay">$0.00</div></div>
+    <div><span class="text-gray-400 text-xs">Daily Loss</span><div class="text-red-300 text-sm font-semibold" id="dailyLossDisplay">$0.00 / $75.00</div></div>
   </div>
 </div>
 
@@ -317,7 +317,8 @@ cursor: pointer;
   <div class="glass-card p-3 flex flex-col gap-1">
     <span class="text-xs text-gray-400"><i class="fas fa-shield-alt text-blue-400"></i> Risk Manager</span>
     <div id="riskMessage" class="text-green-300 text-sm">✅ All good</div>
-    <div id="dailyLossAlert" class="hidden risk-badge p-1 text-xs rounded-lg">Daily loss limit reached</div>
+    <div id="dailyLossAlert" class="hidden risk-badge p-1 text-xs rounded-lg">⚠️ Daily loss limit reached!</div>
+    <div id="dailyLossProgress" class="text-xs text-gray-400 mt-1"></div>
   </div>
   <div class="glass-card p-3">
     <span class="text-xs text-gray-400"><i class="fas fa-calculator"></i> Lot Size Calculator</span>
@@ -426,7 +427,7 @@ cursor: pointer;
 <div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
 <div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
 <div class="rule-card"><strong>Risk Per Trade:</strong> <span id="ruleRiskPercent">2.5</span>% of balance</div>
-<div class="rule-card"><strong>Max Daily Loss:</strong> <span id="ruleMaxDailyLoss">7.5</span>% of balance</div>
+<div class="rule-card"><strong>Max Daily Loss:</strong> <span id="ruleMaxDailyLoss">7.5</span>% of current balance</div>
 <div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
 </div>
 <div class="glass-card p-4">
@@ -446,6 +447,7 @@ cursor: pointer;
 <div class="rule-card warning"><strong>Never Revenge Trade</strong> - Stick to the plan</div>
 <div class="rule-card warning"><strong>Never Increase Lot Size After Loss</strong> - Maintain discipline</div>
 <div class="rule-card warning"><strong>After Three Losses</strong> - STOP TRADING for the day</div>
+<div class="rule-card warning"><strong>Daily Loss Limit:</strong> 7.5% of current balance</div>
 </div>
 </div>
 
@@ -544,7 +546,7 @@ cursor: pointer;
 <li>• Only XAUUSD</li>
 <li>• Maximum 3 trades/day</li>
 <li>• Risk <span id="planRiskPercent">2.5</span>% per trade</li>
-<li>• Maximum Daily Loss <span id="planMaxDailyLoss">7.5</span>%</li>
+<li>• Maximum Daily Loss <span id="planMaxDailyLoss">7.5</span>% of current balance</li>
 <li>• London & New York Only</li>
 <li>• 1H Trend: EMA50 above/below EMA100</li>
 </ul>
@@ -571,7 +573,7 @@ cursor: pointer;
 <h4 class="text-yellow-400 font-semibold mb-2"><i class="fas fa-stop-circle mr-2"></i>Stop Rules</h4>
 <ul class="space-y-1 text-sm text-gray-300">
 <li>• After Three Losses - Stop Trading</li>
-<li>• Daily Loss >= <span id="planDailyLossLimit">7.5</span>% - Stop Trading</li>
+<li>• Daily Loss >= <span id="planDailyLossLimit">7.5</span>% of current balance - Stop Trading</li>
 </ul>
 </div>
 </div>
@@ -743,7 +745,7 @@ function handleLogout() {
   }
 }
 
-// ========== DATA MANAGEMENT - EACH EMAIL HAS OWN DATA ==========
+// ========== DATA MANAGEMENT ==========
 function getUserDataKey(email) {
   return `trading_data_${email}`;
 }
@@ -758,7 +760,7 @@ function saveUserData(email) {
     };
     const key = getUserDataKey(email);
     localStorage.setItem(key, JSON.stringify(data));
-    console.log(`Data saved for: ${email} (key: ${key})`);
+    console.log(`Data saved for: ${email}`);
   } catch (e) {
     console.error('Error saving data:', e);
   }
@@ -803,10 +805,8 @@ function loadUserData(email) {
       
       updateQuickPercentages();
       updateUI();
-      console.log(`Data loaded for: ${email} (${state.trades.length} trades)`);
     } else {
-      console.log(`No existing data for: ${email}, starting fresh`);
-      // Fresh start for new user
+      // Fresh start
       state = {
         balance: config.startBalance,
         trades: [],
@@ -1112,6 +1112,11 @@ function initCharts() {
   }
 }
 
+// ========== GET MAX DAILY LOSS AMOUNT ==========
+function getMaxDailyLossAmount() {
+  return (state.balance * config.maxDailyLossPercent) / 100;
+}
+
 // ========== UPDATE UI ==========
 function updateUI() {
   try {
@@ -1147,25 +1152,43 @@ function updateUI() {
     document.getElementById('streakDisplay').textContent = state.streak;
     document.getElementById('totalTradesDisplay').textContent = totalTrades;
     
-    const maxDailyLossAmount = (config.startBalance * config.maxDailyLossPercent) / 100;
+    // DAILY LOSS - ALWAYS 7.5% OF CURRENT BALANCE
+    const maxDailyLossAmount = getMaxDailyLossAmount();
     document.getElementById('dailyLossDisplay').textContent = `$${state.dailyLoss.toFixed(2)} / $${maxDailyLossAmount.toFixed(2)}`;
     document.getElementById('maxDailyLossDisplay').textContent = `$${maxDailyLossAmount.toFixed(2)}`;
 
-    // Risk manager
+    // Risk manager with dynamic daily loss
     const riskMsg = document.getElementById('riskMessage');
     const alertDiv = document.getElementById('dailyLossAlert');
+    const progressDiv = document.getElementById('dailyLossProgress');
+    
+    // Calculate percentage of daily loss used
+    const lossPercentage = maxDailyLossAmount > 0 ? (state.dailyLoss / maxDailyLossAmount * 100) : 0;
+    
     if (state.dailyLoss >= maxDailyLossAmount) {
       riskMsg.innerHTML = '⚠️ Daily loss limit reached!';
-      riskMsg.className = 'text-red-400 text-sm';
+      riskMsg.className = 'text-red-400 text-sm font-bold';
       alertDiv.classList.remove('hidden');
+      progressDiv.innerHTML = `🔴 ${lossPercentage.toFixed(1)}% of daily loss limit used`;
+      progressDiv.className = 'text-xs text-red-400 mt-1';
     } else if (state.consecutiveLosses >= 3) {
       riskMsg.innerHTML = '🔴 3 consecutive losses! STOP TRADING';
-      riskMsg.className = 'text-red-400 text-sm';
+      riskMsg.className = 'text-red-400 text-sm font-bold';
       alertDiv.classList.add('hidden');
+      progressDiv.innerHTML = `⚠️ ${lossPercentage.toFixed(1)}% of daily loss limit used`;
+      progressDiv.className = 'text-xs text-yellow-400 mt-1';
+    } else if (lossPercentage > 70) {
+      riskMsg.innerHTML = `⚠️ ${lossPercentage.toFixed(1)}% of daily loss limit used`;
+      riskMsg.className = 'text-yellow-400 text-sm';
+      alertDiv.classList.add('hidden');
+      progressDiv.innerHTML = `⚠️ ${lossPercentage.toFixed(1)}% of daily loss limit used`;
+      progressDiv.className = 'text-xs text-yellow-400 mt-1';
     } else {
       riskMsg.innerHTML = '✅ All good';
       riskMsg.className = 'text-green-300 text-sm';
       alertDiv.classList.add('hidden');
+      progressDiv.innerHTML = `📊 ${lossPercentage.toFixed(1)}% of daily loss limit used`;
+      progressDiv.className = 'text-xs text-gray-400 mt-1';
     }
 
     // Update lot size
@@ -1511,10 +1534,10 @@ function addTrade(result, customAmount = null, customDir = null) {
     
     const dir = customDir || (isWin ? 'BUY' : 'SELL');
 
-    // Check daily loss limit
-    const maxDailyLossAmount = (config.startBalance * config.maxDailyLossPercent) / 100;
+    // Check daily loss limit - ALWAYS BASED ON CURRENT BALANCE
+    const maxDailyLossAmount = getMaxDailyLossAmount();
     if (!isWin && (state.dailyLoss + amount) > maxDailyLossAmount) {
-      alert(`⚠️ Daily loss limit reached! Max loss is $${maxDailyLossAmount.toFixed(2)}`);
+      alert(`⚠️ Daily loss limit reached! Max loss is $${maxDailyLossAmount.toFixed(2)} (${config.maxDailyLossPercent}% of current balance)`);
       return;
     }
 
