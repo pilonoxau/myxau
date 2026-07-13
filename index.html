@@ -573,7 +573,7 @@ cursor: pointer;
 <h4 class="text-yellow-400 font-semibold mb-2"><i class="fas fa-stop-circle mr-2"></i>Stop Rules</h4>
 <ul class="space-y-1 text-sm text-gray-300">
 <li>• After Three Losses - Stop Trading</li>
-<li>• Daily Loss >= <span id="planDailyLossLimit">7.5</span>% of current balance - Stop Trading</li>
+<li>• Daily Loss >= <span id="planDailyLossLimit">7.5</span>% of current balance - Warning</li>
 </ul>
 </div>
 </div>
@@ -670,7 +670,6 @@ function handleSignup() {
     return;
   }
 
-  // Create user
   users[email] = {
     name: name,
     email: email,
@@ -682,13 +681,11 @@ function handleSignup() {
   successDiv.textContent = '✅ Account created successfully! Please sign in.';
   successDiv.style.display = 'block';
 
-  // Clear signup form
   document.getElementById('signupName').value = '';
   document.getElementById('signupEmail').value = '';
   document.getElementById('signupPassword').value = '';
   document.getElementById('signupConfirm').value = '';
 
-  // Switch to login after 2 seconds
   setTimeout(() => {
     showLogin();
     document.getElementById('loginEmail').value = email;
@@ -711,7 +708,6 @@ function handleLogin() {
     return;
   }
 
-  // Check if user exists
   if (!users[email]) {
     errorDiv.textContent = 'Email not found. Please create an account.';
     errorDiv.style.display = 'block';
@@ -724,14 +720,12 @@ function handleLogin() {
     return;
   }
 
-  // Login successful
   currentUser = email;
   document.getElementById('userEmailDisplay').textContent = email;
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
 
-  // Load user data
   loadUserData(email);
 }
 
@@ -794,7 +788,6 @@ function loadUserData(email) {
         config.currentBalance = state.balance;
       }
       
-      // Update UI inputs
       document.getElementById('startBalanceInput').value = config.startBalance;
       document.getElementById('riskPercentInput').value = config.riskPercent;
       document.getElementById('maxDailyLossInput').value = config.maxDailyLossPercent;
@@ -806,7 +799,6 @@ function loadUserData(email) {
       updateQuickPercentages();
       updateUI();
     } else {
-      // Fresh start
       state = {
         balance: config.startBalance,
         trades: [],
@@ -935,31 +927,26 @@ function saveSettings() {
     if (newQuickWinPct < 0.1 || newQuickWinPct > 20) { alert('Quick Win % must be between 0.1 and 20'); return; }
     if (newQuickLossPct < 0.1 || newQuickLossPct > 20) { alert('Quick Loss % must be between 0.1 and 20'); return; }
     
-    // Update config
     config.startBalance = newStartBalance;
     config.riskPercent = newRiskPercent;
     config.maxDailyLossPercent = newMaxDailyLoss;
     config.quickWinPercent = newQuickWinPct;
     config.quickLossPercent = newQuickLossPct;
     
-    // Update quick buttons
     document.getElementById('quickWinPercent').value = newQuickWinPct;
     document.getElementById('quickLossPercent').value = newQuickLossPct;
     updateQuickPercentages();
     
-    // Update state
     state.balance = newStartBalance;
     state.maxBalance = newStartBalance;
     config.currentBalance = newStartBalance;
     
-    // Update rules display
     document.getElementById('ruleRiskPercent').textContent = newRiskPercent;
     document.getElementById('ruleMaxDailyLoss').textContent = newMaxDailyLoss;
     document.getElementById('planRiskPercent').textContent = newRiskPercent;
     document.getElementById('planMaxDailyLoss').textContent = newMaxDailyLoss;
     document.getElementById('planDailyLossLimit').textContent = newMaxDailyLoss;
     
-    // Save user data
     if (currentUser) {
       saveUserData(currentUser);
     }
@@ -1114,6 +1101,7 @@ function initCharts() {
 
 // ========== GET MAX DAILY LOSS AMOUNT ==========
 function getMaxDailyLossAmount() {
+  // 7.5% of CURRENT BALANCE
   return (state.balance * config.maxDailyLossPercent) / 100;
 }
 
@@ -1152,7 +1140,7 @@ function updateUI() {
     document.getElementById('streakDisplay').textContent = state.streak;
     document.getElementById('totalTradesDisplay').textContent = totalTrades;
     
-    // DAILY LOSS - ALWAYS 7.5% OF CURRENT BALANCE
+    // DAILY LOSS - 7.5% OF CURRENT BALANCE
     const maxDailyLossAmount = getMaxDailyLossAmount();
     document.getElementById('dailyLossDisplay').textContent = `$${state.dailyLoss.toFixed(2)} / $${maxDailyLossAmount.toFixed(2)}`;
     document.getElementById('maxDailyLossDisplay').textContent = `$${maxDailyLossAmount.toFixed(2)}`;
@@ -1165,8 +1153,8 @@ function updateUI() {
     // Calculate percentage of daily loss used
     const lossPercentage = maxDailyLossAmount > 0 ? (state.dailyLoss / maxDailyLossAmount * 100) : 0;
     
-    if (state.dailyLoss >= maxDailyLossAmount) {
-      riskMsg.innerHTML = '⚠️ Daily loss limit reached!';
+    if (state.dailyLoss >= maxDailyLossAmount && maxDailyLossAmount > 0) {
+      riskMsg.innerHTML = '🔴 Daily loss limit reached! (7.5%)';
       riskMsg.className = 'text-red-400 text-sm font-bold';
       alertDiv.classList.remove('hidden');
       progressDiv.innerHTML = `🔴 ${lossPercentage.toFixed(1)}% of daily loss limit used`;
@@ -1191,9 +1179,7 @@ function updateUI() {
       progressDiv.className = 'text-xs text-gray-400 mt-1';
     }
 
-    // Update lot size
     updateLotSize();
-
     updateJournal();
     updateCharts();
     updateAnalytics();
@@ -1534,13 +1520,17 @@ function addTrade(result, customAmount = null, customDir = null) {
     
     const dir = customDir || (isWin ? 'BUY' : 'SELL');
 
-    // Check daily loss limit - ALWAYS BASED ON CURRENT BALANCE
+    // Check daily loss limit - 7.5% of CURRENT BALANCE
     const maxDailyLossAmount = getMaxDailyLossAmount();
+    
+    // Only show warning, don't block trades
     if (!isWin && (state.dailyLoss + amount) > maxDailyLossAmount) {
-      alert(`⚠️ Daily loss limit reached! Max loss is $${maxDailyLossAmount.toFixed(2)} (${config.maxDailyLossPercent}% of current balance)`);
-      return;
+      const warningMsg = `⚠️ WARNING: This trade would exceed your daily loss limit!\n\nCurrent Daily Loss: $${state.dailyLoss.toFixed(2)}\nMax Daily Loss (7.5% of balance): $${maxDailyLossAmount.toFixed(2)}\nThis trade: -$${amount.toFixed(2)}\nNew Daily Loss: $${(state.dailyLoss + amount).toFixed(2)}\n\nYou can still take this trade, but be careful!`;
+      alert(warningMsg);
+      // Don't return - allow the trade to proceed
     }
 
+    // Execute the trade
     state.balance += isWin ? amount : -amount;
     state.trades.push({
       date: new Date().toISOString().slice(0, 10),
@@ -1652,7 +1642,6 @@ function resetAll() {
 document.addEventListener('DOMContentLoaded', function() {
   loadUsers();
   
-  // Quick trade buttons
   document.getElementById('winBtn').addEventListener('click', addQuickWin);
   document.getElementById('lossBtn').addEventListener('click', addQuickLoss);
   
