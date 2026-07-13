@@ -1,1631 +1,2123 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import {
-  LayoutDashboard, LineChart as LineChartIcon, FlaskConical, BookOpen, BarChart3,
-  Calendar as CalendarIcon, ListChecks, ShieldCheck, ClipboardCheck, Target, Settings as SettingsIcon,
-  Search, Plus, Filter, Download, X, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
-  Flame, Sun, Moon, Upload, Image as ImageIcon, Tag, Trash2, Edit3, Star, Percent,
-  DollarSign, Activity, Award, Layers, Clock, Bell, Sliders, Calculator, ArrowUpRight,
-  ArrowDownRight, Maximize2, ChevronDown, CheckCircle2, Circle, Shield, Zap, Gauge,
-  CalendarDays, Eye, PenLine, Notebook, Trophy, Users, User, Settings as SettingsIcon2,
-  AlertCircle, Info, HelpCircle, Maximize, Minimize, Move, RefreshCw, Save,
-  FileText, FileSpreadsheet, FileJson, Printer, Clipboard, CheckCheck, Play
-} from "lucide-react";
-import {
-  AreaChart, Area, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart
-} from "recharts";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
+<title>TradeVault · Premium Trading Journal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  background: #0B1120; 
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+  color: #F8FAFC; 
+  transition: background 0.3s ease, color 0.3s ease;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
 
-/* ============================= THEME ============================= */
+body.light-mode {
+  background: #F1F5F9;
+  color: #0B1120;
+}
+body.light-mode .glass-card,
+body.light-mode .summary-card,
+body.light-mode .backtest-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #0B1120;
+}
+body.light-mode .glass-card:hover,
+body.light-mode .summary-card:hover,
+body.light-mode .backtest-card:hover {
+  border-color: #3B82F6;
+}
+body.light-mode .nav-link { color: #64748B; }
+body.light-mode .nav-link:hover { color: #0B1120; background: rgba(59, 130, 246, 0.06); }
+body.light-mode .active-nav { color: #3B82F6; background: rgba(59, 130, 246, 0.08); }
+body.light-mode .glass-input { background: #F8FAFC; border-color: #E2E8F0; color: #0B1120; }
+body.light-mode .glass-input:focus { border-color: #3B82F6; }
+body.light-mode .glass-card::before { display: none; }
+body.light-mode .login-box { background: #FFFFFF; border-color: #E2E8F0; }
+body.light-mode .login-input { background: #F8FAFC; border-color: #E2E8F0; color: #0B1120; }
+body.light-mode aside { background: #FFFFFF; border-color: #E2E8F0; }
+body.light-mode .text-[#94A3B8] { color: #64748B; }
+body.light-mode .text-[#F8FAFC] { color: #0B1120; }
+body.light-mode .border-[#1F2937] { border-color: #E2E8F0; }
+body.light-mode .badge-win { background: rgba(34, 197, 94, 0.1); }
+body.light-mode .badge-loss { background: rgba(239, 68, 68, 0.1); }
+body.light-mode .badge-neutral { background: rgba(245, 158, 11, 0.1); }
+body.light-mode .drop-zone { border-color: #E2E8F0; background: #F8FAFC; }
+body.light-mode .drop-zone:hover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.04); }
 
-const darkTheme = {
-  bg: "#0B1120",
-  bgAlt: "#0E1524",
-  card: "#111827",
-  border: "#1F2937",
-  blue: "#3B82F6",
-  green: "#22C55E",
-  red: "#EF4444",
-  orange: "#F59E0B",
-  text: "#F8FAFC",
-  textSecondary: "#94A3B8",
-};
-
-const lightTheme = {
-  bg: "#F3F5F9",
-  bgAlt: "#FFFFFF",
-  card: "#FFFFFF",
-  border: "#E2E8F0",
-  blue: "#3B82F6",
-  green: "#16A34A",
-  red: "#DC2626",
-  orange: "#D97706",
-  text: "#0F172A",
-  textSecondary: "#64748B",
-};
-
-/* ============================= MOCK DATA ============================= */
-
-function seededRandom(seed) {
-  let s = seed;
-  return () => {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
+.glass-card {
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.glass-card:hover {
+  border-color: #3B82F6;
+  box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 16px;
 }
 
-const PAIRS = ["EUR/USD", "GBP/USD", "XAU/USD", "US30", "NAS100", "BTC/USD", "USD/JPY", "AUD/USD", "USD/CAD", "EUR/JPY"];
-const STRATEGIES = ["Liquidity Sweep Reversal", "ORB Breakout", "FVG Continuation", "Trend Pullback", "Range Fade", "Breakout", "Reversal", "Supply/Demand"];
-const SESSIONS = ["London", "New York", "Asia", "London/NY Overlap", "Sydney"];
-const EMOTIONS = ["Calm", "Confident", "Anxious", "Impatient", "Focused", "FOMO", "Neutral", "Excited"];
-const GRADES = ["A+", "A", "B", "C", "D"];
-const TAGS_POOL = ["Breakout", "Reversal", "News", "Revenge Trade", "High Conviction", "Scalp", "Swing", "FVG", "Liquidity", "Supply", "Demand", "BOS"];
+.nav-link {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: #94A3B8;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+.nav-link:hover { 
+  background: rgba(59, 130, 246, 0.08); 
+  color: #F8FAFC;
+  transform: translateX(4px);
+}
+.active-nav { 
+  background: rgba(59, 130, 246, 0.12); 
+  color: #3B82F6;
+  border-left: 3px solid #3B82F6;
+}
+.nav-link i { width: 20px; text-align: center; }
 
-function generateTrades(count = 120) {
-  const rand = seededRandom(42);
-  const trades = [];
-  const today = new Date();
-  for (let i = 0; i < count; i++) {
-    const daysAgo = Math.floor(rand() * 180);
-    const date = new Date(today);
-    date.setDate(date.getDate() - daysAgo);
-    const win = rand() > 0.42;
-    const rr = win ? +(0.8 + rand() * 3.2).toFixed(2) : -1 * +(0.4 + rand() * 1.1).toFixed(2);
-    const riskAmount = 100 + Math.floor(rand() * 150);
-    const pnl = +(rr * riskAmount).toFixed(2);
-    const grade = GRADES[Math.floor(rand() * GRADES.length)];
-    trades.push({
-      id: `T-${1000 + i}`,
-      date: date.toISOString().slice(0, 10),
-      pair: PAIRS[Math.floor(rand() * PAIRS.length)],
-      strategy: STRATEGIES[Math.floor(rand() * STRATEGIES.length)],
-      session: SESSIONS[Math.floor(rand() * SESSIONS.length)],
-      direction: rand() > 0.5 ? "Long" : "Short",
-      rr,
-      pnl,
-      win,
-      grade,
-      confidence: Math.floor(3 + rand() * 3),
-      emotion: EMOTIONS[Math.floor(rand() * EMOTIONS.length)],
-      tags: [
-        TAGS_POOL[Math.floor(rand() * TAGS_POOL.length)],
-        TAGS_POOL[Math.floor(rand() * TAGS_POOL.length)]
-      ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 2),
-      entryPrice: 100 + Math.floor(rand() * 500),
-      exitPrice: 100 + Math.floor(rand() * 500),
-      stopLoss: 95 + Math.floor(rand() * 50),
-      takeProfit: 150 + Math.floor(rand() * 100),
-      notes: "Waited for liquidity sweep of session high before entering. Followed plan, exited at partial target.",
-      mistakes: rand() > 0.7 ? "Entered slightly early, before full confirmation candle closed." : "",
-      lessons: rand() > 0.6 ? "Wait for the 5m close next time before committing risk." : "",
-      images: [],
-    });
-  }
-  return trades.sort((a, b) => new Date(b.date) - new Date(a.date));
+.summary-card { 
+  padding: 1.25rem; 
+  text-align: center;
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+.summary-card:hover {
+  border-color: #3B82F6;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
+}
+.summary-card .value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.summary-card .label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; margin-top: 0.25rem; font-weight: 600; letter-spacing: 0.06em; }
+.summary-card .icon { font-size: 1.2rem; opacity: 0.5; margin-bottom: 0.25rem; }
+
+.btn-primary {
+  background: #3B82F6;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover { 
+  background: #2563EB; 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #1F2937;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #94A3B8;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-secondary:hover { 
+  background: rgba(59, 130, 246, 0.06); 
+  border-color: #3B82F6;
+  color: #F8FAFC;
 }
 
-const TRADES = generateTrades();
-
-/* ============================= DERIVED STATS ============================= */
-
-function computeStats(trades) {
-  const total = trades.length;
-  const wins = trades.filter(t => t.win);
-  const losses = trades.filter(t => !t.win);
-  const winRate = total ? (wins.length / total) * 100 : 0;
-  const netPnl = trades.reduce((a, t) => a + t.pnl, 0);
-  const netRR = trades.reduce((a, t) => a + t.rr, 0);
-  const grossWin = wins.reduce((a, t) => a + t.pnl, 0);
-  const grossLoss = Math.abs(losses.reduce((a, t) => a + t.pnl, 0));
-  const profitFactor = grossLoss ? grossWin / grossLoss : grossWin > 0 ? Infinity : 0;
-  const avgWin = wins.length ? grossWin / wins.length : 0;
-  const avgLoss = losses.length ? grossLoss / losses.length : 0;
-  const avgRR = total ? netRR / total : 0;
-  const expectancy = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
-  const aPlusCount = trades.filter(t => t.grade === "A+").length;
-  const aPlusPct = total ? (aPlusCount / total) * 100 : 0;
-
-  // streaks
-  let current = 0, best = 0, run = 0, lastWin = null;
-  const chronological = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
-  chronological.forEach(t => {
-    if (t.win) {
-      run = lastWin === false ? 1 : run + 1;
-    } else {
-      run = lastWin === true ? 1 : run + 1;
-    }
-    lastWin = t.win;
-    if (t.win) best = Math.max(best, run);
-  });
-  const recent = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
-  if (recent.length) {
-    const kind = recent[0].win;
-    let c = 0;
-    for (const t of recent) {
-      if (t.win === kind) c++; else break;
-    }
-    current = kind ? c : -c;
-  }
-
-  // consistency
-  const byDay = {};
-  trades.forEach(t => { byDay[t.date] = (byDay[t.date] || 0) + t.pnl; });
-  const dayVals = Object.values(byDay);
-  const meanDay = dayVals.reduce((a, b) => a + b, 0) / (dayVals.length || 1);
-  const maxDay = Math.max(...dayVals.map(Math.abs), 1);
-  const consistency = Math.max(0, 100 - (Math.abs(maxDay - meanDay) / maxDay) * 40);
-
-  // RR consistency
-  let rrValid = 0;
-  trades.forEach(t => {
-    if (t.win && t.rr >= 1) rrValid++;
-    else if (!t.win && t.rr === -1) rrValid++;
-    else if (!t.win && t.rr < 0) rrValid++;
-  });
-  const rrConsistency = total ? (rrValid / total) * 100 : 100;
-
-  return {
-    total, winRate, netPnl, netRR, profitFactor, avgWin, avgLoss, avgRR,
-    expectancy, aPlusPct, current, best, consistency, rrConsistency, byDay
-  };
+.btn-success {
+  background: #22C55E;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-success:hover { 
+  background: #16A34A; 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
 }
 
-/* ============================= SMALL HELPERS ============================= */
-
-function fmtMoney(n) {
-  const sign = n < 0 ? "-" : "";
-  return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+.btn-danger {
+  background: #EF4444;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-function fmtNum(n, d = 2) {
-  return n.toFixed(d);
+.btn-danger:hover { 
+  background: #DC2626; 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35);
 }
 
-/* ============================= APP ============================= */
+.btn-sm { padding: 0.3rem 0.9rem; font-size: 0.7rem; }
+.btn-xs { padding: 0.15rem 0.6rem; font-size: 0.6rem; }
 
-const NAV = [
-  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { key: "trades", label: "Trades", icon: LineChartIcon },
-  { key: "backtesting", label: "Backtesting", icon: FlaskConical },
-  { key: "journal", label: "Journal", icon: BookOpen },
-  { key: "reports", label: "Reports", icon: BarChart3 },
-  { key: "analytics", label: "Analytics", icon: Activity },
-  { key: "calendar", label: "Calendar", icon: CalendarIcon },
-  { key: "playbook", label: "Playbook", icon: Layers },
-  { key: "rules", label: "Trading Rules", icon: ShieldCheck },
-  { key: "checklist", label: "Checklist", icon: ClipboardCheck },
-  { key: "plan", label: "Trading Plan", icon: Target },
-  { key: "settings", label: "Settings", icon: SettingsIcon },
-];
+.glass-input {
+  background: #0B1120;
+  border: 1px solid #1F2937;
+  border-radius: 10px;
+  padding: 0.4rem 0.8rem;
+  color: #F8FAFC;
+  width: 100%;
+  font-size: 0.8rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-input:focus { 
+  border-color: #3B82F6; 
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
 
-export default function TradingJournalApp() {
-  const [dark, setDark] = useState(true);
-  const [page, setPage] = useState("dashboard");
-  const [trades, setTrades] = useState(TRADES);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [showNewTrade, setShowNewTrade] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const T = dark ? darkTheme : lightTheme;
-  const stats = useMemo(() => computeStats(trades), [trades]);
+.page { display: none; animation: fadeSlide 0.3s ease; }
+.page.active { display: block; }
 
-  // Add notification
-  const addNotification = (message, type = "info") => {
-    setNotifications(prev => [...prev, { id: Date.now(), message, type, timestamp: new Date() }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== Date.now()));
-    }, 5000);
-  };
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  // Add trade function
-  const addTrade = (newTrade) => {
-    setTrades(prev => [newTrade, ...prev]);
-    addNotification(`Trade ${newTrade.id} added: ${newTrade.pair} ${newTrade.direction}`, "success");
-  };
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
+.badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+.badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.badge-aplus { background: rgba(34, 197, 94, 0.2); color: #22C55E; }
+.badge-a { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+.badge-b { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+.badge-c { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
-  return (
-    <div style={{
-      background: T.bg, color: T.text, minHeight: "100vh", fontFamily: "Inter, ui-sans-serif, system-ui",
-      display: "flex", width: "100%"
-    }}>
-      <Sidebar T={T} page={page} setPage={setPage} dark={dark} setDark={setDark} notifications={notifications} />
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <TopBar T={T} page={page} dark={dark} setDark={setDark} setShowNewTrade={setShowNewTrade} addNotification={addNotification} />
-        <div style={{ padding: "24px 28px", flex: 1, overflowY: "auto" }}>
-          {page === "dashboard" && (
-            <Dashboard T={T} trades={trades} stats={stats} selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
-          )}
-          {page === "trades" && <TradesPage T={T} trades={trades} setTrades={setTrades} addNotification={addNotification} />}
-          {page === "backtesting" && <BacktestingPage T={T} trades={trades} />}
-          {page === "journal" && <JournalPage T={T} trades={trades} />}
-          {page === "reports" && <ReportsPage T={T} trades={trades} stats={stats} />}
-          {page === "analytics" && <AnalyticsPage T={T} trades={trades} stats={stats} />}
-          {page === "calendar" && <CalendarPage T={T} trades={trades} />}
-          {page === "playbook" && <PlaybookPage T={T} trades={trades} />}
-          {page === "rules" && <RulesPage T={T} />}
-          {page === "checklist" && <ChecklistPage T={T} />}
-          {page === "plan" && <PlanPage T={T} />}
-          {page === "settings" && <SettingsPage T={T} dark={dark} setDark={setDark} />}
-        </div>
-      </div>
-      {showNewTrade && <NewTradeModal T={T} onClose={() => setShowNewTrade(false)} onAdd={addTrade} />}
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-dot.green { background: #22C55E; }
+.status-dot.red { background: #EF4444; }
+.status-dot.yellow { background: #F59E0B; }
+.status-dot.blue { background: #3B82F6; }
+
+.table-wrap { max-height: 450px; overflow-y: auto; overflow-x: hidden; }
+.table-wrap::-webkit-scrollbar { width: 3px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 2px; }
+
+.backtest-card {
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  padding: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+.backtest-card:hover {
+  border-color: #3B82F6;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.1);
+}
+.backtest-card .thumbnail {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #0B1120;
+  border: 1px solid #1F2937;
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+.image-gallery .gallery-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #1F2937;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.image-gallery .gallery-img:hover {
+  border-color: #3B82F6;
+  transform: scale(1.03);
+}
+
+.drop-zone {
+  border: 2px dashed #1F2937;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #94A3B8;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: #3B82F6;
+  background: rgba(59, 130, 246, 0.05);
+}
+.drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* Lightbox */
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(16px);
+}
+.lightbox.active { display: flex; }
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 14px;
+  border: 1px solid #1F2937;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.lightbox .close-lightbox {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  color: #F8FAFC;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.lightbox .close-lightbox:hover { color: #EF4444; transform: rotate(90deg); }
+
+/* Calendar */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-day {
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  background: #111827;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.calendar-day:hover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.05); }
+.calendar-day .day-number { font-size: 0.9rem; font-weight: 600; }
+.calendar-day .day-pl { font-size: 0.6rem; font-weight: 600; }
+.calendar-day.profit { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.2); }
+.calendar-day.loss { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.2); }
+.calendar-day.today { border-color: #3B82F6; border-width: 2px; }
+.calendar-day.empty { background: transparent; cursor: default; }
+
+/* Theme toggle */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid #1F2937;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #94A3B8;
+}
+.theme-toggle:hover { border-color: #3B82F6; color: #F8FAFC; }
+
+/* Login */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 17, 32, 0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(20px);
+}
+.login-box {
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
+.login-box h2 {
+  background: linear-gradient(135deg, #3B82F6, #60A5FA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+  font-size: 1.8rem;
+}
+.login-box .subtitle {
+  color: #94A3B8;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+.login-input {
+  background: #0B1120;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  color: #F8FAFC;
+  width: 100%;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+.login-input:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.login-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background: #3B82F6;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+.login-btn:hover { background: #2563EB; transform: translateY(-1px); }
+.login-btn-secondary {
+  width: 100%;
+  padding: 0.8rem;
+  background: transparent;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  color: #94A3B8;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.login-btn-secondary:hover { background: rgba(59, 130, 246, 0.05); border-color: #3B82F6; color: #F8FAFC; }
+.login-error { color: #EF4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+.login-success { color: #22C55E; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94A3B8;
+  font-size: 0.75rem;
+}
+.user-info i { color: #3B82F6; }
+.logout-btn {
+  background: transparent;
+  border: 1px solid #1F2937;
+  color: #94A3B8;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  transition: all 0.15s ease;
+}
+.logout-btn:hover { border-color: #EF4444; color: #EF4444; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .summary-card .value { font-size: 1.2rem; }
+  .summary-card { padding: 0.75rem; }
+  .glass-card { padding: 0.75rem; }
+  .calendar-day { min-height: 40px; padding: 0.25rem; }
+  .calendar-day .day-number { font-size: 0.7rem; }
+  .calendar-day .day-pl { font-size: 0.5rem; }
+}
+@media (max-width: 640px) {
+  .sidebar-text { display: none; }
+  aside { width: 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <h2><i class="fas fa-chart-line"></i> Trade<span style="-webkit-text-fill-color:#F8FAFC;">Vault</span></h2>
+    <p class="subtitle">Sign in to your trading journal</p>
+    <div id="loginForm">
+      <input type="email" id="loginEmail" class="login-input" placeholder="Email address" />
+      <input type="password" id="loginPassword" class="login-input" placeholder="Password (min 6 chars)" />
+      <button class="login-btn" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+      <button class="login-btn-secondary" onclick="showSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
+      <div id="loginError" class="login-error">Invalid credentials</div>
+      <div id="loginSuccess" class="login-success">Account created! Please sign in.</div>
     </div>
-  );
-}
-
-/* ============================= SIDEBAR ============================= */
-
-function Sidebar({ T, page, setPage, dark, setDark, notifications }) {
-  const unread = notifications.length;
-  return (
-    <div style={{
-      width: 232, flexShrink: 0, background: T.bgAlt, borderRight: `1px solid ${T.border}`,
-      display: "flex", flexDirection: "column", padding: "18px 12px", position: "sticky", top: 0, height: "100vh"
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px 22px 10px" }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: 9, background: `linear-gradient(135deg, ${T.blue}, #8B5CF6)`,
-          display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "#fff"
-        }}>Ω</div>
-        <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>Omenta</div>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
-        {NAV.map(item => {
-          const Icon = item.icon;
-          const active = page === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => setPage(item.key)}
-              style={{
-                display: "flex", alignItems: "center", gap: 11, padding: "9px 12px", borderRadius: 10,
-                border: "none", cursor: "pointer", textAlign: "left", fontSize: 13.5, fontWeight: active ? 600 : 500,
-                background: active ? (dark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)") : "transparent",
-                color: active ? T.blue : T.textSecondary,
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.background = dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"; }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
-            >
-              <Icon size={17} strokeWidth={2} />
-              <span>{item.label}</span>
-              {item.key === "trades" && unread > 0 && (
-                <span style={{
-                  marginLeft: "auto", background: T.blue, color: "#fff", fontSize: 9, fontWeight: 700,
-                  padding: "1px 7px", borderRadius: 999
-                }}>{unread}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <div style={{ marginTop: "auto", paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px",
-          borderRadius: 10, background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", background: T.blue, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff" }}>JD</div>
-            <div style={{ fontSize: 12.5, fontWeight: 600 }}>Jordan Drake</div>
-          </div>
-          <button onClick={() => setDark(!dark)} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.textSecondary }}>
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </div>
-      </div>
+    <div id="signupForm" style="display:none;">
+      <input type="text" id="signupName" class="login-input" placeholder="Full Name" />
+      <input type="email" id="signupEmail" class="login-input" placeholder="Email address" />
+      <input type="password" id="signupPassword" class="login-input" placeholder="Password (min 6 chars)" />
+      <input type="password" id="signupConfirm" class="login-input" placeholder="Confirm Password" />
+      <button class="login-btn" onclick="handleSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
+      <button class="login-btn-secondary" onclick="showLogin()"><i class="fas fa-arrow-left"></i> Back to Sign In</button>
+      <div id="signupError" class="login-error"></div>
+      <div id="signupSuccess" class="login-success">Account created! Please sign in.</div>
     </div>
-  );
-}
+  </div>
+</div>
 
-/* ============================= TOP BAR ============================= */
-
-const PAGE_TITLES = {
-  dashboard: "Dashboard", trades: "Trades", backtesting: "Backtesting", journal: "Journal",
-  reports: "Reports", analytics: "Analytics", calendar: "Calendar", playbook: "Playbook",
-  rules: "Trading Rules", checklist: "Checklist", plan: "Trading Plan", settings: "Settings"
-};
-
-function TopBar({ T, page, dark, setDark, setShowNewTrade, addNotification }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px",
-      borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, background: T.bg, zIndex: 5,
-      backdropFilter: "blur(10px)"
-    }}>
-      <div>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>{PAGE_TITLES[page]}</div>
-        <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 2 }}>
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8, background: T.card, border: `1px solid ${T.border}`,
-          borderRadius: 10, padding: "8px 12px", width: 240
-        }}>
-          <Search size={15} color={T.textSecondary} />
-          <input placeholder="Search trades, tags, notes…" style={{
-            background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 13, width: "100%"
-          }} />
-        </div>
-        <button style={{
-          display: "flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${T.border}`,
-          borderRadius: 10, padding: "8px 10px", color: T.textSecondary, cursor: "pointer"
-        }}><Bell size={16} /></button>
-        <button
-          onClick={() => setShowNewTrade(true)}
-          style={{
-            display: "flex", alignItems: "center", gap: 7, background: T.blue, border: "none",
-            borderRadius: 10, padding: "9px 14px", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer"
-          }}
-        ><Plus size={15} /> New Trade</button>
-      </div>
+<!-- MAIN APP -->
+<div class="flex h-screen overflow-hidden">
+<!-- SIDEBAR -->
+<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-1 overflow-y-auto transition-all duration-300">
+  <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
+    <i class="fas fa-chart-line text-[#3B82F6]"></i>
+    <span class="hidden md:inline text-white">Trade<span class="text-[#3B82F6]">Vault</span></span>
+  </div>
+  <div class="w-full border-b border-[#1F2937] my-1"></div>
+  
+  <nav class="w-full space-y-0.5 text-sm">
+    <a class="nav-link active-nav" data-page="dashboard"><i class="fas fa-th-large"></i><span class="hidden md:inline">Dashboard</span></a>
+    <a class="nav-link" data-page="trades"><i class="fas fa-exchange-alt"></i><span class="hidden md:inline">Trades</span></a>
+    <a class="nav-link" data-page="backtesting"><i class="fas fa-flask"></i><span class="hidden md:inline">Backtesting</span></a>
+    <a class="nav-link" data-page="journal"><i class="fas fa-book-open"></i><span class="hidden md:inline">Journal</span></a>
+    <a class="nav-link" data-page="analytics"><i class="fas fa-chart-pie"></i><span class="hidden md:inline">Analytics</span></a>
+    <a class="nav-link" data-page="calendar"><i class="fas fa-calendar-alt"></i><span class="hidden md:inline">Calendar</span></a>
+    <a class="nav-link" data-page="rules"><i class="fas fa-book"></i><span class="hidden md:inline">Trading Rules</span></a>
+    <a class="nav-link" data-page="checklist"><i class="fas fa-clipboard-list"></i><span class="hidden md:inline">Checklist</span></a>
+    <a class="nav-link" data-page="plan"><i class="fas fa-flag-checkered"></i><span class="hidden md:inline">Trading Plan</span></a>
+    <a class="nav-link" data-page="settings"><i class="fas fa-cog"></i><span class="hidden md:inline">Settings</span></a>
+  </nav>
+  
+  <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8] space-y-1.5">
+    <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
+    <div class="flex items-center gap-2"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$1,000</span></div>
+    <div class="flex items-center gap-2 user-info">
+      <i class="fas fa-user"></i>
+      <span id="userEmailDisplay" class="hidden md:inline truncate max-w-[100px]">user@email.com</span>
+      <button class="logout-btn" onclick="handleLogout()">Logout</button>
     </div>
-  );
-}
+    <button class="theme-toggle w-full mt-1" onclick="toggleTheme()" title="Toggle theme">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+</aside>
 
-/* ============================= SHARED UI ============================= */
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0B1120] space-y-6 transition-colors duration-300">
 
-function Card({ T, children, style, ...props }) {
-  return (
-    <div style={{
-      background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 18,
-      transition: "border-color 0.2s ease", ...style
-    }} {...props}>
-      {children}
-    </div>
-  );
-}
-
-function StatCard({ T, label, value, icon: Icon, tint, sub, isNeg }) {
-  return (
-    <Card T={T} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 12, color: T.textSecondary, fontWeight: 600 }}>{label}</span>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-          background: `${tint}22`
-        }}>
-          <Icon size={14} color={tint} />
-        </div>
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: isNeg ? T.red : T.text }}>
-        {value}
-      </div>
-      {sub && <div style={{ fontSize: 11.5, color: T.textSecondary }}>{sub}</div>}
-    </Card>
-  );
-}
-
-function SectionTitle({ T, title, action }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-      <div style={{ fontSize: 15, fontWeight: 700 }}>{title}</div>
-      {action}
-    </div>
-  );
-}
-
-function Pill({ T, children, tint }) {
-  return (
-    <span style={{
-      fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 6,
-      background: `${tint}1f`, color: tint
-    }}>{children}</span>
-  );
-}
-
-/* ============================= DASHBOARD ============================= */
-
-function Dashboard({ T, trades, stats, selectedDay, setSelectedDay }) {
-  const [range, setRange] = useState("Daily");
-
-  const equityData = useMemo(() => {
-    const chron = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
-    let bal = 10000;
-    return chron.map(t => {
-      bal += t.pnl;
-      return { date: t.date, balance: Math.round(bal) };
-    });
-  }, [trades]);
-
-  const plData = useMemo(() => {
-    const grouped = {};
-    trades.forEach(t => {
-      let key = t.date;
-      if (range === "Weekly") {
-        const d = new Date(t.date);
-        const firstDay = new Date(d.setDate(d.getDate() - d.getDay()));
-        key = firstDay.toISOString().slice(0, 10);
-      } else if (range === "Monthly") {
-        key = t.date.slice(0, 7);
-      }
-      grouped[key] = (grouped[key] || 0) + t.pnl;
-    });
-    return Object.entries(grouped)
-      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-      .slice(-14)
-      .map(([k, v]) => ({ label: k.slice(5), pnl: Math.round(v) }));
-  }, [trades, range]);
-
-  const cards = [
-    { label: "Account Balance", value: fmtMoney(10000 + stats.netPnl), icon: DollarSign, tint: T.blue },
-    { label: "Total Profit", value: fmtMoney(stats.netPnl), icon: TrendingUp, tint: stats.netPnl >= 0 ? T.green : T.red, isNeg: stats.netPnl < 0 },
-    { label: "Net RR", value: `${stats.netRR >= 0 ? "+" : ""}${fmtNum(stats.netRR)}R`, icon: Target, tint: T.blue },
-    { label: "Win Rate", value: `${fmtNum(stats.winRate, 1)}%`, icon: Percent, tint: T.green },
-    { label: "Profit Factor", value: isFinite(stats.profitFactor) ? fmtNum(stats.profitFactor) : "∞", icon: Award, tint: T.orange },
-    { label: "Expectancy", value: fmtMoney(stats.expectancy), icon: Activity, tint: T.blue },
-    { label: "Average RR", value: `${fmtNum(stats.avgRR)}R`, icon: LineChartIcon, tint: T.blue },
-    { label: "Average Win", value: fmtMoney(stats.avgWin), icon: ArrowUpRight, tint: T.green },
-    { label: "Average Loss", value: fmtMoney(-stats.avgLoss), icon: ArrowDownRight, tint: T.red },
-    { label: "Current Streak", value: `${stats.current >= 0 ? stats.current : Math.abs(stats.current)} ${stats.current >= 0 ? "W" : "L"}`, icon: Flame, tint: stats.current >= 0 ? T.green : T.red },
-    { label: "Best Streak", value: `${stats.best} W`, icon: Star, tint: T.orange },
-    { label: "Consistency", value: `${fmtNum(stats.consistency, 0)}%`, icon: ShieldCheck, tint: T.blue },
-    { label: "RR Consistency", value: `${fmtNum(stats.rrConsistency, 0)}%`, icon: Gauge, tint: T.blue },
-    { label: "Total Trades", value: stats.total, icon: Layers, tint: T.blue },
-    { label: "A+ Setup %", value: `${fmtNum(stats.aPlusPct, 0)}%`, icon: CheckCircle2, tint: T.green },
-  ];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
-        {cards.map((c, i) => <StatCard key={i} T={T} {...c} />)}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 16 }}>
-        <Card T={T}>
-          <SectionTitle T={T} title="Equity Curve" />
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={equityData}>
-              <defs>
-                <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={T.blue} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={T.blue} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: T.textSecondary }} tickFormatter={d => d.slice(5)} minTickGap={30} />
-              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={50} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Area type="monotone" dataKey="balance" stroke={T.blue} strokeWidth={2} fill="url(#eqGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card T={T}>
-          <SectionTitle T={T} title="P/L Breakdown" action={
-            <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3 }}>
-              {["Daily", "Weekly", "Monthly"].map(r => (
-                <button key={r} onClick={() => setRange(r)} style={{
-                  fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 6, border: "none", cursor: "pointer",
-                  background: range === r ? T.blue : "transparent", color: range === r ? "#fff" : T.textSecondary
-                }}>{r}</button>
-              ))}
-            </div>
-          } />
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={plData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
-                {plData.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <Card T={T}>
-        <SectionTitle T={T} title="Trading Calendar" />
-        <MiniCalendar T={T} trades={trades} onSelectDay={setSelectedDay} />
-      </Card>
-
-      {selectedDay && <DayModal T={T} day={selectedDay} trades={trades} onClose={() => setSelectedDay(null)} />}
-    </div>
-  );
-}
-
-/* ============================= CALENDAR (shared logic) ============================= */
-
-function buildMonthGrid(year, month, trades) {
-  const byDay = {};
-  trades.forEach(t => {
-    if (!byDay[t.date]) byDay[t.date] = [];
-    byDay[t.date].push(t);
-  });
-  const first = new Date(year, month, 1);
-  const startWeekday = first.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-  for (let i = 0; i < startWeekday; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = new Date(year, month, d).toISOString().slice(0, 10);
-    const dayTrades = byDay[dateStr] || [];
-    const pnl = dayTrades.reduce((a, t) => a + t.pnl, 0);
-    cells.push({ day: d, date: dateStr, trades: dayTrades, pnl });
-  }
-  return cells;
-}
-
-function MiniCalendar({ T, trades, onSelectDay }) {
-  const [cursor, setCursor] = useState(new Date());
-  const year = cursor.getFullYear(), month = cursor.getMonth();
-  const cells = useMemo(() => buildMonthGrid(year, month, trades), [year, month, trades]);
-  const monthName = cursor.toLocaleString("default", { month: "long", year: "numeric" });
-
-  return (
+<!-- ===== PAGE: DASHBOARD ===== -->
+<div id="page-dashboard" class="page active space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <button onClick={() => setCursor(new Date(year, month - 1, 1))} style={navBtnStyle(T)}><ChevronLeft size={15} /></button>
-        <div style={{ fontSize: 13, fontWeight: 700 }}>{monthName}</div>
-        <button onClick={() => setCursor(new Date(year, month + 1, 1))} style={navBtnStyle(T)}><ChevronRight size={15} /></button>
+      <h2 class="text-2xl font-extrabold text-white">Dashboard</h2>
+      <p class="text-sm text-[#94A3B8]">Real-time trading performance overview</p>
+    </div>
+    <div class="flex items-center gap-3 text-sm text-[#94A3B8]">
+      <i class="fas fa-calendar-alt text-[#3B82F6]"></i>
+      <span id="currentDate"></span>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="summary-card"><div class="icon"><i class="fas fa-wallet text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashBalance">$1,000</div><div class="label">Balance</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-chart-line text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashTotalProfit">$0</div><div class="label">Total Profit</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-arrows-left-right text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashNetR">0.0R</div><div class="label">Net RR</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-percent text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashWinRate">0%</div><div class="label">Win Rate</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-trophy text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashProfitFactor">0.00</div><div class="label">Profit Factor</div></div>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="summary-card"><div class="icon"><i class="fas fa-dollar-sign text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashExpectancy">$0.00</div><div class="label">Expectancy</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-arrow-up text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashAvgWin">$0</div><div class="label">Avg Win</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-arrow-down text-[#EF4444]"></i></div><div class="value text-[#EF4444]" id="dashAvgLoss">$0</div><div class="label">Avg Loss</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-fire text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashStreak">0</div><div class="label">Current Streak</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-crown text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashBestStreak">0</div><div class="label">Best Streak</div></div>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div class="summary-card"><div class="icon"><i class="fas fa-check-circle text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashConsistency">100%</div><div class="label">Consistency</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-list-ul text-[#94A3B8]"></i></div><div class="value text-[#F8FAFC]" id="dashTotalTrades">0</div><div class="label">Total Trades</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-star text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashAplus">0%</div><div class="label">A+ Setup %</div></div>
+    <div class="summary-card"><div class="icon"><i class="fas fa-arrows-left-right text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashAvgRR">0.0R</div><div class="label">Average RR</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="glass-card p-4">
+      <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
+        <span>Equity Curve</span>
+        <i class="fas fa-chart-line text-[#3B82F6]"></i>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-          <div key={i} style={{ textAlign: "center", fontSize: 10.5, color: T.textSecondary, fontWeight: 600, paddingBottom: 4 }}>{d}</div>
-        ))}
-        {cells.map((c, i) => (
-          <div key={i} onClick={() => c && c.trades.length && onSelectDay(c)} style={{
-            aspectRatio: "1", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            fontSize: 11, cursor: c && c.trades.length ? "pointer" : "default",
-            background: !c ? "transparent" : c.trades.length === 0 ? (T.bg) : c.pnl >= 0 ? `${T.green}26` : `${T.red}26`,
-            border: c && c.trades.length ? `1px solid ${c.pnl >= 0 ? T.green : T.red}55` : `1px solid transparent`,
-            color: c ? T.text : "transparent", transition: "transform 0.15s ease"
-          }}
-            onMouseEnter={e => { if (c && c.trades.length) e.currentTarget.style.transform = "scale(1.05)"; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-          >
-            <span style={{ fontWeight: 600 }}>{c ? c.day : ""}</span>
-            {c && c.trades.length > 0 && (
-              <span style={{ fontSize: 9, color: c.pnl >= 0 ? T.green : T.red, fontWeight: 700 }}>
-                {c.pnl >= 0 ? "+" : ""}{Math.round(c.pnl)}
-              </span>
-            )}
-          </div>
-        ))}
+      <div class="chart-wrapper" style="height:200px;"><canvas id="dashEquityChart"></canvas></div>
+    </div>
+    <div class="glass-card p-4">
+      <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
+        <span>Daily P/L Distribution</span>
+        <i class="fas fa-chart-bar text-[#3B82F6]"></i>
+      </div>
+      <div class="chart-wrapper" style="height:200px;"><canvas id="dashDailyChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Calendar Widget -->
+  <div class="glass-card p-4">
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-calendar-alt text-[#3B82F6] mr-2"></i>Calendar</span>
+      <div class="flex gap-2">
+        <button class="btn-secondary btn-xs" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+        <span class="text-sm font-medium" id="calendarMonthYear">July 2026</span>
+        <button class="btn-secondary btn-xs" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
       </div>
     </div>
-  );
-}
+    <div id="calendarGrid" class="calendar-grid"></div>
+  </div>
+</div>
 
-function navBtnStyle(T) {
-  return {
-    background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, width: 26, height: 26,
-    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textSecondary  };
-}
+<!-- ===== PAGE: TRADES ===== -->
+<div id="page-trades" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
+  <p class="text-sm text-[#94A3B8]">Manage all your trades and RR tracking</p>
 
-function DayModal({ T, day, onClose }) {
-  return (
-    <Modal T={T} onClose={onClose} title={`Trades on ${day.date}`}>
-      <div style={{ display: "flex", gap: 14, marginBottom: 14 }}>
-        <Pill T={T} tint={day.pnl >= 0 ? T.green : T.red}>{day.pnl >= 0 ? "+" : ""}{fmtMoney(day.pnl)}</Pill>
-        <Pill T={T} tint={T.blue}>{day.trades.length} trades</Pill>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {day.trades.map(t => <TradeRow T={T} t={t} key={t.id} compact />)}
-      </div>
-    </Modal>
-  );
-}
+  <!-- Quick Trade -->
+  <div class="glass-card p-4">
+    <div class="flex flex-wrap items-center gap-4">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-bolt text-[#3B82F6] mr-1"></i>Quick Trade</span>
+      <select id="quickRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
+        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
+        <option value="1:3">1:3</option><option value="1:4">1:4</option>
+        <option value="1:5">1:5</option>
+      </select>
+      <button class="btn-success btn-sm" onclick="quickTrade('win')"><i class="fas fa-check"></i> Win <span id="quickWinLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">+2R</span></button>
+      <button class="btn-danger btn-sm" onclick="quickTrade('loss')"><i class="fas fa-times"></i> Loss <span id="quickLossLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">-1R</span></button>
+    </div>
+  </div>
 
-function Modal({ T, onClose, title, children, wide }) {
-  return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 22,
-        width: wide ? 720 : 480, maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.4)"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{title}</div>
-          <button onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.textSecondary }}><X size={18} /></button>
-        </div>
-        {children}
+  <!-- Add Trade -->
+  <div class="glass-card p-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-plus-circle text-[#3B82F6] mr-1"></i>Add Trade</span>
+      <select id="tradeType" class="glass-input" style="width:auto; padding:0.3rem 1rem;"><option value="win">Win</option><option value="loss">Loss</option></select>
+      <input type="number" id="tradeAmount" class="glass-input" placeholder="$" value="100" style="width:90px;" />
+      <input type="text" id="tradeDirection" class="glass-input" placeholder="Dir" value="BUY" style="width:60px;" />
+      <select id="tradeRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
+        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
+        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
+      </select>
+      <button class="btn-primary btn-sm" onclick="manualAddTrade()"><i class="fas fa-plus"></i> Add</button>
+    </div>
+  </div>
+
+  <!-- RR Tracker -->
+  <div class="glass-card p-4">
+    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-arrows-left-right text-[#F59E0B] mr-1"></i>RR Tracker</span>
+      <div class="flex flex-wrap items-center gap-3 text-xs">
+        <span class="text-[#94A3B8]">Net: <span id="tradesNetR" class="text-[#F59E0B] font-bold">0.0R</span></span>
+        <span class="text-[#94A3B8]">Avg: <span id="tradesAvgR" class="text-[#3B82F6] font-bold">0.0</span></span>
+        <button class="btn-danger btn-xs" onclick="clearRRTracker()">Clear</button>
       </div>
     </div>
-  );
-}
+    <div class="flex flex-wrap items-center gap-2 mb-2">
+      <select id="rrRatio" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
+        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
+        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
+      </select>
+      <select id="rrResult" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
+        <option value="win">Win</option><option value="loss">Loss</option>
+      </select>
+      <button class="btn-primary btn-xs" onclick="addRRTrade()"><i class="fas fa-plus"></i> Add RR</button>
+    </div>
+    <div class="table-wrap text-xs">
+      <table class="w-full text-left">
+        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
+          <tr><th>#</th><th>RR</th><th>Result</th><th>R Value</th><th>Running R</th><th class="text-center">Action</th></tr>
+        </thead>
+        <tbody id="rrTableBody"><tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-/* ============================= TRADE ROW ============================= */
-
-function TradeRow({ T, t, compact, onClick }) {
-  return (
-    <div onClick={onClick} style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px",
-      borderRadius: 10, background: T.bg, border: `1px solid ${T.border}`, cursor: onClick ? "pointer" : "default"
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-          background: t.direction === "Long" ? `${T.green}22` : `${T.red}22`
-        }}>
-          {t.direction === "Long" ? <TrendingUp size={14} color={T.green} /> : <TrendingDown size={14} color={T.red} />}
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>{t.pair} <span style={{ color: T.textSecondary, fontWeight: 500 }}>· {t.strategy}</span></div>
-          {!compact && <div style={{ fontSize: 11, color: T.textSecondary }}>{t.date} · {t.session}</div>}
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <Pill T={T} tint={T.orange}>{t.grade}</Pill>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: t.rr >= 0 ? T.green : T.red, width: 50, textAlign: "right" }}>{t.rr >= 0 ? "+" : ""}{t.rr}R</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: t.pnl >= 0 ? T.green : T.red, width: 70, textAlign: "right" }}>{t.pnl >= 0 ? "+" : ""}{fmtMoney(t.pnl)}</div>
+  <!-- Trade History -->
+  <div class="glass-card p-4">
+    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-list-ul text-[#3B82F6] mr-1"></i>Trade History (<span id="tradeCount">0</span>)</span>
+      <div class="flex gap-2">
+        <input type="text" id="tradeSearch" class="glass-input" placeholder="Search..." style="width:120px; padding:0.2rem 0.6rem;" oninput="filterTrades()" />
+        <button class="btn-danger btn-xs" onclick="clearAllTrades()">Clear All</button>
       </div>
     </div>
-  );
+    <div class="table-wrap text-xs">
+      <table class="w-full text-left">
+        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
+          <tr><th>#</th><th>Date</th><th>Dir</th><th>Result</th><th>P/L</th><th>RR</th><th class="text-center">Action</th></tr>
+        </thead>
+        <tbody id="tradeHistoryBody"><tr><td colspan="7" class="text-center text-[#4B5563] py-3">No trades yet</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Lot Size Calculator -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="glass-card p-4">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-calculator text-[#3B82F6] mr-1"></i>Lot Size Calculator</span>
+      <div class="grid grid-cols-3 gap-2 mt-2">
+        <div><label class="text-xs text-[#4B5563]">Risk %</label><input class="glass-input text-xs" value="2.5" id="riskInput" readonly /></div>
+        <div><label class="text-xs text-[#4B5563]">SL (pips)</label><input class="glass-input text-xs" placeholder="200" value="200" id="slInput" /></div>
+        <div class="flex items-end"><button class="btn-primary btn-xs w-full" onclick="updateLotSize()">Calc</button></div>
+      </div>
+      <div class="text-xs mt-2" id="lotDisplay">Risk $25.00 · Lot 0.12</div>
+    </div>
+    <div class="glass-card p-4">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-star text-[#F59E0B] mr-1"></i>A+ Setup Score</span>
+      <div class="flex items-center justify-between mt-2">
+        <div class="text-2xl font-extrabold text-[#22C55E]" id="scoreDisplay">92</div>
+        <div class="text-xs text-[#22C55E]" id="scoreLabel">A+ Trade</div>
+      </div>
+      <div class="text-[10px] text-[#4B5563] mt-1">1H ✓ 15M ✓ 3M ✓ 1M ✓ RR ✓</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: BACKTESTING ===== -->
+<div id="page-backtesting" class="page space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flask text-[#3B82F6] mr-3"></i>Backtesting</h2>
+      <p class="text-sm text-[#94A3B8]">Review, analyze, and store every trade with screenshots and notes</p>
+    </div>
+    <button class="btn-primary" onclick="toggleBacktestForm()"><i class="fas fa-plus"></i> New Backtest</button>
+  </div>
+
+  <!-- Form -->
+  <div id="backtestForm" class="glass-card p-4" style="display:none;">
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>Add Backtest Entry</span>
+      <button class="btn-secondary btn-xs" onclick="toggleBacktestForm()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Pair</label>
+        <select id="btPair" class="glass-input"><option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option><option value="GBPUSD">GBPUSD</option><option value="USDJPY">USDJPY</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Direction</label>
+        <select id="btDirection" class="glass-input"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Date</label>
+        <input type="date" id="btDate" class="glass-input" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Timeframe</label>
+        <select id="btTimeframe" class="glass-input"><option value="15M">15M</option><option value="1H">1H</option><option value="4H">4H</option><option value="1D">1D</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Session</label>
+        <select id="btSession" class="glass-input"><option value="London">London</option><option value="New York">New York</option><option value="Asia">Asia</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">RR Ratio</label>
+        <select id="btRR" class="glass-input"><option value="1:1">1:1</option><option value="1:2" selected>1:2</option><option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Result</label>
+        <select id="btResult" class="glass-input"><option value="Win">Win</option><option value="Loss">Loss</option><option value="BE">BE</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Entry Price</label>
+        <input type="number" id="btEntry" class="glass-input" step="0.01" placeholder="0.00" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Stop Loss</label>
+        <input type="number" id="btSL" class="glass-input" step="0.01" placeholder="0.00" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Take Profit</label>
+        <input type="number" id="btTP" class="glass-input" step="0.01" placeholder="0.00" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Lot Size</label>
+        <input type="number" id="btLot" class="glass-input" step="0.01" placeholder="0.01" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Strategy</label>
+        <input type="text" id="btStrategy" class="glass-input" placeholder="Breakout" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Grade</label>
+        <select id="btGrade" class="glass-input"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Confidence (1-10)</label>
+        <input type="number" id="btConfidence" class="glass-input" min="1" max="10" value="7" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Emotions</label>
+        <select id="btEmotions" class="glass-input"><option value="Calm">Calm</option><option value="Nervous">Nervous</option><option value="Confident">Confident</option></select></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Mistakes</label>
+        <input type="text" id="btMistakes" class="glass-input" placeholder="Moved SL" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Lessons</label>
+        <input type="text" id="btLessons" class="glass-input" placeholder="Trust the setup" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Tags</label>
+        <input type="text" id="btTags" class="glass-input" placeholder="Breakout, FVG" /></div>
+    </div>
+    <div class="mt-3">
+      <label class="text-xs text-[#94A3B8] block mb-1">Notes</label>
+      <textarea id="btNotes" class="glass-input" rows="2" placeholder="Detailed notes..."></textarea>
+    </div>
+    <div class="mt-3">
+      <label class="text-xs text-[#94A3B8] block mb-1">Screenshots</label>
+      <div id="dropZone" class="drop-zone" onclick="document.getElementById('btImages').click()">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Drag & drop images or click to upload</p>
+      </div>
+      <input type="file" id="btImages" multiple accept="image/*" style="display:none" onchange="handleImageUpload(event)" />
+      <div id="imagePreviewContainer" class="image-gallery mt-2"></div>
+    </div>
+    <div class="mt-3 flex gap-2">
+      <button class="btn-primary" onclick="saveBacktest()"><i class="fas fa-save"></i> Save</button>
+      <button class="btn-secondary" onclick="toggleBacktestForm()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btStatTotal">0</div><div class="text-xs text-[#94A3B8]">Total</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btStatWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btStatAvgRR">0.0R</div><div class="text-xs text-[#94A3B8]">Avg RR</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btStatBestStrategy">-</div><div class="text-xs text-[#94A3B8]">Best Strategy</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btStatBestPair">-</div><div class="text-xs text-[#94A3B8]">Best Pair</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btStatAplus">0%</div><div class="text-xs text-[#94A3B8]">A+ Win Rate</div></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="glass-card p-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-filter text-[#3B82F6] mr-1"></i>Filters:</span>
+      <input type="text" id="btSearch" class="glass-input" placeholder="Search..." style="width:120px; padding:0.2rem 0.6rem;" oninput="filterBacktests()" />
+      <select id="btFilterPair" class="glass-input" style="width:auto; padding:0.2rem 0.6rem;" onchange="filterBacktests()">
+        <option value="">All Pairs</option><option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option>
+      </select>
+      <select id="btFilterResult" class="glass-input" style="width:auto; padding:0.2rem 0.6rem;" onchange="filterBacktests()">
+        <option value="">All Results</option><option value="Win">Win</option><option value="Loss">Loss</option>
+      </select>
+      <button class="btn-secondary btn-xs" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
+      <div class="ml-auto flex gap-2">
+        <button class="btn-secondary btn-xs" onclick="exportBacktests('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn-secondary btn-xs" onclick="exportBacktests('json')"><i class="fas fa-file-code"></i> JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gallery -->
+  <div id="btGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ===== PAGE: JOURNAL ===== -->
+<div id="page-journal" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book-open text-[#3B82F6] mr-3"></i>Journal</h2>
+  <p class="text-sm text-[#94A3B8]">Rich text journal entries with images, videos, and attachments</p>
+  <div class="glass-card p-4">
+    <div class="flex gap-2 mb-3">
+      <input type="text" id="journalSearch" class="glass-input" placeholder="Search journal..." style="max-width:300px;" />
+      <button class="btn-primary btn-sm" onclick="addJournalEntry()"><i class="fas fa-plus"></i> New Entry</button>
+    </div>
+    <div id="journalEntries" class="space-y-3">
+      <div class="text-center text-[#4B5563] py-6">No journal entries yet. Click "New Entry" to start.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: ANALYTICS ===== -->
+<div id="page-analytics" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Analytics</h2>
+  <p class="text-sm text-[#94A3B8]">Advanced performance analytics and insights</p>
+  
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#3B82F6]" id="anaTotal">0</div><div class="text-xs text-[#94A3B8]">Total Trades</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#22C55E]" id="anaWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#F59E0B]" id="anaAvgRR">0.0R</div><div class="text-xs text-[#94A3B8]">Avg RR</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#3B82F6]" id="anaProfit">$0</div><div class="text-xs text-[#94A3B8]">Total Profit</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="glass-card p-4">
+      <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Session</div>
+      <div class="chart-wrapper" style="height:180px;"><canvas id="anaSessionChart"></canvas></div>
+    </div>
+    <div class="glass-card p-4">
+      <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Strategy</div>
+      <div class="chart-wrapper" style="height:180px;"><canvas id="anaStrategyChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: CALENDAR ===== -->
+<div id="page-calendar" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-calendar-alt text-[#3B82F6] mr-3"></i>Calendar</h2>
+  <p class="text-sm text-[#94A3B8]">Complete trading calendar with daily performance</p>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="glass-card p-4 md:col-span-2">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-sm font-medium">Monthly View</span>
+        <div class="flex gap-2">
+          <button class="btn-secondary btn-xs" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+          <span class="text-sm font-medium" id="calMonthYear">July 2026</span>
+          <button class="btn-secondary btn-xs" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div id="calGrid" class="calendar-grid"></div>
+    </div>
+    <div class="glass-card p-4">
+      <span class="text-xs font-medium text-[#94A3B8]">Day Details</span>
+      <div id="calDayDetails" class="mt-3 text-sm text-[#94A3B8]">Select a day to view details</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="calMonthTotal">0</div><div class="text-xs text-[#94A3B8]">Trades</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="calMonthWin">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
+    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="calMonthPL">$0</div><div class="text-xs text-[#94A3B8]">P/L</div></div>
+  </div>
+</div>
+
+<!-- ===== PAGE: RULES ===== -->
+<div id="page-rules" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book text-[#3B82F6] mr-3"></i>Trading Rules</h2>
+  <div class="glass-card p-4">
+    <div class="rule-card"><strong>Market:</strong> XAUUSD Only</div>
+    <div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
+    <div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
+    <div class="rule-card"><strong>Risk Per Trade:</strong> 2.5% of balance</div>
+    <div class="rule-card"><strong>Max Daily Loss:</strong> 7.5% of current balance</div>
+    <div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
+    <div class="rule-card warning"><strong>Never Move Stop Loss</strong></div>
+    <div class="rule-card warning"><strong>Never Revenge Trade</strong></div>
+    <div class="rule-card warning"><strong>After Three Losses - Stop Trading</strong></div>
+  </div>
+</div>
+
+<!-- ===== PAGE: CHECKLIST ===== -->
+<div id="page-checklist" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-clipboard-list text-[#3B82F6] mr-3"></i>Checklist</h2>
+  <div class="glass-card p-4">
+    <div id="checklistContainer" class="space-y-1">
+      <div class="checklist-item"><input type="checkbox" id="chk1" /><label for="chk1">News Checked</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk2" /><label for="chk2">1H Trend Confirmed</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk3" /><label for="chk3">15M EMA Confirmed</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk4" /><label for="chk4">3M Pullback</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk5" /><label for="chk5">1M Confirmation</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk6" /><label for="chk6">Risk Calculated</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk7" /><label for="chk7">1:4 RR</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk8" /><label for="chk8">Session Valid</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk9" /><label for="chk9">Emotion Calm</label></div>
+    </div>
+    <div id="checklistStatus" class="mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">✅ All checks passed - Ready to trade</div>
+  </div>
+</div>
+
+<!-- ===== PAGE: PLAN ===== -->
+<div id="page-plan" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flag-checkered text-[#3B82F6] mr-3"></i>Trading Plan</h2>
+  <div class="glass-card p-4">
+    <h3 class="text-lg font-bold text-[#F59E0B] mb-3">Complete Trading Rules Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><h4 class="text-[#3B82F6] font-bold mb-2">Setup Rules</h4>
+        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• Only XAUUSD</li><li>• Max 3 trades/day</li><li>• Risk 2.5%</li><li>• Max Daily Loss 7.5%</li></ul>
+      </div>
+      <div><h4 class="text-[#3B82F6] font-bold mb-2">Entry & Exit</h4>
+        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• 15M EMA</li><li>• 3M Pullback</li><li>• 1M Entry</li><li>• Target 4R</li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: SETTINGS ===== -->
+<div id="page-settings" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-cog text-[#3B82F6] mr-3"></i>Settings</h2>
+  <div class="glass-card p-6">
+    <h3 class="text-lg font-bold text-[#F59E0B] mb-4">Account Settings</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Starting Balance ($)</label><input type="number" id="startBalanceInput" class="glass-input" value="1000" step="100" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Risk Per Trade (%)</label><input type="number" id="riskPercentInput" class="glass-input" value="2.5" step="0.1" min="0.1" max="20" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Max Daily Loss (%)</label><input type="number" id="maxDailyLossInput" class="glass-input" value="7.5" step="0.1" min="0.1" max="20" /></div>
+      <div class="flex items-end"><button class="btn-primary w-full" onclick="saveSettings()"><i class="fas fa-save"></i> Save</button></div>
+    </div>
+    <div id="settingsMessage" class="mt-4 text-sm text-[#22C55E] hidden">✅ Settings saved successfully!</div>
+  </div>
+  <div class="glass-card p-6">
+    <h3 class="text-lg font-bold text-[#3B82F6] mb-4">Data Management</h3>
+    <div class="flex gap-3 flex-wrap">
+      <button class="btn-primary" onclick="exportAllData()"><i class="fas fa-download"></i> Export</button>
+      <button class="btn-secondary" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Import</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)" />
+    </div>
+    <p class="text-xs text-[#4B5563] mt-2">Export all trading data as JSON backup.</p>
+  </div>
+</div>
+
+<div class="text-center text-[10px] text-[#1F2937] border-t border-[#1F2937] pt-4">TradeVault · Premium Trading Journal</div>
+</main>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <span class="close-lightbox">&times;</span>
+  <img id="lightboxImage" src="" alt="Screenshot" />
+</div>
+
+<script>
+// ========== STATE ==========
+let state = {
+  balance: 1000,
+  trades: [],
+  rrTrades: [],
+  netR: 0,
+  backtests: [],
+  journalEntries: [],
+  calendarMonth: new Date().getMonth(),
+  calendarYear: new Date().getFullYear(),
+  currentUser: null,
+  users: {},
+  aplusScores: [92]
+};
+
+// ========== USER MANAGEMENT ==========
+function loadUsers() {
+  try { const saved = localStorage.getItem('trading_users'); if (saved) state.users = JSON.parse(saved); } catch(e) {}
+}
+function saveUsers() { try { localStorage.setItem('trading_users', JSON.stringify(state.users)); } catch(e) {} }
+
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+  document.getElementById('loginSubtitle').textContent = 'Create your account';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginSuccess').style.display = 'none';
 }
 
-/* ============================= NEW TRADE MODAL ============================= */
+function showLogin() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('loginSubtitle').textContent = 'Sign in to your trading journal';
+  document.getElementById('signupError').style.display = 'none';
+  document.getElementById('signupSuccess').style.display = 'none';
+}
 
-function NewTradeModal({ T, onClose, onAdd }) {
-  const [trade, setTrade] = useState({
-    id: `T-${Date.now()}`,
-    date: new Date().toISOString().slice(0, 10),
-    pair: "XAU/USD",
-    direction: "Long",
-    strategy: "Liquidity Sweep Reversal",
-    session: "London",
-    rr: 2.5,
-    pnl: 250,
-    win: true,
-    grade: "A",
-    confidence: 4,
-    emotion: "Calm",
-    tags: ["Breakout", "FVG"],
-    entryPrice: 2350,
-    exitPrice: 2375,
-    stopLoss: 2340,
-    takeProfit: 2390,
-    notes: "",
-    mistakes: "",
-    lessons: "",
-    images: []
+function handleSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  const errorDiv = document.getElementById('signupError');
+  const successDiv = document.getElementById('signupSuccess');
+
+  errorDiv.style.display = 'none';
+  successDiv.style.display = 'none';
+
+  if (!name || !email || !password || !confirm) {
+    errorDiv.textContent = 'Please fill in all fields';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  if (password.length < 6) {
+    errorDiv.textContent = 'Password must be at least 6 characters';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  if (password !== confirm) {
+    errorDiv.textContent = 'Passwords do not match';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  if (state.users[email]) {
+    errorDiv.textContent = 'Email already registered';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  state.users[email] = { name, email, password, created: new Date().toISOString() };
+  saveUsers();
+  successDiv.textContent = '✅ Account created! Please sign in.';
+  successDiv.style.display = 'block';
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupEmail').value = '';
+  document.getElementById('signupPassword').value = '';
+  document.getElementById('signupConfirm').value = '';
+
+  setTimeout(() => {
+    showLogin();
+    document.getElementById('loginEmail').value = email;
+    successDiv.style.display = 'none';
+  }, 2000);
+}
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errorDiv = document.getElementById('loginError');
+
+  errorDiv.style.display = 'none';
+
+  if (!email || !password) {
+    errorDiv.textContent = 'Please enter email and password';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  if (!state.users[email]) {
+    errorDiv.textContent = 'Email not found. Please create an account.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  if (state.users[email].password !== password) {
+    errorDiv.textContent = 'Invalid password';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  state.currentUser = email;
+  document.getElementById('userEmailDisplay').textContent = email;
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  loadUserData(email);
+}
+
+function handleLogout() {
+  if (confirm('Logout? Your data will be saved.')) {
+    saveUserData(state.currentUser);
+    state.currentUser = null;
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+  }
+}
+
+// ========== DATA MANAGEMENT ==========
+function getUserDataKey(email) { return `tradevault_data_${email}`; }
+
+function saveUserData(email) {
+  try {
+    const data = {
+      email,
+      balance: state.balance,
+      trades: state.trades,
+      rrTrades: state.rrTrades,
+      netR: state.netR,
+      backtests: state.backtests,
+      journalEntries: state.journalEntries,
+      aplusScores: state.aplusScores,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(getUserDataKey(email), JSON.stringify(data));
+  } catch(e) { console.error('Error saving data:', e); }
+}
+
+function loadUserData(email) {
+  try {
+    const saved = localStorage.getItem(getUserDataKey(email));
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.balance !== undefined) state.balance = data.balance;
+      if (data.trades) state.trades = data.trades;
+      if (data.rrTrades) state.rrTrades = data.rrTrades;
+      if (data.netR !== undefined) state.netR = data.netR;
+      if (data.backtests) state.backtests = data.backtests;
+      if (data.journalEntries) state.journalEntries = data.journalEntries;
+      if (data.aplusScores) state.aplusScores = data.aplusScores;
+    } else {
+      // Sample data
+      state.trades = [];
+      state.rrTrades = [];
+      state.netR = 0;
+      state.backtests = [];
+      state.journalEntries = [];
+      state.aplusScores = [92];
+    }
+    document.getElementById('startBalanceInput').value = 1000;
+    updateAll();
+  } catch(e) { console.error('Error loading data:', e); }
+}
+
+// ========== THEME ==========
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const icon = document.querySelector('.theme-toggle i');
+  icon.classList.toggle('fa-moon');
+  icon.classList.toggle('fa-sun');
+}
+
+// ========== DATE ==========
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+});
+
+// ========== QUICK TRADE ==========
+function updateQuickLabels() {
+  const rr = document.getElementById('quickRR').value;
+  const reward = parseInt(rr.split(':')[1]);
+  document.getElementById('quickWinLabel').textContent = `+${reward}R`;
+  document.getElementById('quickLossLabel').textContent = '-1R';
+}
+document.getElementById('quickRR').addEventListener('change', updateQuickLabels);
+updateQuickLabels();
+
+function quickTrade(result) {
+  const rr = document.getElementById('quickRR').value;
+  const reward = parseInt(rr.split(':')[1]);
+  const riskAmount = (state.balance * 2.5) / 100;
+  const amount = result === 'win' ? riskAmount * reward : riskAmount;
+  addTrade(result, amount, result === 'win' ? 'BUY' : 'SELL', rr);
+}
+
+function manualAddTrade() {
+  const type = document.getElementById('tradeType').value;
+  const amount = parseFloat(document.getElementById('tradeAmount').value) || 100;
+  const dir = document.getElementById('tradeDirection').value.toUpperCase() || 'BUY';
+  const rr = document.getElementById('tradeRR').value;
+  addTrade(type, amount, dir, rr);
+}
+
+function addTrade(result, amount, dir, rr) {
+  const isWin = result === 'win';
+  const reward = parseInt(rr.split(':')[1]);
+  const rValue = isWin ? reward : -1;
+  
+  state.balance += isWin ? amount : -amount;
+  state.trades.push({
+    id: Date.now(),
+    date: new Date().toISOString().slice(0,10),
+    dir: dir,
+    result: isWin ? 'win' : 'loss',
+    amount: amount,
+    rr: rr,
+    rValue: rValue
+  });
+  
+  state.netR += rValue;
+  state.rrTrades.push({
+    id: Date.now(),
+    ratio: rr,
+    result: isWin ? 'win' : 'loss',
+    rValue: rValue,
+    runningR: state.netR
+  });
+  
+  state.aplusScores.push(Math.min(100, Math.floor(60 + Math.random() * 40)));
+  updateAll();
+  if (state.currentUser) saveUserData(state.currentUser);
+}
+
+// ========== RR TRACKER ==========
+function addRRTrade() {
+  const ratio = document.getElementById('rrRatio').value;
+  const result = document.getElementById('rrResult').value;
+  const reward = parseInt(ratio.split(':')[1]);
+  const rValue = result === 'win' ? reward : -1;
+  state.netR += rValue;
+  state.rrTrades.push({
+    id: Date.now(),
+    ratio: ratio,
+    result: result,
+    rValue: rValue,
+    runningR: state.netR
+  });
+  updateAll();
+  if (state.currentUser) saveUserData(state.currentUser);
+}
+
+function clearRRTracker() {
+  if (confirm('Clear all RR trades?')) {
+    state.rrTrades = [];
+    state.netR = 0;
+    updateAll();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
+}
+
+// ========== UPDATE ALL ==========
+function updateAll() {
+  updateDashboard();
+  updateTradesPage();
+  updateRRTable();
+  updateTradeHistory();
+  updateBacktestingUI();
+  updateCalendar();
+  updateAnalytics();
+  updateLotSize();
+  updateScore();
+}
+
+// ========== UPDATE DASHBOARD ==========
+function updateDashboard() {
+  const total = state.trades.length;
+  const wins = state.trades.filter(t => t.result === 'win').length;
+  const losses = total - wins;
+  const winRate = total > 0 ? (wins / total * 100) : 0;
+  const totalProfit = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+  const avgWin = wins > 0 ? state.trades.filter(t => t.result === 'win').reduce((a, t) => a + t.amount, 0) / wins : 0;
+  const avgLoss = losses > 0 ? state.trades.filter(t => t.result === 'loss').reduce((a, t) => a + t.amount, 0) / losses : 0;
+  const pf = losses > 0 ? (wins / losses) : (wins > 0 ? wins : 0);
+  const expectancy = total > 0 ? totalProfit / total : 0;
+  const streak = total > 0 ? (state.trades[state.trades.length - 1]?.result === 'win' ? 1 : -1) : 0;
+  const avgRR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
+  const aplusRate = state.aplusScores.length > 0 ? state.aplusScores.filter(s => s >= 90).length / state.aplusScores.length * 100 : 0;
+
+  document.getElementById('dashBalance').textContent = `$${state.balance.toFixed(0)}`;
+  document.getElementById('dashTotalProfit').textContent = `$${totalProfit.toFixed(0)}`;
+  document.getElementById('dashNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
+  document.getElementById('dashWinRate').textContent = `${winRate.toFixed(1)}%`;
+  document.getElementById('dashProfitFactor').textContent = pf.toFixed(2);
+  document.getElementById('dashExpectancy').textContent = `$${expectancy.toFixed(2)}`;
+  document.getElementById('dashAvgWin').textContent = `$${avgWin.toFixed(0)}`;
+  document.getElementById('dashAvgLoss').textContent = `$${avgLoss.toFixed(0)}`;
+  document.getElementById('dashStreak').textContent = streak;
+  document.getElementById('dashBestStreak').textContent = Math.max(state.trades.reduce((a, t) => {
+    if (t.result === 'win') { a++; return a; }
+    return 0;
+  }, 0), 0);
+  document.getElementById('dashConsistency').textContent = state.rrTrades.length > 0 ? '100%' : '100%';
+  document.getElementById('dashTotalTrades').textContent = total;
+  document.getElementById('dashAplus').textContent = `${aplusRate.toFixed(1)}%`;
+  document.getElementById('dashAvgRR').textContent = `${avgRR.toFixed(1)}R`;
+}
+
+// ========== UPDATE TRADES PAGE ==========
+function updateTradesPage() {
+  document.getElementById('tradesNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
+  const avgR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
+  document.getElementById('tradesAvgR').textContent = avgR.toFixed(1);
+  document.getElementById('tradeCount').textContent = state.trades.length;
+}
+
+function updateRRTable() {
+  const tbody = document.getElementById('rrTableBody');
+  if (state.rrTrades.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.rrTrades.map((t, i) => {
+    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
+    const rClass = t.rValue > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]';
+    const runClass = t.runningR > 0 ? 'text-[#22C55E]' : (t.runningR < 0 ? 'text-[#EF4444]' : 'text-[#F59E0B]');
+    const rDisplay = t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`;
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${t.ratio}</td>
+      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
+      <td class="${rClass}">${rDisplay}</td>
+      <td class="${runClass}">${t.runningR > 0 ? '+' : ''}${t.runningR.toFixed(1)}R</td>
+      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteRRTrade(${i})"><i class="fas fa-trash-alt"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function deleteRRTrade(index) {
+  if (confirm('Delete this RR trade?')) {
+    state.netR -= state.rrTrades[index].rValue;
+    state.rrTrades.splice(index, 1);
+    let running = 0;
+    state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
+    updateAll();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
+}
+
+function updateTradeHistory() {
+  const tbody = document.getElementById('tradeHistoryBody');
+  if (state.trades.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-[#4B5563] py-3">No trades yet</td></tr>';
+    return;
+  }
+  const search = document.getElementById('tradeSearch')?.value?.toLowerCase() || '';
+  const filtered = state.trades.filter(t => 
+    t.pair?.toLowerCase().includes(search) || 
+    t.strategy?.toLowerCase().includes(search) ||
+    t.rr?.includes(search)
+  );
+  const data = filtered.length > 0 ? filtered : state.trades;
+  tbody.innerHTML = data.slice().reverse().map((t, i) => {
+    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
+    return `<tr>
+      <td>${state.trades.length - i}</td>
+      <td>${t.date}</td>
+      <td>${t.dir}</td>
+      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
+      <td class="${resultClass}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
+      <td>${t.rr}</td>
+      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteTrade(${state.trades.indexOf(t)})"><i class="fas fa-trash-alt"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function deleteTrade(index) {
+  if (confirm('Delete this trade?')) {
+    const t = state.trades[index];
+    state.balance -= t.result === 'win' ? t.amount : -t.amount;
+    state.trades.splice(index, 1);
+    // Remove corresponding RR trade
+    if (index < state.rrTrades.length) {
+      state.netR -= state.rrTrades[index].rValue;
+      state.rrTrades.splice(index, 1);
+      let running = 0;
+      state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
+    }
+    updateAll();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
+}
+
+function filterTrades() { updateTradeHistory(); }
+
+function clearAllTrades() {
+  if (confirm('Clear all trades? This cannot be undone!')) {
+    state.trades = [];
+    state.rrTrades = [];
+    state.netR = 0;
+    state.balance = 1000;
+    updateAll();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
+}
+
+// ========== UPDATE LOT SIZE ==========
+function updateLotSize() {
+  try {
+    const riskPct = 2.5;
+    const slPts = parseFloat(document.getElementById('slInput').value) || 200;
+    const riskAmount = (state.balance * riskPct) / 100;
+    const lotSize = riskAmount / slPts * 10;
+    document.getElementById('lotDisplay').textContent = `Risk $${riskAmount.toFixed(2)} · Lot ${lotSize.toFixed(2)}`;
+    document.getElementById('riskInput').value = riskPct;
+  } catch(e) { console.error('Lot size error:', e); }
+}
+
+// ========== UPDATE SCORE ==========
+function updateScore() {
+  const score = state.aplusScores.length > 0 ? state.aplusScores[state.aplusScores.length - 1] : 92;
+  document.getElementById('scoreDisplay').textContent = score;
+  const label = document.getElementById('scoreLabel');
+  if (score >= 90) { label.textContent = 'A+ Trade'; label.className = 'text-xs text-[#22C55E]'; }
+  else if (score >= 70) { label.textContent = 'Acceptable'; label.className = 'text-xs text-[#F59E0B]'; }
+  else { label.textContent = 'Skip Trade'; label.className = 'text-xs text-[#EF4444]'; }
+}
+
+// ========== BACKTESTING ==========
+let backtestImages = [];
+let editingBacktestIndex = -1;
+
+function toggleBacktestForm() {
+  const form = document.getElementById('backtestForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') {
+    document.getElementById('btDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('imagePreviewContainer').innerHTML = '';
+    backtestImages = [];
+  }
+}
+
+function handleImageUpload(event) {
+  const files = event.target.files;
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      backtestImages.push(e.target.result);
+      renderImagePreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderImagePreviews() {
+  const container = document.getElementById('imagePreviewContainer');
+  container.innerHTML = backtestImages.map((img, i) => `
+    <div class="relative">
+      <img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />
+      <button class="absolute top-1 right-1 bg-[#EF4444] text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-[#DC2626] transition-colors" onclick="removeImage(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+
+function removeImage(index) {
+  backtestImages.splice(index, 1);
+  renderImagePreviews();
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  this.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  for (let file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        backtestImages.push(e.target.result);
+        renderImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+});
+
+function saveBacktest() {
+  const bt = {
+    id: Date.now(),
+    pair: document.getElementById('btPair').value,
+    direction: document.getElementById('btDirection').value,
+    date: document.getElementById('btDate').value,
+    timeframe: document.getElementById('btTimeframe').value,
+    session: document.getElementById('btSession').value,
+    rr: document.getElementById('btRR').value,
+    result: document.getElementById('btResult').value,
+    entry: parseFloat(document.getElementById('btEntry').value) || 0,
+    sl: parseFloat(document.getElementById('btSL').value) || 0,
+    tp: parseFloat(document.getElementById('btTP').value) || 0,
+    lot: parseFloat(document.getElementById('btLot').value) || 0,
+    strategy: document.getElementById('btStrategy').value || 'Unknown',
+    grade: document.getElementById('btGrade').value,
+    confidence: parseInt(document.getElementById('btConfidence').value) || 7,
+    emotions: document.getElementById('btEmotions').value,
+    mistakes: document.getElementById('btMistakes').value || 'None',
+    lessons: document.getElementById('btLessons').value || 'None',
+    notes: document.getElementById('btNotes').value || '',
+    tags: document.getElementById('btTags').value.split(',').map(t => t.trim()).filter(t => t),
+    images: [...backtestImages]
+  };
+  const reward = parseInt(bt.rr.split(':')[1]);
+  bt.netR = bt.result === 'Win' ? `+${reward}R` : (bt.result === 'Loss' ? '-1R' : '0R');
+
+  if (editingBacktestIndex >= 0) {
+    state.backtests[editingBacktestIndex] = bt;
+    editingBacktestIndex = -1;
+  } else {
+    state.backtests.push(bt);
+  }
+
+  backtestImages = [];
+  document.getElementById('imagePreviewContainer').innerHTML = '';
+  toggleBacktestForm();
+  updateBacktestingUI();
+  if (state.currentUser) saveUserData(state.currentUser);
+}
+
+function editBacktest(index) {
+  const bt = state.backtests[index];
+  editingBacktestIndex = index;
+  document.getElementById('btPair').value = bt.pair;
+  document.getElementById('btDirection').value = bt.direction;
+  document.getElementById('btDate').value = bt.date;
+  document.getElementById('btTimeframe').value = bt.timeframe;
+  document.getElementById('btSession').value = bt.session;
+  document.getElementById('btRR').value = bt.rr;
+  document.getElementById('btResult').value = bt.result;
+  document.getElementById('btEntry').value = bt.entry || '';
+  document.getElementById('btSL').value = bt.sl || '';
+  document.getElementById('btTP').value = bt.tp || '';
+  document.getElementById('btLot').value = bt.lot || '';
+  document.getElementById('btStrategy').value = bt.strategy || '';
+  document.getElementById('btGrade').value = bt.grade || 'B';
+  document.getElementById('btConfidence').value = bt.confidence || 7;
+  document.getElementById('btEmotions').value = bt.emotions || 'Calm';
+  document.getElementById('btMistakes').value = bt.mistakes || '';
+  document.getElementById('btLessons').value = bt.lessons || '';
+  document.getElementById('btNotes').value = bt.notes || '';
+  document.getElementById('btTags').value = (bt.tags || []).join(', ');
+  backtestImages = bt.images || [];
+  renderImagePreviews();
+  toggleBacktestForm();
+}
+
+function deleteBacktest(index) {
+  if (confirm('Delete this backtest entry?')) {
+    state.backtests.splice(index, 1);
+    updateBacktestingUI();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
+}
+
+function getFilteredBacktests() {
+  const search = document.getElementById('btSearch')?.value?.toLowerCase() || '';
+  const pair = document.getElementById('btFilterPair')?.value || '';
+  const result = document.getElementById('btFilterResult')?.value || '';
+  return state.backtests.filter(bt => {
+    if (search && !bt.pair.toLowerCase().includes(search) && !bt.strategy.toLowerCase().includes(search) && !bt.tags.some(t => t.toLowerCase().includes(search))) return false;
+    if (pair && bt.pair !== pair) return false;
+    if (result && bt.result !== result) return false;
+    return true;
+  });
+}
+
+function filterBacktests() { updateBacktestingUI(); }
+function resetFilters() {
+  document.getElementById('btSearch').value = '';
+  document.getElementById('btFilterPair').value = '';
+  document.getElementById('btFilterResult').value = '';
+  updateBacktestingUI();
+}
+
+function updateBacktestingUI() {
+  const filtered = getFilteredBacktests();
+  const total = filtered.length;
+  const wins = filtered.filter(b => b.result === 'Win').length;
+  const winRate = total > 0 ? (wins / total * 100) : 0;
+  let totalRR = 0;
+  filtered.forEach(b => {
+    const reward = parseInt(b.rr.split(':')[1]);
+    if (b.result === 'Win') totalRR += reward;
+    else if (b.result === 'Loss') totalRR -= 1;
+  });
+  const avgRR = total > 0 ? totalRR / total : 0;
+
+  const strategyStats = {};
+  filtered.forEach(b => {
+    if (!strategyStats[b.strategy]) strategyStats[b.strategy] = { wins: 0, total: 0 };
+    strategyStats[b.strategy].total++;
+    if (b.result === 'Win') strategyStats[b.strategy].wins++;
+  });
+  let bestStrategy = '-', bestRate = 0;
+  Object.keys(strategyStats).forEach(s => {
+    const rate = strategyStats[s].wins / strategyStats[s].total * 100;
+    if (rate > bestRate && strategyStats[s].total >= 2) { bestRate = rate; bestStrategy = s; }
   });
 
-  const handleSubmit = () => {
-    onAdd(trade);
-    onClose();
-  };
+  const pairStats = {};
+  filtered.forEach(b => {
+    if (!pairStats[b.pair]) pairStats[b.pair] = { wins: 0, total: 0 };
+    pairStats[b.pair].total++;
+    if (b.result === 'Win') pairStats[b.pair].wins++;
+  });
+  let bestPair = '-', bestPairRate = 0;
+  Object.keys(pairStats).forEach(p => {
+    const rate = pairStats[p].wins / pairStats[p].total * 100;
+    if (rate > bestPairRate && pairStats[p].total >= 2) { bestPairRate = rate; bestPair = p; }
+  });
 
-  return (
-    <Modal T={T} onClose={onClose} title="New Trade" wide>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div>
-          <LabeledInput T={T} label="Pair" value={trade.pair} onChange={v => setTrade({ ...trade, pair: v })} />
-          <LabeledInput T={T} label="Date" value={trade.date} onChange={v => setTrade({ ...trade, date: v })} type="date" />
-          <SelectInput T={T} label="Direction" value={trade.direction} options={["Long", "Short"]} onChange={v => setTrade({ ...trade, direction: v })} />
-          <SelectInput T={T} label="Strategy" value={trade.strategy} options={STRATEGIES} onChange={v => setTrade({ ...trade, strategy: v })} />
-          <SelectInput T={T} label="Session" value={trade.session} options={SESSIONS} onChange={v => setTrade({ ...trade, session: v })} />
+  const aplusWins = filtered.filter(b => b.grade === 'A+' && b.result === 'Win').length;
+  const aplusTotal = filtered.filter(b => b.grade === 'A+').length;
+  const aplusRate = aplusTotal > 0 ? (aplusWins / aplusTotal * 100) : 0;
+
+  document.getElementById('btStatTotal').textContent = total;
+  document.getElementById('btStatWinRate').textContent = `${winRate.toFixed(1)}%`;
+  document.getElementById('btStatAvgRR').textContent = `${avgRR.toFixed(1)}R`;
+  document.getElementById('btStatBestStrategy').textContent = bestStrategy;
+  document.getElementById('btStatBestPair').textContent = bestPair;
+  document.getElementById('btStatAplus').textContent = `${aplusRate.toFixed(1)}%`;
+
+  // Gallery
+  const gallery = document.getElementById('btGallery');
+  if (filtered.length === 0) {
+    gallery.innerHTML = '<div class="col-span-full text-center text-[#4B5563] py-6">No backtests match your filters</div>';
+    return;
+  }
+  gallery.innerHTML = filtered.map((bt, i) => {
+    const resultClass = bt.result === 'Win' ? 'badge-win' : (bt.result === 'Loss' ? 'badge-loss' : 'badge-neutral');
+    const gradeClass = bt.grade === 'A+' ? 'badge-aplus' : (bt.grade === 'A' ? 'badge-a' : (bt.grade === 'B' ? 'badge-b' : 'badge-c'));
+    const img = bt.images && bt.images.length > 0 ? bt.images[0] : 'https://via.placeholder.com/300x200/1F2937/94A3B8?text=No+Image';
+    const realIndex = state.backtests.indexOf(bt);
+    return `
+      <div class="backtest-card" onclick="openBacktestDetail(${realIndex})">
+        <img src="${img}" class="thumbnail" alt="${bt.pair}" />
+        <div class="mt-2 flex justify-between items-center">
+          <span class="font-bold text-sm">${bt.pair}</span>
+          <span class="badge ${resultClass}">${bt.result}</span>
         </div>
-        <div>
-          <LabeledInput T={T} label="RR" value={trade.rr} onChange={v => setTrade({ ...trade, rr: parseFloat(v) || 0 })} type="number" step="0.1" />
-          <LabeledInput T={T} label="P&L ($)" value={trade.pnl} onChange={v => setTrade({ ...trade, pnl: parseFloat(v) || 0 })} type="number" />
-          <SelectInput T={T} label="Result" value={trade.win ? "Win" : "Loss"} options={["Win", "Loss"]} onChange={v => setTrade({ ...trade, win: v === "Win" })} />
-          <SelectInput T={T} label="Grade" value={trade.grade} options={GRADES} onChange={v => setTrade({ ...trade, grade: v })} />
-          <SelectInput T={T} label="Emotion" value={trade.emotion} options={EMOTIONS} onChange={v => setTrade({ ...trade, emotion: v })} />
-          <div style={{ marginTop: 12 }}>
-            <button onClick={handleSubmit} style={{
-              width: "100%", background: T.blue, border: "none", borderRadius: 10, padding: "10px",
-              color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer"
-            }}><CheckCircle2 size={16} style={{ display: "inline", marginRight: 8 }} /> Save Trade</button>
-          </div>
+        <div class="flex justify-between text-xs text-[#94A3B8] mt-1">
+          <span>${bt.rr}</span>
+          <span>${bt.date}</span>
+        </div>
+        <div class="flex justify-between text-xs mt-1">
+          <span class="badge ${gradeClass}">${bt.grade}</span>
+          <span class="text-[#94A3B8]">${bt.strategy}</span>
+        </div>
+        <div class="flex gap-1 mt-2">
+          <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); editBacktest(${realIndex})"><i class="fas fa-edit"></i></button>
+          <button class="btn-danger btn-xs" onclick="event.stopPropagation(); deleteBacktest(${realIndex})"><i class="fas fa-trash-alt"></i></button>
         </div>
       </div>
-    </Modal>
-  );
+    `;
+  }).join('');
 }
 
-function LabeledInput({ T, label, value, onChange, type = "text", step }) {
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 11.5, color: T.textSecondary, marginBottom: 4, fontWeight: 600 }}>{label}</div>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} step={step} style={{
-        width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 10px",
-        color: T.text, fontSize: 13, outline: "none"
-      }} />
-    </div>
-  );
+function openBacktestDetail(index) {
+  const bt = state.backtests[index];
+  if (!bt) return;
+  const detail = `
+📊 BACKTEST DETAIL\n\n
+Pair: ${bt.pair}
+Direction: ${bt.direction}
+Date: ${bt.date}
+Timeframe: ${bt.timeframe}
+Session: ${bt.session}
+RR: ${bt.rr}
+Result: ${bt.result}
+Net R: ${bt.netR}
+Entry: ${bt.entry || 'N/A'}
+SL: ${bt.sl || 'N/A'}
+TP: ${bt.tp || 'N/A'}
+Lot: ${bt.lot || 'N/A'}
+Strategy: ${bt.strategy}
+Grade: ${bt.grade}
+Confidence: ${bt.confidence}/10
+Emotions: ${bt.emotions}
+Mistakes: ${bt.mistakes}
+Lessons: ${bt.lessons}
+Tags: ${(bt.tags || []).join(', ')}
+Notes: ${bt.notes || 'No notes'}`;
+  alert(detail);
 }
 
-function SelectInput({ T, label, value, options, onChange }) {
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 11.5, color: T.textSecondary, marginBottom: 4, fontWeight: 600 }}>{label}</div>
-      <select value={value} onChange={e => onChange(e.target.value)} style={{
-        width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 10px",
-        color: T.text, fontSize: 13, outline: "none"
-      }}>
-        {options.map(o => <option key={o}>{o}</option>)}
-      </select>
-    </div>
-  );
-}
-
-/* ============================= TRADES PAGE ============================= */
-
-function TradesPage({ T, trades, setTrades, addNotification }) {
-  const [search, setSearch] = useState("");
-  const [filterPair, setFilterPair] = useState("All");
-  const [selected, setSelected] = useState(null);
-  const [showCalc, setShowCalc] = useState(false);
-  const [sortField, setSortField] = useState("date");
-  const [sortDir, setSortDir] = useState("desc");
-
-  const filtered = useMemo(() => {
-    let result = trades.filter(t =>
-      (filterPair === "All" || t.pair === filterPair) &&
-      (t.pair.toLowerCase().includes(search.toLowerCase()) || t.strategy.toLowerCase().includes(search.toLowerCase()))
-    );
-    result.sort((a, b) => {
-      let cmp = 0;
-      if (sortField === "date") cmp = new Date(a.date) - new Date(b.date);
-      else if (sortField === "pnl") cmp = a.pnl - b.pnl;
-      else if (sortField === "rr") cmp = a.rr - b.rr;
-      else if (sortField === "grade") cmp = GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade);
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-    return result;
-  }, [trades, search, filterPair, sortField, sortDir]);
-
-  const handleDelete = (id) => {
-    if (window.confirm("Delete this trade?")) {
-      setTrades(prev => prev.filter(t => t.id !== id));
-      addNotification(`Trade ${id} deleted`, "info");
-    }
-  };
-
-  const handleBulkDelete = () => {
-    if (window.confirm("Delete all filtered trades?")) {
-      const ids = filtered.map(t => t.id);
-      setTrades(prev => prev.filter(t => !ids.includes(t.id)));
-      addNotification(`${ids.length} trades deleted`, "info");
-    }
-  };
-
-  const handleExport = () => {
-    const dataStr = JSON.stringify(filtered, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
+function exportBacktests(format) {
+  const data = getFilteredBacktests();
+  if (data.length === 0) { alert('No backtests to export'); return; }
+  if (format === 'csv') {
+    const headers = ['Date','Pair','Direction','Timeframe','Session','RR','Result','NetR','Entry','SL','TP','Lot','Strategy','Grade','Confidence','Emotions','Mistakes','Lessons','Tags','Notes'];
+    const rows = data.map(b => [b.date, b.pair, b.direction, b.timeframe, b.session, b.rr, b.result, b.netR, b.entry||'', b.sl||'', b.tp||'', b.lot||'', b.strategy, b.grade, b.confidence, b.emotions, b.mistakes, b.lessons, (b.tags||[]).join(';'), b.notes||'']);
+    let csv = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `trades_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `backtests_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    addNotification("Trades exported", "success");
+  } else if (format === 'json') {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backtests_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ========== CALENDAR ==========
+function buildCalendar(month, year, targetId) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const grid = document.getElementById(targetId);
+  let html = '';
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  days.forEach(d => html += `<div class="text-xs text-[#4B5563] text-center font-medium py-1">${d}</div>`);
+  for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTrades = state.trades.filter(t => t.date === dateStr);
+    const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+    let cls = 'calendar-day';
+    if (totalPL > 0) cls += ' profit';
+    else if (totalPL < 0) cls += ' loss';
+    if (dateStr === new Date().toISOString().slice(0,10)) cls += ' today';
+    html += `<div class="${cls}" onclick="showDayDetails('${dateStr}')">
+      <span class="day-number">${d}</span>
+      ${dayTrades.length > 0 ? `<span class="day-pl ${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(0)}</span>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+  document.getElementById('calendarMonthYear').textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+}
+
+function buildCalendarFull(month, year) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const grid = document.getElementById('calGrid');
+  let html = '';
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  days.forEach(d => html += `<div class="text-xs text-[#4B5563] text-center font-medium py-1">${d}</div>`);
+  for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTrades = state.trades.filter(t => t.date === dateStr);
+    const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+    let cls = 'calendar-day';
+    if (totalPL > 0) cls += ' profit';
+    else if (totalPL < 0) cls += ' loss';
+    if (dateStr === new Date().toISOString().slice(0,10)) cls += ' today';
+    html += `<div class="${cls}" onclick="showDayDetailsFull('${dateStr}')">
+      <span class="day-number">${d}</span>
+      ${dayTrades.length > 0 ? `<span class="day-pl ${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(0)}</span>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+  document.getElementById('calMonthYear').textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+  
+  // Month stats
+  const monthTrades = state.trades.filter(t => t.date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`));
+  const monthWins = monthTrades.filter(t => t.result === 'win').length;
+  const monthPL = monthTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+  document.getElementById('calMonthTotal').textContent = monthTrades.length;
+  document.getElementById('calMonthWin').textContent = monthTrades.length > 0 ? `${(monthWins / monthTrades.length * 100).toFixed(1)}%` : '0%';
+  document.getElementById('calMonthPL').textContent = `$${monthPL.toFixed(0)}`;
+}
+
+function changeMonth(delta) {
+  state.calendarMonth += delta;
+  if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+  if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+  buildCalendar(state.calendarMonth, state.calendarYear, 'calendarGrid');
+  buildCalendarFull(state.calendarMonth, state.calendarYear);
+}
+
+function showDayDetails(dateStr) {
+  const dayTrades = state.trades.filter(t => t.date === dateStr);
+  const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+  const details = document.getElementById('calDayDetails');
+  if (dayTrades.length === 0) {
+    details.innerHTML = `<div class="text-[#4B5563]">No trades on ${dateStr}</div>`;
+    return;
+  }
+  details.innerHTML = `
+    <div class="font-bold text-[#F8FAFC]">${dateStr}</div>
+    <div class="text-sm">Trades: ${dayTrades.length} | P/L: <span class="${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(2)}</span></div>
+    <div class="mt-2 space-y-1 text-xs">
+      ${dayTrades.map(t => `<div class="flex justify-between border-b border-[#1F2937] py-1">
+        <span>${t.dir}</span>
+        <span class="${t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</span>
+        <span>${t.rr}</span>
+      </div>`).join('')}
+    </div>
+  `;
+}
+
+function showDayDetailsFull(dateStr) {
+  showDayDetails(dateStr);
+}
+
+function updateCalendar() {
+  buildCalendar(state.calendarMonth, state.calendarYear, 'calendarGrid');
+  buildCalendarFull(state.calendarMonth, state.calendarYear);
+}
+
+// ========== JOURNAL ==========
+function addJournalEntry() {
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString().slice(0,10),
+    title: 'Journal Entry ' + (state.journalEntries.length + 1),
+    content: 'Write your thoughts about today\'s trading...',
+    emotions: 'Calm',
+    mistakes: '',
+    lessons: '',
+    tags: []
   };
+  state.journalEntries.push(entry);
+  updateJournal();
+  if (state.currentUser) saveUserData(state.currentUser);
+}
 
-  const tools = [
-    { label: "Quick Trade", icon: Plus },
-    { label: "Lot Size Calc", icon: Calculator },
-    { label: "Risk Calc", icon: Sliders },
-    { label: "Import", icon: Upload },
-    { label: "Export", icon: Download },
-  ];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        {tools.map((tool, i) => {
-          const Icon = tool.icon;
-          return (
-            <button key={i} onClick={() => {
-              if (tool.label === "Export") handleExport();
-              else if (tool.label === "Lot Size Calc" || tool.label === "Risk Calc") setShowCalc(tool.label);
-            }} style={{
-              display: "flex", alignItems: "center", gap: 7, background: T.card, border: `1px solid ${T.border}`,
-              borderRadius: 10, padding: "9px 13px", color: T.text, fontSize: 12.5, fontWeight: 600, cursor: "pointer"
-            }}><Icon size={14} /> {tool.label}</button>
-          );
-        })}
-        <button onClick={handleBulkDelete} style={{
-          display: "flex", alignItems: "center", gap: 7, background: T.card, border: `1px solid ${T.red}`,
-          borderRadius: 10, padding: "9px 13px", color: T.red, fontSize: 12.5, fontWeight: 600, cursor: "pointer"
-        }}><Trash2 size={14} /> Bulk Delete</button>
+function updateJournal() {
+  const container = document.getElementById('journalEntries');
+  if (state.journalEntries.length === 0) {
+    container.innerHTML = '<div class="text-center text-[#4B5563] py-6">No journal entries yet. Click "New Entry" to start.</div>';
+    return;
+  }
+  container.innerHTML = state.journalEntries.slice().reverse().map((entry, i) => `
+    <div class="glass-card p-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="font-bold">${entry.title}</span>
+          <span class="text-xs text-[#94A3B8] ml-2">${entry.date}</span>
+        </div>
+        <button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteJournalEntry(${state.journalEntries.length - 1 - i})"><i class="fas fa-trash-alt"></i></button>
       </div>
-
-      <Card T={T}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px", flex: 1, minWidth: 200 }}>
-            <Search size={14} color={T.textSecondary} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pair or strategy…" style={{ background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 12.5, width: "100%" }} />
-          </div>
-          <select value={filterPair} onChange={e => setFilterPair(e.target.value)} style={{
-            background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px", color: T.text, fontSize: 12.5
-          }}>
-            <option>All</option>
-            {PAIRS.map(p => <option key={p}>{p}</option>)}
-          </select>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6, background: T.bg, border: `1px solid ${T.border}`,
-            borderRadius: 10, padding: "8px 12px", color: T.textSecondary, fontSize: 12.5, cursor: "pointer"
-          }} onClick={() => setSortDir(s => s === "asc" ? "desc" : "asc")}>
-            <Filter size={13} /> Sort {sortDir === "asc" ? "↑" : "↓"}
-          </button>
-        </div>
-
-        <div style={{ display: "flex", padding: "0 12px 8px 12px", fontSize: 11, color: T.textSecondary, fontWeight: 600, gap: 8 }}>
-          <div style={{ flex: 1 }}>Trade</div>
-          <div style={{ width: 50, textAlign: "right", marginRight: 16 }}>Grade</div>
-          <div style={{ width: 50, textAlign: "right" }}>RR</div>
-          <div style={{ width: 70, textAlign: "right", marginLeft: 16 }}>P/L</div>
-          <div style={{ width: 40, textAlign: "center" }}>Action</div>
-        </div>
-        {filtered.slice(0, 25).map(t => (
-          <TradeRow T={T} t={t} key={t.id} onClick={() => setSelected(t)} />
-        ))}
-        <div style={{ marginTop: 12, fontSize: 12, color: T.textSecondary }}>
-          Showing {Math.min(filtered.length, 25)} of {filtered.length} trades
-        </div>
-      </Card>
-
-      {selected && <TradeDetailModal T={T} t={selected} onClose={() => setSelected(null)} onDelete={() => {
-        handleDelete(selected.id);
-        setSelected(null);
-      }} />}
-      {showCalc && <CalculatorModal T={T} kind={showCalc} onClose={() => setShowCalc(false)} />}
+      <p class="text-sm text-[#94A3B8] mt-1">${entry.content}</p>
+      <div class="flex gap-2 mt-2">
+        <span class="text-xs text-[#94A3B8]">Emotions: ${entry.emotions}</span>
+        ${entry.mistakes ? `<span class="text-xs text-[#EF4444]">Mistakes: ${entry.mistakes}</span>` : ''}
+        ${entry.lessons ? `<span class="text-xs text-[#22C55E]">Lessons: ${entry.lessons}</span>` : ''}
+      </div>
+      ${entry.tags.length > 0 ? `<div class="flex gap-1 mt-1">${entry.tags.map(t => `<span class="badge badge-neutral">${t}</span>`).join('')}</div>` : ''}
     </div>
-  );
+  `).join('');
 }
 
-function TradeDetailModal({ T, t, onClose, onDelete }) {
-  return (
-    <Modal T={T} onClose={onClose} title={`${t.pair} — ${t.date}`} wide>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{
-            height: 160, borderRadius: 12, background: T.bg, border: `1px dashed ${T.border}`,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, color: T.textSecondary
-          }}>
-            <ImageIcon size={22} />
-            <span style={{ fontSize: 11.5 }}>Entry / Exit chart screenshots</span>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {t.tags.map((tag, i) => <Pill T={T} key={i} tint={T.blue}><Tag size={9} style={{ marginRight: 3, display: "inline" }} />{tag}</Pill>)}
-          </div>
-          <div>
-            <div style={{ fontSize: 11.5, color: T.textSecondary, fontWeight: 600, marginBottom: 4 }}>NOTES</div>
-            <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.notes || "No notes"}</div>
-          </div>
-          {t.mistakes && (
-            <div>
-              <div style={{ fontSize: 11.5, color: T.red, fontWeight: 600, marginBottom: 4 }}>MISTAKES</div>
-              <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.mistakes}</div>
-            </div>
-          )}
-          {t.lessons && (
-            <div>
-              <div style={{ fontSize: 11.5, color: T.green, fontWeight: 600, marginBottom: 4 }}>LESSONS</div>
-              <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.lessons}</div>
-            </div>
-          )}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[
-            ["Direction", t.direction], ["Strategy", t.strategy], ["Session", t.session],
-            ["Setup Grade", t.grade], ["Confidence", `${t.confidence}/6`], ["Emotion", t.emotion],
-            ["RR", `${t.rr >= 0 ? "+" : ""}${t.rr}R`], ["P/L", fmtMoney(t.pnl)],
-            ["Entry", `$${t.entryPrice || "N/A"}`], ["Exit", `$${t.exitPrice || "N/A"}`],
-            ["Stop Loss", `$${t.stopLoss || "N/A"}`], ["Take Profit", `$${t.takeProfit || "N/A"}`]
-          ].map(([k, v], i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.border}` }}>
-              <span style={{ fontSize: 12, color: T.textSecondary }}>{k}</span>
-              <span style={{ fontSize: 12.5, fontWeight: 600 }}>{v}</span>
-            </div>
-          ))}
-          <button onClick={onDelete} style={{
-            marginTop: 8, background: "transparent", border: `1px solid ${T.red}`, borderRadius: 8,
-            padding: "8px", color: T.red, fontSize: 12, fontWeight: 600, cursor: "pointer"
-          }}><Trash2 size={14} style={{ display: "inline", marginRight: 6 }} /> Delete Trade</button>
-        </div>
-      </div>
-    </Modal>
-  );
+function deleteJournalEntry(index) {
+  if (confirm('Delete this journal entry?')) {
+    state.journalEntries.splice(index, 1);
+    updateJournal();
+    if (state.currentUser) saveUserData(state.currentUser);
+  }
 }
 
-function CalculatorModal({ T, kind, onClose }) {
-  const [balance, setBalance] = useState(10000);
-  const [riskPct, setRiskPct] = useState(1);
-  const [stopPips, setStopPips] = useState(20);
-  const riskAmount = balance * (riskPct / 100);
-  const lotSize = (riskAmount / (stopPips * 10)).toFixed(2);
-  return (
-    <Modal T={T} onClose={onClose} title={kind}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <LabeledInput T={T} label="Account Balance ($)" value={balance} onChange={setBalance} type="number" />
-        <LabeledInput T={T} label="Risk %" value={riskPct} onChange={setRiskPct} type="number" step="0.1" />
-        {kind === "Lot Size Calc" && <LabeledInput T={T} label="Stop Loss (pips)" value={stopPips} onChange={setStopPips} type="number" />}
-        <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: 14, marginTop: 6 }}>
-          <div style={{ fontSize: 12, color: T.textSecondary }}>Risk Amount</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{fmtMoney(riskAmount)}</div>
-          {kind === "Lot Size Calc" && (
-            <>
-              <div style={{ fontSize: 12, color: T.textSecondary, marginTop: 10 }}>Suggested Lot Size</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: T.blue }}>{lotSize} lots</div>
-            </>
-          )}
-        </div>
-      </div>
-    </Modal>
-  );
+// ========== ANALYTICS ==========
+function updateAnalytics() {
+  const total = state.trades.length;
+  const wins = state.trades.filter(t => t.result === 'win').length;
+  const winRate = total > 0 ? (wins / total * 100) : 0;
+  const totalProfit = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+  const avgRR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
+  
+  document.getElementById('anaTotal').textContent = total;
+  document.getElementById('anaWinRate').textContent = `${winRate.toFixed(1)}%`;
+  document.getElementById('anaAvgRR').textContent = `${avgRR.toFixed(1)}R`;
+  document.getElementById('anaProfit').textContent = `$${totalProfit.toFixed(0)}`;
 }
 
-/* ============================= BACKTESTING PAGE ============================= */
+// ========== CHARTS ==========
+let charts = {};
 
-function BacktestingPage({ T, trades }) {
-  const [selected, setSelected] = useState(null);
-  const [viewMode, setViewMode] = useState("gallery");
-  const sample = trades.slice(0, 12);
+function initCharts() {
+  try {
+    // Equity Chart
+    const ctx1 = document.getElementById('dashEquityChart');
+    if (ctx1) {
+      charts.equity = new Chart(ctx1.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: ['Start'],
+          datasets: [{
+            label: 'Equity',
+            data: [1000],
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59, 130, 246, 0.06)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointBackgroundColor: '#3B82F6',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+            x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
+          }
+        }
+      });
+    }
 
-  return (
-    <div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-        <button onClick={() => setViewMode("gallery")} style={{
-          padding: "8px 16px", borderRadius: 8, border: `1px solid ${viewMode === "gallery" ? T.blue : T.border}`,
-          background: viewMode === "gallery" ? T.blue : "transparent", color: viewMode === "gallery" ? "#fff" : T.textSecondary,
-          fontSize: 12, fontWeight: 600, cursor: "pointer"
-        }}><ImageIcon size={14} style={{ display: "inline", marginRight: 6 }} /> Gallery</button>
-        <button onClick={() => setViewMode("table")} style={{
-          padding: "8px 16px", borderRadius: 8, border: `1px solid ${viewMode === "table" ? T.blue : T.border}`,
-          background: viewMode === "table" ? T.blue : "transparent", color: viewMode === "table" ? "#fff" : T.textSecondary,
-          fontSize: 12, fontWeight: 600, cursor: "pointer"
-        }}><ListChecks size={14} style={{ display: "inline", marginRight: 6 }} /> Table</button>
-        <button style={{
-          padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.border}`,
-          background: "transparent", color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: "pointer"
-        }}><Upload size={14} style={{ display: "inline", marginRight: 6 }} /> Upload Screenshots</button>
-      </div>
-
-      {viewMode === "gallery" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minwidth(260px, 1fr))", gap: 16 }}>
-          {sample.map(t => (
-            <Card T={T} key={t.id} style={{ cursor: "pointer" }} onClick={() => setSelected(t)}>
-              <div style={{
-                height: 140, borderRadius: 10, background: T.bg, border: `1px dashed ${T.border}`,
-                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: T.textSecondary
-              }}><ImageIcon size={24} /></div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t.pair}</div>
-                <Pill T={T} tint={T.orange}>{t.grade}</Pill>
-              </div>
-              <div style={{ fontSize: 11.5, color: T.textSecondary, marginBottom: 8 }}>{t.strategy}</div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: t.rr >= 0 ? T.green : T.red }}>{t.rr >= 0 ? "+" : ""}{t.rr}R</span>
-                <span style={{ fontSize: 11, color: T.textSecondary }}>{t.date}</span>
-              </div>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card T={T}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {sample.slice(0, 10).map(t => <TradeRow T={T} t={t} key={t.id} compact />)}
-          </div>
-        </Card>
-      )}
-      {selected && <TradeDetailModal T={T} t={selected} onClose={() => setSelected(null)} />}
-    </div>
-  );
+    // Daily Chart
+    const ctx2 = document.getElementById('dashDailyChart');
+    if (ctx2) {
+      charts.daily = new Chart(ctx2.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'P/L',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: '#3B82F6',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+            x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
+          }
+        }
+      });
+    }
+  } catch(e) { console.error('Chart init error:', e); }
 }
 
-/* ============================= JOURNAL PAGE ============================= */
-
-function JournalPage({ T, trades }) {
-  const [search, setSearch] = useState("");
-  const [filterTag, setFilterTag] = useState("All");
-  const allTags = [...new Set(trades.flatMap(t => t.tags))];
-  const entries = trades
-    .filter(t => t.notes.toLowerCase().includes(search.toLowerCase()))
-    .filter(t => filterTag === "All" || t.tags.includes(filterTag))
-    .slice(0, 20);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 13px", flex: 1, maxWidth: 340 }}>
-          <Search size={14} color={T.textSecondary} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search journal entries…" style={{ background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 12.5, width: "100%" }} />
-        </div>
-        <select value={filterTag} onChange={e => setFilterTag(e.target.value)} style={{
-          background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 13px",
-          color: T.text, fontSize: 12.5
-        }}>
-          <option>All</option>
-          {allTags.map(tag => <option key={tag}>{tag}</option>)}
-        </select>
-        <button style={{
-          display: "flex", alignItems: "center", gap: 6, background: T.blue, border: "none",
-          borderRadius: 10, padding: "9px 14px", color: "#fff", fontSize: 12.5, fontWeight: 600, cursor: "pointer"
-        }}><Plus size={14} /> New Entry</button>
-      </div>
-      {entries.map(t => (
-        <Card T={T} key={t.id}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t.pair}</div>
-              <Pill T={T} tint={T.blue}>{t.emotion}</Pill>
-              <Pill T={T} tint={T.orange}>{t.grade}</Pill>
-            </div>
-            <div style={{ fontSize: 11.5, color: T.textSecondary }}>{t.date}</div>
-          </div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 10 }}>{t.notes}</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {t.tags.map((tag, i) => <Pill key={i} T={T} tint={T.textSecondary}>{tag}</Pill>)}
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-/* ============================= REPORTS PAGE ============================= */
-
-function groupBy(trades, keyFn) {
-  const g = {};
-  trades.forEach(t => {
-    const k = keyFn(t);
-    if (!g[k]) g[k] = { key: k, pnl: 0, count: 0, wins: 0 };
-    g[k].pnl += t.pnl;
-    g[k].count += 1;
-    if (t.win) g[k].wins += 1;
-  });
-  return Object.values(g);
-}
-
-function ReportsPage({ T, trades, stats }) {
-  const byWeekday = useMemo(() => {
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const g = groupBy(trades, t => names[new Date(t.date).getDay()]);
-    return names.map(n => g.find(x => x.key === n) || { key: n, pnl: 0, count: 0, wins: 0 });
-  }, [trades]);
-
-  const byStrategy = useMemo(() => groupBy(trades, t => t.strategy), [trades]);
-  const bySession = useMemo(() => groupBy(trades, t => t.session), [trades]);
-  const byPair = useMemo(() => groupBy(trades, t => t.pair), [trades]);
-  const pieColors = [T.blue, T.green, T.orange, T.red, "#8B5CF6", "#EC4899", "#14B8A6"];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card T={T}>
-          <SectionTitle T={T} title="Performance by Weekday" />
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={byWeekday}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="key" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
-                {byWeekday.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card T={T}>
-          <SectionTitle T={T} title="Performance by Session" />
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={bySession} dataKey="count" nameKey="key" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                {bySession.map((d, i) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card T={T}>
-          <SectionTitle T={T} title="Performance by Strategy" />
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={byStrategy} layout="vertical" margin={{ left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis type="category" dataKey="key" tick={{ fontSize: 10, fill: T.textSecondary }} width={140} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
-                {byStrategy.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.blue : T.red} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card T={T}>
-          <SectionTitle T={T} title="Performance by Pair" />
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie data={byPair} dataKey="count" nameKey="key" outerRadius={90} label={{ fontSize: 10 }}>
-                {byPair.map((d, i) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <Card T={T}>
-        <SectionTitle T={T} title="Setup Grade Distribution" />
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={GRADES.map(g => ({ grade: g, count: trades.filter(t => t.grade === g).length }))}>
-            <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-            <XAxis dataKey="grade" tick={{ fontSize: 11, fill: T.textSecondary }} />
-            <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={30} />
-            <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-            <Bar dataKey="count" fill={T.orange} radius={[6, 6, 6, 6]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-    </div>
-  );
-}
-
-/* ============================= ANALYTICS PAGE ============================= */
-
-function AnalyticsPage({ T, trades, stats }) {
-  const chron = useMemo(() => [...trades].sort((a, b) => new Date(a.date) - new Date(b.date)), [trades]);
-
-  const rollingWinRate = useMemo(() => {
-    const window = 10;
-    return chron.map((_, i) => {
-      const slice = chron.slice(Math.max(0, i - window + 1), i + 1);
-      const wr = (slice.filter(t => t.win).length / slice.length) * 100;
-      return { i, wr: +wr.toFixed(1) };
-    }).filter((_, i) => i % 3 === 0);
-  }, [chron]);
-
-  const drawdown = useMemo(() => {
-    let bal = 10000, peak = 10000;
-    return chron.map(t => {
-      bal += t.pnl;
-      peak = Math.max(peak, bal);
-      return { date: t.date.slice(5), dd: +(((bal - peak) / peak) * 100).toFixed(2) };
+function updateCharts() {
+  try {
+    // Update equity chart
+    let eqData = [1000];
+    let eq = 1000;
+    state.trades.forEach(t => {
+      eq += t.result === 'win' ? t.amount : -t.amount;
+      eqData.push(eq);
     });
-  }, [chron]);
+    const labels = eqData.map((_, i) => i === 0 ? 'Start' : `T${i}`);
+    if (charts.equity) {
+      charts.equity.data.labels = labels;
+      charts.equity.data.datasets[0].data = eqData;
+      charts.equity.update();
+    }
 
-  const scatterData = trades.map(t => ({ rr: t.rr, pnl: t.pnl, grade: t.grade }));
-  const radarData = STRATEGIES.slice(0, 6).map(s => {
-    const g = trades.filter(t => t.strategy === s);
-    const wr = g.length ? (g.filter(t => t.win).length / g.length) * 100 : 0;
-    const avgR = g.length ? g.reduce((a, t) => a + t.rr, 0) / g.length : 0;
-    return { strategy: s.split(" ")[0], winRate: Math.round(wr), avgR: +avgR.toFixed(1) };
-  });
-
-  const heatmap = useMemo(() => {
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const sessions = SESSIONS.slice(0, 4);
-    const grid = {};
-    sessions.forEach(s => { grid[s] = {}; names.forEach(n => grid[s][n] = { pnl: 0, count: 0 }); });
-    trades.forEach(t => {
-      const day = names[new Date(t.date).getDay()];
-      grid[t.session][day].pnl += t.pnl;
-      grid[t.session][day].count += 1;
+    // Update daily chart
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dailyPL = [0, 0, 0, 0, 0, 0, 0];
+    state.trades.forEach(t => {
+      const day = new Date(t.date).getDay();
+      dailyPL[day] += t.result === 'win' ? t.amount : -t.amount;
     });
-    return { grid, names, sessions };
-  }, [trades]);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card T={T}>
-          <SectionTitle T={T} title="Rolling Win Rate (10-trade)" />
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={rollingWinRate}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="i" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} domain={[0, 100]} width={35} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Line type="monotone" dataKey="wr" stroke={T.blue} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card T={T}>
-          <SectionTitle T={T} title="Drawdown %" />
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={drawdown}>
-              <defs>
-                <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={T.red} stopOpacity={0.4} />
-                  <stop offset="100%" stopColor={T.red} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: T.textSecondary }} minTickGap={30} />
-              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Area type="monotone" dataKey="dd" stroke={T.red} strokeWidth={2} fill="url(#ddGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card T={T}>
-          <SectionTitle T={T} title="RR vs P/L Distribution" />
-          <ResponsiveContainer width="100%" height={230}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-              <XAxis type="number" dataKey="rr" name="RR" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis type="number" dataKey="pnl" name="P/L" tick={{ fontSize: 10, fill: T.textSecondary }} width={45} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} cursor={{ strokeDasharray: "3 3" }} />
-              <Scatter data={scatterData}>
-                {scatterData.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card T={T}>
-          <SectionTitle T={T} title="Win Rate & Avg RR by Strategy" />
-          <ResponsiveContainer width="100%" height={230}>
-            <ComposedChart data={radarData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-              <XAxis dataKey="strategy" tick={{ fontSize: 10, fill: T.textSecondary }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: T.textSecondary }} domain={[0, 100]} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: T.textSecondary }} domain={[0, 5]} />
-              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
-              <Legend />
-              <Bar yAxisId="left" dataKey="winRate" fill={T.blue} name="Win Rate %" radius={[4, 4, 4, 4]} />
-              <Line yAxisId="right" type="monotone" dataKey="avgR" stroke={T.orange} name="Avg RR" strokeWidth={2} dot={{ r: 4 }} />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <Card T={T}>
-        <SectionTitle T={T} title="Session × Weekday Heatmap (P/L)" />
-        <div style={{ overflowX: "auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: `120px repeat(7, 1fr)`, gap: 6, minWidth: 640 }}>
-            <div />
-            {heatmap.names.map(n => <div key={n} style={{ textAlign: "center", fontSize: 10.5, color: T.textSecondary, fontWeight: 600 }}>{n}</div>)}
-            {heatmap.sessions.map(s => (
-              <React.Fragment key={s}>
-                <div style={{ fontSize: 11.5, color: T.textSecondary, display: "flex", alignItems: "center" }}>{s}</div>
-                {heatmap.names.map(n => {
-                  const cell = heatmap.grid[s][n];
-                  const intensity = Math.min(1, Math.abs(cell.pnl) / 400);
-                  const color = cell.pnl === 0 ? T.border : cell.pnl > 0 ? T.green : T.red;
-                  return (
-                    <div key={n} title={`${fmtMoney(cell.pnl)} (${cell.count} trades)`} style={{
-                      height: 34, borderRadius: 6, background: cell.count ? color : T.bg,
-                      opacity: cell.count ? 0.25 + intensity * 0.75 : 1,
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5,
-                      color: cell.count ? "#fff" : T.textSecondary, fontWeight: 700
-                    }}>{cell.count ? cell.count : ""}</div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
+    if (charts.daily) {
+      charts.daily.data.datasets[0].data = dailyPL;
+      charts.daily.update();
+    }
+  } catch(e) { console.error('Chart update error:', e); }
 }
 
-/* ============================= CALENDAR PAGE ============================= */
-
-function CalendarPage({ T, trades }) {
-  const [cursor, setCursor] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(null);
-  const year = cursor.getFullYear(), month = cursor.getMonth();
-  const cells = useMemo(() => buildMonthGrid(year, month, trades), [year, month, trades]);
-  const monthName = cursor.toLocaleString("default", { month: "long", year: "numeric" });
-
-  const monthTrades = cells.filter(c => c).flatMap(c => c.trades);
-  const monthPnl = monthTrades.reduce((a, t) => a + t.pnl, 0);
-  const monthWinDays = cells.filter(c => c && c.trades.length && c.pnl >= 0).length;
-  const monthLossDays = cells.filter(c => c && c.trades.length && c.pnl < 0).length;
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 16 }}>
-      <Card T={T}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <button onClick={() => setCursor(new Date(year, month - 1, 1))} style={navBtnStyle(T)}><ChevronLeft size={16} /></button>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{monthName}</div>
-          <button onClick={() => setCursor(new Date(year, month + 1, 1))} style={navBtnStyle(T)}><ChevronRight size={16} /></button>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-            <div key={d} style={{ textAlign: "center", fontSize: 11, color: T.textSecondary, fontWeight: 600, paddingBottom: 4 }}>{d}</div>
-          ))}
-          {cells.map((c, i) => (
-            <div key={i} onClick={() => c && c.trades.length && setSelectedDay(c)} style={{
-              minHeight: 78, borderRadius: 10, padding: 8, cursor: c && c.trades.length ? "pointer" : "default",
-              background: !c ? "transparent" : c.trades.length === 0 ? T.bg : c.pnl >= 0 ? `${T.green}1a` : `${T.red}1a`,
-              border: c ? `1px solid ${c.trades.length ? (c.pnl >= 0 ? T.green : T.red) + "55" : T.border}` : "none",
-              display: "flex", flexDirection: "column", justifyContent: "space-between", transition: "transform 0.15s ease"
-            }}
-              onMouseEnter={e => { if (c && c.trades.length) e.currentTarget.style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              {c && (
-                <>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: T.textSecondary }}>{c.day}</span>
-                  {c.trades.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: c.pnl >= 0 ? T.green : T.red }}>{c.pnl >= 0 ? "+" : ""}{fmtMoney(c.pnl)}</div>
-                      <div style={{ fontSize: 9.5, color: T.textSecondary }}>{c.trades.length} trades</div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <Card T={T}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Monthly Summary</div>
-          <SummaryRow T={T} label="Net P/L" value={fmtMoney(monthPnl)} tint={monthPnl >= 0 ? T.green : T.red} />
-          <SummaryRow T={T} label="Trades" value={monthTrades.length} />
-          <SummaryRow T={T} label="Winning Days" value={monthWinDays} tint={T.green} />
-          <SummaryRow T={T} label="Losing Days" value={monthLossDays} tint={T.red} />
-        </Card>
-        <Card T={T}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Yearly Summary</div>
-          <SummaryRow T={T} label="Net P/L" value={fmtMoney(trades.filter(t => new Date(t.date).getFullYear() === year).reduce((a, t) => a + t.pnl, 0))} />
-          <SummaryRow T={T} label="Total Trades" value={trades.filter(t => new Date(t.date).getFullYear() === year).length} />
-        </Card>
-      </div>
-      {selectedDay && <DayModal T={T} day={selectedDay} onClose={() => setSelectedDay(null)} />}
-    </div>
-  );
+// ========== SAVE SETTINGS ==========
+function saveSettings() {
+  const newBalance = parseFloat(document.getElementById('startBalanceInput').value) || 1000;
+  const newRisk = parseFloat(document.getElementById('riskPercentInput').value) || 2.5;
+  const newMaxLoss = parseFloat(document.getElementById('maxDailyLossInput').value) || 7.5;
+  if (newBalance < 1) { alert('Balance must be at least $1'); return; }
+  if (newRisk < 0.1 || newRisk > 20) { alert('Risk % must be 0.1-20'); return; }
+  if (newMaxLoss < 0.1 || newMaxLoss > 50) { alert('Max Daily Loss % must be 0.1-50'); return; }
+  state.balance = newBalance;
+  document.getElementById('settingsMessage').textContent = '✅ Settings saved successfully!';
+  document.getElementById('settingsMessage').className = 'mt-4 text-sm text-[#22C55E]';
+  document.getElementById('settingsMessage').style.display = 'block';
+  setTimeout(() => { document.getElementById('settingsMessage').style.display = 'none'; }, 3000);
+  updateAll();
+  if (state.currentUser) saveUserData(state.currentUser);
 }
 
-function SummaryRow({ T, label, value, tint }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}` }}>
-      <span style={{ fontSize: 12, color: T.textSecondary }}>{label}</span>
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: tint || T.text }}>{value}</span>
-    </div>
-  );
+// ========== EXPORT/IMPORT ==========
+function exportAllData() {
+  try {
+    const data = {
+      balance: state.balance,
+      trades: state.trades,
+      rrTrades: state.rrTrades,
+      netR: state.netR,
+      backtests: state.backtests,
+      journalEntries: state.journalEntries,
+      aplusScores: state.aplusScores,
+      exportDate: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tradevault_data_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('Error exporting: ' + e.message); }
 }
 
-/* ============================= PLAYBOOK PAGE ============================= */
-
-function PlaybookPage({ T, trades }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-      {STRATEGIES.slice(0, 6).map(s => {
-        const g = trades.filter(t => t.strategy === s);
-        const wr = g.length ? (g.filter(t => t.win).length / g.length) * 100 : 0;
-        const avgRR = g.length ? g.reduce((a, t) => a + t.rr, 0) / g.length : 0;
-        const bestPair = g.length ? g.reduce((a, t) => a.pnl > t.pnl ? a : t).pair : "N/A";
-        return (
-          <Card T={T} key={s}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 700 }}>{s}</div>
-              <Pill T={T} tint={wr >= 50 ? T.green : T.red}>{fmtNum(wr, 0)}% WR</Pill>
-            </div>
-            <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.6, marginBottom: 12 }}>
-              A rules-based setup traded across {g.length} instances, focused on precise entry timing and defined invalidation.
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-              <MiniStat T={T} label="Avg RR" value={`${fmtNum(avgRR)}R`} />
-              <MiniStat T={T} label="Best Pair" value={bestPair} />
-              <MiniStat T={T} label="Best Market" value="Trending" />
-              <MiniStat T={T} label="Instances" value={g.length} />
-            </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button style={playbookBtn(T, true)}><Edit3 size={12} /> Edit</button>
-              <button style={playbookBtn(T, false)}><ImageIcon size={12} /> Examples</button>
-            </div>
-          </Card>
-        );
-      })}
-    </div>
-  );
+function handleImport(event) {
+  try {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.balance !== undefined) state.balance = data.balance;
+        if (data.trades) state.trades = data.trades;
+        if (data.rrTrades) state.rrTrades = data.rrTrades;
+        if (data.netR !== undefined) state.netR = data.netR;
+        if (data.backtests) state.backtests = data.backtests;
+        if (data.journalEntries) state.journalEntries = data.journalEntries;
+        if (data.aplusScores) state.aplusScores = data.aplusScores;
+        updateAll();
+        alert('✅ Data imported successfully!');
+        if (state.currentUser) saveUserData(state.currentUser);
+      } catch(error) { alert('Error parsing file: ' + error.message); }
+    };
+    reader.readAsText(file);
+  } catch(e) { alert('Error importing: ' + e.message); }
+  event.target.value = '';
 }
 
-function MiniStat({ T, label, value }) {
-  return (
-    <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 10px" }}>
-      <div style={{ fontSize: 10, color: T.textSecondary }}>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: 700 }}>{value}</div>
-    </div>
-  );
+// ========== LIGHTBOX ==========
+function openLightbox(src) {
+  document.getElementById('lightboxImage').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
 }
 
-function playbookBtn(T, primary) {
-  return {
-    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-    padding: "8px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-    border: primary ? "none" : `1px solid ${T.border}`,
-    background: primary ? T.blue : "transparent", color: primary ? "#fff" : T.textSecondary
-  };
-}
+// ========== NAVIGATION ==========
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const pageId = this.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
+    this.classList.add('active-nav');
+    if (pageId === 'backtesting') updateBacktestingUI();
+    if (pageId === 'calendar') updateCalendar();
+    if (pageId === 'analytics') updateAnalytics();
+    if (pageId === 'journal') updateJournal();
+  });
+});
 
-/* ============================= RULES / CHECKLIST / PLAN ============================= */
+// ========== CHECKLIST ==========
+document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+    const allChecked = Array.from(checks).every(c => c.checked);
+    const status = document.getElementById('checklistStatus');
+    if (allChecked) {
+      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20';
+      status.innerHTML = '✅ All checks passed - Ready to trade';
+    } else {
+      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20';
+      status.innerHTML = '⚠️ Complete all checklist items before trading';
+    }
+  });
+});
 
-function RulesPage({ T }) {
-  const rules = [
-    { rule: "Never risk more than 1% of account equity on a single trade.", severity: "critical" },
-    { rule: "No trading during the first 5 minutes after high-impact news releases.", severity: "high" },
-    { rule: "Wait for full candle close confirmation before entering.", severity: "high" },
-    { rule: "Maximum of 3 trades per day, regardless of outcome.", severity: "medium" },
-    { rule: "Stop trading for the day after 2 consecutive losses.", severity: "critical" },
-    { rule: "Every trade must match a documented playbook setup.", severity: "high" },
-    { rule: "Always set stop loss and take profit before entering.", severity: "critical" },
-    { rule: "Review all trades at the end of each week.", severity: "medium" },
-  ];
-
-  const severityColors = {
-    critical: T.red,
-    high: T.orange,
-    medium: T.blue
-  };
-
-  return (
-    <Card T={T} style={{ maxWidth: 700 }}>
-      <SectionTitle T={T} title="Trading Rules" />
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {rules.map((r, i) => (
-          <div key={i} style={{
-            display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px",
-            background: T.bg, borderRadius: 10, border: `1px solid ${T.border}`,
-            borderLeft: `3px solid ${severityColors[r.severity]}`
-          }}>
-            <ShieldCheck size={15} color={severityColors[r.severity]} style={{ marginTop: 1, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, lineHeight: 1.5 }}>{r.rule}</span>
-            <Pill T={T} tint={severityColors[r.severity]} style={{ marginLeft: "auto", flexShrink: 0 }}>
-              {r.severity}
-            </Pill>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-function ChecklistPage({ T }) {
-  const [checked, setChecked] = useState({});
-  const items = [
-    "Higher timeframe bias identified",
-    "Key liquidity levels marked",
-    "Session and news calendar checked",
-    "Setup matches a playbook strategy",
-    "Risk sized to 1% or less",
-    "Stop loss and target defined before entry",
-    "Emotional state: calm and focused",
-    "Exit plan is clearly defined",
-  ];
-  const allChecked = Object.values(checked).every(v => v === true);
-
-  return (
-    <Card T={T} style={{ maxWidth: 600 }}>
-      <SectionTitle T={T} title="Pre-Trade Checklist" />
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {items.map((item, i) => (
-          <div key={i} onClick={() => setChecked(c => ({ ...c, [i]: !c[i] }))} style={{
-            display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer",
-            background: checked[i] ? `${T.green}15` : T.bg, border: `1px solid ${checked[i] ? T.green + "55" : T.border}`
-          }}>
-            {checked[i] ? <CheckCircle2 size={17} color={T.green} /> : <Circle size={17} color={T.textSecondary} />}
-            <span style={{
-              fontSize: 13,
-              textDecoration: checked[i] ? "line-through" : "none",
-              color: checked[i] ? T.textSecondary : T.text
-            }}>{item}</span>
-          </div>
-        ))}
-      </div>
-      <div style={{
-        marginTop: 16, padding: 12, borderRadius: 10,
-        background: allChecked ? `${T.green}22` : `${T.orange}22`,
-        border: `1px solid ${allChecked ? T.green : T.orange}44`,
-        textAlign: "center", fontSize: 13, fontWeight: 600,
-        color: allChecked ? T.green : T.orange
-      }}>
-        {allChecked ? "✅ All checks passed - Ready to trade" : "⚠️ Complete all checklist items before trading"}
-      </div>
-    </Card>
-  );
-}
-
-function PlanPage({ T }) {
-  const [notes, setNotes] = useState("");
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-      <Card T={T}>
-        <SectionTitle T={T} title="Goals" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <MiniStat T={T} label="Monthly Return Target" value="+8%" />
-          <MiniStat T={T} label="Max Monthly Drawdown" value="-6%" />
-          <MiniStat T={T} label="Target Win Rate" value="55%" />
-          <MiniStat T={T} label="Target Avg RR" value="1.5R" />
-        </div>
-      </Card>
-      <Card T={T}>
-        <SectionTitle T={T} title="Risk Framework" />
-        <div style={{ fontSize: 12.5, lineHeight: 1.7, color: T.textSecondary }}>
-          Risk 1% per trade, maximum 3% total exposure open at any time. Reduce size by half after two consecutive
-          losing days. Resume standard size after one profitable day.
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <MiniStat T={T} label="Daily Loss Limit" value="3%" />
-          <MiniStat T={T} label="Weekly Loss Limit" value="6%" />
-        </div>
-      </Card>
-      <Card T={T} style={{ gridColumn: "span 2" }}>
-        <SectionTitle T={T} title="Trading Plan Notes" />
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="Write your trading plan, mission, and long-term vision here…"
-          style={{
-            width: "100%", minHeight: 140, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10,
-            padding: 12, color: T.text, fontSize: 13, outline: "none", resize: "vertical", fontFamily: "inherit"
-          }}
-        />
-      </Card>
-    </div>
-  );
-}
-
-/* ============================= SETTINGS PAGE ============================= */
-
-function SettingsPage({ T, dark, setDark }) {
-  const [notifications, setNotifications] = useState(true);
-  const [riskReminders, setRiskReminders] = useState(true);
-  const [autosave, setAutosave] = useState(true);
-  const [chartTheme, setChartTheme] = useState("dark");
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
-      <Card T={T}>
-        <SectionTitle T={T} title="Appearance" />
-        <ToggleRow T={T} label="Dark Mode" checked={dark} onChange={setDark} />
-        <ToggleRow T={T} label="Chart Theme" checked={chartTheme === "dark"} onChange={() => setChartTheme(chartTheme === "dark" ? "light" : "dark")} />
-      </Card>
-      <Card T={T}>
-        <SectionTitle T={T} title="Preferences" />
-        <ToggleRow T={T} label="Notifications" checked={notifications} onChange={setNotifications} />
-        <ToggleRow T={T} label="Risk Reminders (soft warnings, no hard lock)" checked={riskReminders} onChange={setRiskReminders} />
-        <ToggleRow T={T} label="Cloud Autosave" checked={autosave} onChange={setAutosave} />
-      </Card>
-      <Card T={T}>
-        <SectionTitle T={T} title="Account" />
-        <SummaryRow T={T} label="Name" value="Jordan Drake" />
-        <SummaryRow T={T} label="Plan" value="Premium" />
-        <SummaryRow T={T} label="Base Currency" value="USD" />
-        <SummaryRow T={T} label="Total Trades" value={TRADES.length} />
-      </Card>
-      <Card T={T}>
-        <SectionTitle T={T} title="Data Management" />
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6, background: T.blue, border: "none",
-            borderRadius: 8, padding: "8px 14px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer"
-          }}><Download size={14} /> Export CSV</button>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${T.border}`,
-            borderRadius: 8, padding: "8px 14px", color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: "pointer"
-          }}><FileJson size={14} /> Export JSON</button>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${T.border}`,
-            borderRadius: 8, padding: "8px 14px", color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: "pointer"
-          }}><Printer size={14} /> Print Report</button>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function ToggleRow({ T, label, checked, onChange }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${T.border}` }}>
-      <span style={{ fontSize: 13 }}>{label}</span>
-      <div onClick={() => onChange(!checked)} style={{
-        width: 40, height: 22, borderRadius: 999, background: checked ? T.blue : T.border, cursor: "pointer",
-        position: "relative", transition: "background 0.2s ease"
-      }}>
-        <div style={{
-          width: 16, height: 16, borderRadius: "50%", background: "#fff", position: "absolute", top: 3,
-          left: checked ? 21 : 3, transition: "left 0.2s ease"
-        }} />
-      </div>
-    </div>
-  );
-}
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', function() {
+  loadUsers();
+  initCharts();
+  updateAll();
+  updateCalendar();
+  updateJournal();
+  
+  // Auto-save every 30 seconds
+  setInterval(() => {
+    if (state.currentUser) saveUserData(state.currentUser);
+  }, 30000);
+});
+</script>
+</body>
+</html>
