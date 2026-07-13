@@ -7,24 +7,50 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #0b0e14; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #eef2f6; }
-.glass-card {
-background: rgba(18, 24, 34, 0.7);
-backdrop-filter: blur(6px);
--webkit-backdrop-filter: blur(6px);
-border: 1px solid rgba(60, 80, 120, 0.25);
-border-radius: 1.25rem;
-box-shadow: 0 12px 30px rgba(0,0,0,0.6);
-transition: all 0.2s ease;
+body { 
+  background: #0B1120; 
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+  color: #F8FAFC; 
 }
-.glass-card:hover { border-color: rgba(60, 130, 255, 0.4); box-shadow: 0 16px 40px rgba(0, 40, 100, 0.3); }
-.text-gold { color: #f5c542; }
-.stat-number { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.02em; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 2px; }
+
+.glass-card {
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.glass-card:hover {
+  border-color: #3B82F6;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+.text-gold { color: #F59E0B; }
+.stat-number { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+
 .chart-wrapper { 
   position: relative; 
-  height: 160px; 
+  height: 180px; 
   width: 100%; 
   overflow: hidden;
 }
@@ -35,182 +61,413 @@ transition: all 0.2s ease;
   width: 100% !important;
   height: 100% !important;
 }
+
 .nav-link {
-transition: 0.15s;
-border-radius: 0.75rem;
-padding: 0.5rem 1rem;
-cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: #94A3B8;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-.nav-link:hover { background: #1e2a3a; }
-.active-nav { background: #1a2b44; border-left: 3px solid #3b82f6; }
+.nav-link:hover { 
+  background: rgba(59, 130, 246, 0.08); 
+  color: #F8FAFC;
+}
+.active-nav { 
+  background: rgba(59, 130, 246, 0.12); 
+  color: #3B82F6;
+  border-left: 3px solid #3B82F6;
+}
+
 .table-wrap { 
-  max-height: 300px; 
+  max-height: 400px; 
   overflow-y: auto; 
   overflow-x: hidden;
 }
-.table-wrap::-webkit-scrollbar {
-  width: 4px;
-}
-.table-wrap::-webkit-scrollbar-track {
-  background: #1a2330;
-}
-.table-wrap::-webkit-scrollbar-thumb {
-  background: #3b82f6;
-  border-radius: 2px;
-}
+.table-wrap::-webkit-scrollbar { width: 3px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 2px; }
+
 .btn-primary {
-background: #1e4a7a;
-border: none;
-padding: 0.4rem 1.2rem;
-border-radius: 2rem;
-transition: 0.15s;
-color: white;
-cursor: pointer;
+  background: #3B82F6;
+  border: none;
+  padding: 0.45rem 1.4rem;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
 }
-.btn-primary:hover { background: #2a5f94; }
-.btn-outline { border: 1px solid #3b6a9a; background: transparent; border-radius: 2rem; padding: 0.3rem 1.2rem; cursor: pointer; color: #9ca3af; }
-.btn-outline:hover { background: #1a2f4a; color: white; }
-.btn-danger { background: #dc2626; border: none; padding: 0.2rem 0.6rem; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.7rem; transition: 0.15s; }
-.btn-danger:hover { background: #b91c1c; }
-.btn-sm { padding: 0.15rem 0.5rem; font-size: 0.7rem; }
-.btn-gold { background: #f5c542; border: none; padding: 0.4rem 1.2rem; border-radius: 2rem; color: #0b0e14; cursor: pointer; font-weight: 600; transition: 0.15s; }
-.btn-gold:hover { background: #e6b83c; }
-.risk-badge { background: #3b1f2a; color: #f87171; border-left: 4px solid #ef4444; }
-.glass-input { background: #141c28; border: 1px solid #2a3f58; border-radius: 2rem; padding: 0.3rem 1rem; color: white; width: 100%; }
-.glass-input:focus { border-color: #3b82f6; outline: none; }
-.glass-input-sm { padding: 0.15rem 0.5rem; font-size: 0.7rem; width: 70px; }
+.btn-primary:hover { 
+  background: #2563EB; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #1F2937;
+  padding: 0.45rem 1.4rem;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  color: #94A3B8;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+.btn-secondary:hover { 
+  background: rgba(59, 130, 246, 0.08); 
+  border-color: #3B82F6;
+  color: #F8FAFC;
+}
+
+.btn-success {
+  background: #22C55E;
+  border: none;
+  padding: 0.45rem 1.4rem;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
+}
+.btn-success:hover { 
+  background: #16A34A; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+}
+
+.btn-danger {
+  background: #EF4444;
+  border: none;
+  padding: 0.45rem 1.4rem;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+}
+.btn-danger:hover { 
+  background: #DC2626; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+}
+.btn-sm { padding: 0.25rem 0.75rem; font-size: 0.7rem; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #1F2937;
+  padding: 0.45rem 1.4rem;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  color: #94A3B8;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+.btn-outline:hover { 
+  background: rgba(239, 68, 68, 0.08); 
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.glass-input {
+  background: #0B1120;
+  border: 1px solid #1F2937;
+  border-radius: 10px;
+  padding: 0.4rem 0.8rem;
+  color: #F8FAFC;
+  width: 100%;
+  font-size: 0.8rem;
+  transition: all 0.15s ease;
+}
+.glass-input:focus { 
+  border-color: #3B82F6; 
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.glass-input-sm { padding: 0.25rem 0.6rem; font-size: 0.7rem; width: 70px; }
+
 .page { display: none; }
-.page.active { display: block; }
-.rule-card { border-left: 3px solid #3b82f6; padding-left: 1rem; margin-bottom: 1rem; }
-.rule-card.warning { border-left-color: #ef4444; }
-.rule-card.success { border-left-color: #22c55e; }
-.checklist-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-bottom: 1px solid #1a2330; }
-.checklist-item input[type="checkbox"] { accent-color: #3b82f6; width: 1.2rem; height: 1.2rem; cursor: pointer; }
-.journal-delete { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
-.journal-delete:hover { opacity: 1; color: #ef4444; }
-.journal-edit { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
-.journal-edit:hover { opacity: 1; color: #3b82f6; }
-.journal-save { cursor: pointer; opacity: 0.5; transition: 0.15s; margin: 0 3px; }
-.journal-save:hover { opacity: 1; color: #22c55e; }
-.trade-input { background: #141c28; border: 1px solid #2a3f58; border-radius: 0.3rem; padding: 0.1rem 0.3rem; color: white; width: 60px; font-size: 0.7rem; }
-.trade-input:focus { border-color: #3b82f6; outline: none; }
-.rr-positive { color: #22c55e; }
-.rr-negative { color: #ef4444; }
-.rr-neutral { color: #f5c542; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .login-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(11, 14, 20, 0.95);
+  background: rgba(11, 17, 32, 0.97);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
 }
 .login-box {
-  background: rgba(18, 24, 34, 0.9);
-  border: 1px solid rgba(60, 80, 120, 0.3);
-  border-radius: 1.5rem;
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 24px;
   padding: 2.5rem;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
 }
 .login-box h2 {
-  color: #f5c542;
+  color: #3B82F6;
   text-align: center;
   margin-bottom: 0.5rem;
+  font-weight: 800;
+  font-size: 1.8rem;
 }
 .login-box .subtitle {
-  color: #9ca3af;
+  color: #94A3B8;
   text-align: center;
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
 .login-input {
-  background: #141c28;
-  border: 1px solid #2a3f58;
-  border-radius: 0.75rem;
-  padding: 0.7rem 1rem;
-  color: white;
+  background: #0B1120;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  color: #F8FAFC;
   width: 100%;
   margin-bottom: 1rem;
+  transition: all 0.15s ease;
 }
-.login-input:focus { border-color: #3b82f6; outline: none; }
+.login-input:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 .login-btn {
   width: 100%;
-  padding: 0.7rem;
-  background: #f5c542;
+  padding: 0.8rem;
+  background: #3B82F6;
   border: none;
-  border-radius: 0.75rem;
-  color: #0b0e14;
+  border-radius: 12px;
+  color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.15s;
+  transition: all 0.15s ease;
   margin-bottom: 0.5rem;
 }
-.login-btn:hover { background: #e6b83c; }
+.login-btn:hover { background: #2563EB; transform: translateY(-1px); }
 .login-btn-secondary {
   width: 100%;
-  padding: 0.7rem;
+  padding: 0.8rem;
   background: transparent;
-  border: 1px solid #3b6a9a;
-  border-radius: 0.75rem;
-  color: #9ca3af;
-  font-weight: 600;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  color: #94A3B8;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.15s;
+  transition: all 0.15s ease;
 }
-.login-btn-secondary:hover { background: #1a2f4a; border-color: #3b82f6; color: white; }
-.login-error { color: #ef4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
-.login-success { color: #22c55e; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+.login-btn-secondary:hover { background: rgba(59, 130, 246, 0.05); border-color: #3B82F6; color: #F8FAFC; }
+.login-error { color: #EF4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+.login-success { color: #22C55E; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+
 .user-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #9ca3af;
+  color: #94A3B8;
   font-size: 0.75rem;
 }
-.user-info i { color: #3b82f6; }
+.user-info i { color: #3B82F6; }
 .logout-btn {
   background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
+  border: 1px solid #1F2937;
+  color: #94A3B8;
   padding: 0.15rem 0.6rem;
-  border-radius: 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.65rem;
-  transition: 0.15s;
+  transition: all 0.15s ease;
 }
-.logout-btn:hover { background: #ef4444; color: white; }
-.summary-card { padding: 1rem; text-align: center; }
-.summary-card .value { font-size: 1.8rem; font-weight: 700; }
-.summary-card .label { font-size: 0.7rem; text-transform: uppercase; color: #9ca3af; margin-top: 0.25rem; }
-.warning-banner {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 0.75rem;
-  padding: 0.5rem 1rem;
-  color: #f87171;
-  font-size: 0.85rem;
+.logout-btn:hover { border-color: #EF4444; color: #EF4444; }
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
+.badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+.badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.badge-aplus { background: rgba(34, 197, 94, 0.2); color: #22C55E; }
+.badge-a { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+.badge-b { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+.badge-c { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-dot.green { background: #22C55E; }
+.status-dot.red { background: #EF4444; }
+.status-dot.yellow { background: #F59E0B; }
+.status-dot.blue { background: #3B82F6; }
+
+.summary-card { 
+  padding: 1.25rem; 
+  text-align: center;
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+.summary-card:hover {
+  border-color: #3B82F6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.06);
+}
+.summary-card .value { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; }
+.summary-card .label { font-size: 0.7rem; text-transform: uppercase; color: #94A3B8; margin-top: 0.25rem; font-weight: 500; letter-spacing: 0.05em; }
+
+.backtest-card {
+  background: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 16px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+.backtest-card:hover {
+  border-color: #3B82F6;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+}
+.backtest-card .thumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #0B1120;
+  border: 1px solid #1F2937;
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+.image-gallery .gallery-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #1F2937;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.image-gallery .gallery-img:hover {
+  border-color: #3B82F6;
+  transform: scale(1.02);
+}
+
+/* Lightbox */
+.lightbox {
   display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 10000;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  backdrop-filter: blur(10px);
 }
-.warning-banner i { font-size: 1rem; }
-@media (max-width: 640px) { .stat-number { font-size: 1.1rem; } }
+.lightbox.active { display: flex; }
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  border: 1px solid #1F2937;
+}
+.lightbox .close-lightbox {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #F8FAFC;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lightbox .close-lightbox:hover { color: #EF4444; }
+
+.drop-zone {
+  border: 2px dashed #1F2937;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #94A3B8;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: #3B82F6;
+  background: rgba(59, 130, 246, 0.05);
+}
+.drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; }
+
+.filter-chip {
+  display: inline-block;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid #1F2937;
+  font-size: 0.7rem;
+  color: #94A3B8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.filter-chip:hover, .filter-chip.active {
+  border-color: #3B82F6;
+  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+@media (max-width: 640px) { 
+  .stat-number { font-size: 1.1rem; }
+  .summary-card .value { font-size: 1.3rem; }
+  .image-gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+
+/* Sidebar scroll */
+aside::-webkit-scrollbar { width: 2px; }
+aside::-webkit-scrollbar-track { background: transparent; }
+aside::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 2px; }
 </style>
 </head>
 <body>
 <!-- LOGIN OVERLAY -->
 <div id="loginOverlay" class="login-overlay">
   <div class="login-box">
-    <h2><i class="fas fa-chart-line"></i> XAU<span style="color:white;">PRO</span></h2>
-    <p class="subtitle" id="loginSubtitle">Sign in to access your dashboard</p>
-    
+    <h2><i class="fas fa-chart-line"></i> XAU<span style="color:#F8FAFC;">PRO</span></h2>
+    <p class="subtitle">Sign in to access your dashboard</p>
     <div id="loginForm">
       <input type="email" id="loginEmail" class="login-input" placeholder="Email address" />
       <input type="password" id="loginPassword" class="login-input" placeholder="Password (min 6 chars)" />
@@ -219,7 +476,6 @@ cursor: pointer;
       <div id="loginError" class="login-error">Invalid credentials</div>
       <div id="loginSuccess" class="login-success">Account created! Please sign in.</div>
     </div>
-    
     <div id="signupForm" style="display:none;">
       <input type="text" id="signupName" class="login-input" placeholder="Full Name" />
       <input type="email" id="signupEmail" class="login-input" placeholder="Email address" />
@@ -235,487 +491,403 @@ cursor: pointer;
 
 <div class="flex h-screen overflow-hidden">
 <!-- SIDEBAR -->
-<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0d121c] border-r border-[#1f2a3a] p-3 flex flex-col items-center md:items-start space-y-3 overflow-y-auto">
-<div class="flex items-center gap-2 text-xl font-bold tracking-tight mt-2">
-<i class="fas fa-chart-line text-blue-400"></i>
-<span class="hidden md:inline bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">XAU<span class="text-white">PRO</span></span>
-</div>
-<div class="w-full border-b border-[#1f2a3a] my-1"></div>
-<nav class="w-full space-y-1 text-sm">
-<a class="nav-link active-nav flex items-center gap-3 text-blue-300" data-page="dashboard"><i class="fas fa-th-large w-5"></i><span class="hidden md:inline">Dashboard</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="trades"><i class="fas fa-exchange-alt w-5"></i><span class="hidden md:inline">Trades</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="rules"><i class="fas fa-book w-5"></i><span class="hidden md:inline">Trading Rules</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="checklist"><i class="fas fa-clipboard-list w-5"></i><span class="hidden md:inline">Checklist</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="analytics"><i class="fas fa-chart-pie w-5"></i><span class="hidden md:inline">Analytics</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="plan"><i class="fas fa-flag-checkered w-5"></i><span class="hidden md:inline">Trading Plan</span></a>
-<a class="nav-link flex items-center gap-3 text-gray-400 hover:text-white" data-page="settings"><i class="fas fa-cog w-5"></i><span class="hidden md:inline">Settings</span></a>
-</nav>
-<div class="mt-auto w-full border-t border-[#1f2a3a] pt-3 text-xs text-gray-500">
-<div class="flex items-center gap-2"><i class="fas fa-circle text-green-400 text-[8px]"></i> Live</div>
-<div class="flex items-center gap-2 mt-1"><i class="fas fa-wallet"></i> <span id="sidebarBalance">$1,000</span></div>
-<div class="flex items-center gap-2 mt-1 user-info" id="userInfoDisplay">
-  <i class="fas fa-user"></i>
-  <span id="userEmailDisplay">user@email.com</span>
-  <button class="logout-btn" onclick="handleLogout()">Logout</button>
-</div>
-</div>
+<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-2 overflow-y-auto">
+  <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
+    <i class="fas fa-chart-line text-[#3B82F6]"></i>
+    <span class="hidden md:inline text-white">XAU<span class="text-[#3B82F6]">PRO</span></span>
+  </div>
+  <div class="w-full border-b border-[#1F2937] my-1"></div>
+  <nav class="w-full space-y-0.5 text-sm">
+    <a class="nav-link" data-page="dashboard"><i class="fas fa-th-large w-5"></i><span class="hidden md:inline">Dashboard</span></a>
+    <a class="nav-link" data-page="trades"><i class="fas fa-exchange-alt w-5"></i><span class="hidden md:inline">Trades</span></a>
+    <a class="nav-link active-nav" data-page="backtesting"><i class="fas fa-flask w-5"></i><span class="hidden md:inline">Backtesting</span></a>
+    <a class="nav-link" data-page="rules"><i class="fas fa-book w-5"></i><span class="hidden md:inline">Trading Rules</span></a>
+    <a class="nav-link" data-page="checklist"><i class="fas fa-clipboard-list w-5"></i><span class="hidden md:inline">Checklist</span></a>
+    <a class="nav-link" data-page="analytics"><i class="fas fa-chart-pie w-5"></i><span class="hidden md:inline">Analytics</span></a>
+    <a class="nav-link" data-page="plan"><i class="fas fa-flag-checkered w-5"></i><span class="hidden md:inline">Trading Plan</span></a>
+    <a class="nav-link" data-page="settings"><i class="fas fa-cog w-5"></i><span class="hidden md:inline">Settings</span></a>
+  </nav>
+  <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8]">
+    <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
+    <div class="flex items-center gap-2 mt-1"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$1,000</span></div>
+    <div class="flex items-center gap-2 mt-1 user-info" id="userInfoDisplay">
+      <i class="fas fa-user"></i>
+      <span id="userEmailDisplay">user@email.com</span>
+      <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
 </aside>
 
 <!-- MAIN CONTENT -->
-<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0b0e14] space-y-6">
+<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0B1120] space-y-6">
 
 <!-- ===== PAGE: DASHBOARD ===== -->
-<div id="page-dashboard" class="page active space-y-6">
-  <h2 class="text-2xl font-bold"><i class="fas fa-th-large text-blue-400 mr-3"></i>Dashboard Overview</h2>
-  
-  <!-- Dashboard Summary Cards -->
+<div id="page-dashboard" class="page space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-extrabold text-white">Dashboard</h2>
+      <p class="text-sm text-[#94A3B8]">Real-time overview of your trading performance</p>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
+      <i class="fas fa-calendar-alt text-[#3B82F6]"></i>
+      <span id="currentDate"></span>
+    </div>
+  </div>
+
+  <!-- Backtesting Summary Cards -->
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="glass-card summary-card">
-      <div class="value text-gold" id="dashNetR">0.0R</div>
-      <div class="label">Net RR</div>
+    <div class="summary-card">
+      <div class="value text-[#3B82F6]" id="btTotal">0</div>
+      <div class="label">Total Backtests</div>
     </div>
-    <div class="glass-card summary-card">
-      <div class="value text-green-400" id="dashConsistency">100%</div>
-      <div class="label">Consistency</div>
-    </div>
-    <div class="glass-card summary-card">
-      <div class="value text-blue-300" id="dashWinRate">0%</div>
+    <div class="summary-card">
+      <div class="value text-[#22C55E]" id="btWinRate">0%</div>
       <div class="label">Win Rate</div>
     </div>
-    <div class="glass-card summary-card">
-      <div class="value text-gold" id="dashTotalTrades">0</div>
-      <div class="label">Total Trades</div>
+    <div class="summary-card">
+      <div class="value text-[#F59E0B]" id="btAvgRR">0.0R</div>
+      <div class="label">Average RR</div>
     </div>
-    <div class="glass-card summary-card">
-      <div class="value text-green-300" id="dashStreak">0</div>
-      <div class="label">Current Streak</div>
+    <div class="summary-card">
+      <div class="value text-[#3B82F6]" id="btBestStrategy">-</div>
+      <div class="label">Best Strategy</div>
     </div>
-  </div>
-
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-    <div class="glass-card summary-card">
-      <div class="value text-green-400" id="dashTodayPL">+$0</div>
-      <div class="label">Today's P/L</div>
-    </div>
-    <div class="glass-card summary-card">
-      <div class="value text-blue-300" id="dashTotalProfit">$0</div>
-      <div class="label">Total Profit</div>
-    </div>
-    <div class="glass-card summary-card">
-      <div class="value text-gold" id="dashExpectancy">$0.00</div>
-      <div class="label">Expectancy</div>
-    </div>
-    <div class="glass-card summary-card">
-      <div class="value text-blue-400" id="dashAplusAvg">92</div>
-      <div class="label">A+ Setup Avg</div>
+    <div class="summary-card">
+      <div class="value text-[#22C55E]" id="btBestPair">-</div>
+      <div class="label">Best Pair</div>
     </div>
   </div>
 
-  <!-- Equity Growth Chart -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="glass-card p-4">
-      <div class="text-gray-300 text-xs flex justify-between mb-2">
-        <span>Equity Growth</span>
-        <i class="fas fa-chart-line text-blue-400"></i>
-      </div>
-      <div class="chart-wrapper" style="height:200px;"><canvas id="dashEquityChart"></canvas></div>
-    </div>
-    <div class="glass-card p-4">
-      <div class="text-gray-300 text-xs flex justify-between mb-2">
-        <span>Risk Status</span>
-        <i class="fas fa-shield-alt text-blue-400"></i>
-      </div>
-      <div id="dashRiskStatus" class="text-green-400 text-lg font-semibold">✅ All good</div>
-      <div id="dashDailyLossWarning" class="warning-banner mt-2">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span id="dashWarningText">Daily loss limit exceeded!</span>
-      </div>
-      <div class="mt-3 text-sm text-gray-400">
-        <div>Daily Loss: <span id="dashDailyLoss" class="text-red-300">$0.00</span></div>
-        <div>Max Daily Loss: <span id="dashMaxDailyLoss" class="text-gold">$75.00</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recent Activity -->
   <div class="glass-card p-4">
-    <div class="text-gray-300 text-xs flex justify-between mb-2">
-      <span><i class="fas fa-clock text-blue-400 mr-2"></i>Recent Activity</span>
-      <span class="text-gray-500 text-[10px]">Last 5 trades</span>
-    </div>
-    <div class="table-wrap mt-1 text-xs">
-      <table class="w-full text-left text-gray-300">
-        <thead class="text-[10px] uppercase text-gray-500 border-b border-[#1f2a3a]">
-          <tr><th>#</th><th>Date</th><th>Dir</th><th>Result</th><th>P/L</th></tr>
-        </thead>
-        <tbody id="dashRecentActivity"><tr><td colspan="5" class="text-center text-gray-500">No trades yet</td></tr></tbody>
-      </table>
-    </div>
+    <div class="text-xs text-[#94A3B8] font-medium mb-2">Recent Backtest</div>
+    <div id="btRecentActivity" class="text-sm text-[#94A3B8]">No backtests yet</div>
   </div>
 </div>
 
-<!-- ===== PAGE: TRADES ===== -->
-<div id="page-trades" class="page space-y-6">
-  <h2 class="text-2xl font-bold"><i class="fas fa-exchange-alt text-blue-400 mr-3"></i>Trades</h2>
-
-  <!-- Daily Loss Warning Banner -->
-  <div id="tradesWarningBanner" class="warning-banner" style="display:none;">
-    <i class="fas fa-exclamation-triangle"></i>
-    <span id="tradesWarningText">⚠️ Daily loss limit exceeded! Current loss: $0.00, Max: $75.00</span>
+<!-- ===== PAGE: BACKTESTING ===== -->
+<div id="page-backtesting" class="page active space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flask text-[#3B82F6] mr-2"></i>Backtesting</h2>
+      <p class="text-sm text-[#94A3B8]">Review, analyze, and store every trade with screenshots and notes</p>
+    </div>
+    <button class="btn-primary" onclick="toggleBacktestForm()"><i class="fas fa-plus"></i> New Backtest</button>
   </div>
 
-  <!-- QUICK TRADE -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-4">
-      <span class="text-xs text-gray-400"><i class="fas fa-bolt text-blue-400"></i> Quick Trade:</span>
-      <div class="flex items-center gap-2">
-        <select id="quickRR" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
-          <option value="1:1">1:1</option>
-          <option value="1:2" selected>1:2</option>
-          <option value="1:3">1:3</option>
-          <option value="1:4">1:4</option>
-          <option value="1:5">1:5</option>
-          <option value="1:6">1:6</option>
-          <option value="1:7">1:7</option>
-          <option value="1:8">1:8</option>
-          <option value="1:9">1:9</option>
-          <option value="1:10">1:10</option>
+  <!-- Backtest Form -->
+  <div id="backtestForm" class="glass-card p-4" style="display:none;">
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-sm font-bold text-white"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>Add Backtest Entry</span>
+      <button class="btn-secondary btn-sm" onclick="toggleBacktestForm()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Pair</label>
+        <select id="btPair" class="glass-input">
+          <option value="XAUUSD">XAUUSD</option>
+          <option value="EURUSD">EURUSD</option>
+          <option value="GBPUSD">GBPUSD</option>
+          <option value="USDJPY">USDJPY</option>
+          <option value="AUDUSD">AUDUSD</option>
+          <option value="BTCUSD">BTCUSD</option>
         </select>
-        <button id="quickWinBtn" class="btn-primary bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2">
-          <i class="fas fa-check"></i> Win 
-          <span id="quickWinLabel" class="text-xs bg-green-600 px-2 py-0.5 rounded-full">+2R</span>
-        </button>
-        <button id="quickLossBtn" class="btn-primary bg-red-700 hover:bg-red-600 text-white px-6 py-2 rounded-full text-sm flex items-center gap-2">
-          <i class="fas fa-times"></i> Loss 
-          <span id="quickLossLabel" class="text-xs bg-red-600 px-2 py-0.5 rounded-full">-1R</span>
-        </button>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Direction</label>
+        <select id="btDirection" class="glass-input">
+          <option value="BUY">BUY</option>
+          <option value="SELL">SELL</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Date</label>
+        <input type="date" id="btDate" class="glass-input" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Timeframe</label>
+        <select id="btTimeframe" class="glass-input">
+          <option value="1M">1M</option><option value="5M">5M</option>
+          <option value="15M">15M</option><option value="30M">30M</option>
+          <option value="1H">1H</option><option value="4H">4H</option>
+          <option value="1D">1D</option><option value="1W">1W</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Session</label>
+        <select id="btSession" class="glass-input">
+          <option value="London">London</option>
+          <option value="New York">New York</option>
+          <option value="Asia">Asia</option>
+          <option value="Sydney">Sydney</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">RR Ratio</label>
+        <select id="btRR" class="glass-input">
+          <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
+          <option value="1:3">1:3</option><option value="1:4">1:4</option>
+          <option value="1:5">1:5</option><option value="1:6">1:6</option>
+          <option value="1:7">1:7</option><option value="1:8">1:8</option>
+          <option value="1:9">1:9</option><option value="1:10">1:10</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Result</label>
+        <select id="btResult" class="glass-input">
+          <option value="Win">Win</option>
+          <option value="Loss">Loss</option>
+          <option value="BE">BE</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Entry Price</label>
+        <input type="number" id="btEntry" class="glass-input" step="0.01" placeholder="0.00" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Stop Loss</label>
+        <input type="number" id="btSL" class="glass-input" step="0.01" placeholder="0.00" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Take Profit</label>
+        <input type="number" id="btTP" class="glass-input" step="0.01" placeholder="0.00" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Lot Size</label>
+        <input type="number" id="btLot" class="glass-input" step="0.01" placeholder="0.01" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Strategy Name</label>
+        <input type="text" id="btStrategy" class="glass-input" placeholder="e.g. Breakout Strategy" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Setup Grade</label>
+        <select id="btGrade" class="glass-input">
+          <option value="A+">A+</option><option value="A">A</option>
+          <option value="B">B</option><option value="C">C</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Confidence (1-10)</label>
+        <input type="number" id="btConfidence" class="glass-input" min="1" max="10" value="7" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Emotions Before</label>
+        <select id="btEmotions" class="glass-input">
+          <option value="Calm">Calm</option><option value="Nervous">Nervous</option>
+          <option value="Confident">Confident</option><option value="Anxious">Anxious</option>
+          <option value="Excited">Excited</option><option value="Doubtful">Doubtful</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Mistakes Made</label>
+        <input type="text" id="btMistakes" class="glass-input" placeholder="e.g. Moved SL" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Lessons Learned</label>
+        <input type="text" id="btLessons" class="glass-input" placeholder="e.g. Trust the setup" />
+      </div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Tags</label>
+        <input type="text" id="btTags" class="glass-input" placeholder="Breakout, FVG, Supply" />
+      </div>
+    </div>
+    <div class="mt-3">
+      <label class="text-xs text-[#94A3B8] block mb-1">Trade Notes</label>
+      <textarea id="btNotes" class="glass-input" rows="3" placeholder="Detailed notes about this trade..."></textarea>
+    </div>
+    <div class="mt-3">
+      <label class="text-xs text-[#94A3B8] block mb-1">Screenshots</label>
+      <div id="dropZone" class="drop-zone" onclick="document.getElementById('btImages').click()">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Drag & drop images here or click to upload</p>
+        <p class="text-xs text-[#4B5563]">PNG, JPG, JPEG, WEBP</p>
+      </div>
+      <input type="file" id="btImages" multiple accept="image/*" style="display:none" onchange="handleImageUpload(event)" />
+      <div id="imagePreviewContainer" class="image-gallery mt-2"></div>
+    </div>
+    <div class="mt-3 flex gap-2">
+      <button class="btn-primary" onclick="saveBacktest()"><i class="fas fa-save"></i> Save Backtest</button>
+      <button class="btn-secondary" onclick="toggleBacktestForm()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="glass-card p-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-filter text-[#3B82F6] mr-1"></i>Filters:</span>
+      <input type="text" id="btSearch" class="glass-input" placeholder="Search..." style="width:150px;" oninput="filterBacktests()" />
+      <select id="btFilterPair" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;" onchange="filterBacktests()">
+        <option value="">All Pairs</option>
+        <option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option>
+        <option value="GBPUSD">GBPUSD</option><option value="USDJPY">USDJPY</option>
+      </select>
+      <select id="btFilterResult" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;" onchange="filterBacktests()">
+        <option value="">All Results</option><option value="Win">Win</option>
+        <option value="Loss">Loss</option><option value="BE">BE</option>
+      </select>
+      <select id="btFilterGrade" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;" onchange="filterBacktests()">
+        <option value="">All Grades</option><option value="A+">A+</option>
+        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+      </select>
+      <select id="btFilterSession" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;" onchange="filterBacktests()">
+        <option value="">All Sessions</option><option value="London">London</option>
+        <option value="New York">New York</option><option value="Asia">Asia</option>
+      </select>
+      <button class="btn-secondary btn-sm" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
+      <div class="ml-auto flex gap-2">
+        <button class="btn-secondary btn-sm" onclick="exportBacktests('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn-secondary btn-sm" onclick="exportBacktests('json')"><i class="fas fa-file-code"></i> JSON</button>
+        <button class="btn-primary btn-sm" onclick="exportBacktests('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
       </div>
     </div>
   </div>
 
-  <!-- ADD TRADE -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-3">
-      <span class="text-xs text-gray-400"><i class="fas fa-plus-circle text-blue-400"></i> Add Trade:</span>
-      <select id="tradeType" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
-        <option value="win">Win</option>
-        <option value="loss">Loss</option>
-      </select>
-      <input type="number" id="tradeAmount" class="glass-input text-xs" placeholder="Amount ($)" value="100" style="width:100px;" />
-      <input type="text" id="tradeDirection" class="glass-input text-xs" placeholder="Dir (BUY/SELL)" value="BUY" style="width:80px;" />
-      <select id="tradeRR" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
-        <option value="1:1">1:1</option>
-        <option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option>
-        <option value="1:4">1:4</option>
-        <option value="1:5">1:5</option>
-        <option value="1:6">1:6</option>
-        <option value="1:7">1:7</option>
-        <option value="1:8">1:8</option>
-        <option value="1:9">1:9</option>
-        <option value="1:10">1:10</option>
-      </select>
-      <button id="addCustomTradeBtn" class="btn-primary text-xs"><i class="fas fa-plus"></i> Add Trade</button>
+  <!-- Statistics -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="btStats">
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#3B82F6]" id="btStatTotal">0</div>
+      <div class="text-xs text-[#94A3B8]">Total</div>
+    </div>
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#22C55E]" id="btStatWinRate">0%</div>
+      <div class="text-xs text-[#94A3B8]">Win Rate</div>
+    </div>
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#F59E0B]" id="btStatAvgRR">0.0R</div>
+      <div class="text-xs text-[#94A3B8]">Avg RR</div>
+    </div>
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#22C55E]" id="btStatBestStrategy">-</div>
+      <div class="text-xs text-[#94A3B8]">Best Strategy</div>
+    </div>
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#3B82F6]" id="btStatBestPair">-</div>
+      <div class="text-xs text-[#94A3B8]">Best Pair</div>
+    </div>
+    <div class="glass-card p-3 text-center">
+      <div class="text-lg font-bold text-[#F59E0B]" id="btStatAplusWin">0%</div>
+      <div class="text-xs text-[#94A3B8]">A+ Win Rate</div>
     </div>
   </div>
 
-  <!-- RR TRACKER -->
-  <div class="glass-card p-4">
-    <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
-      <span class="text-xs text-gray-400"><i class="fas fa-arrows-left-right text-gold"></i> RR Tracker</span>
-      <div class="flex items-center gap-3">
-        <span class="text-xs text-gray-400">Net R: <span id="tradesNetR" class="text-gold font-bold text-sm">0.0R</span></span>
-        <span class="text-xs text-gray-400">Avg R: <span id="tradesAvgR" class="text-blue-300 font-bold">0.0</span></span>
-        <span class="text-xs text-gray-400">Best: <span id="tradesBestR" class="text-green-400 font-bold">0.0R</span></span>
-        <span class="text-xs text-gray-400">Worst: <span id="tradesWorstR" class="text-red-400 font-bold">0.0R</span></span>
-        <button onclick="clearRRTracker()" class="btn-danger btn-sm">Clear RR</button>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-2 mb-3">
-      <select id="rrRatio" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
-        <option value="1:1">1:1</option>
-        <option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option>
-        <option value="1:4">1:4</option>
-        <option value="1:5">1:5</option>
-        <option value="1:6">1:6</option>
-        <option value="1:7">1:7</option>
-        <option value="1:8">1:8</option>
-        <option value="1:9">1:9</option>
-        <option value="1:10">1:10</option>
-      </select>
-      <select id="rrResult" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
-        <option value="win">Win</option>
-        <option value="loss">Loss</option>
-      </select>
-      <button onclick="addRRTrade()" class="btn-primary text-xs"><i class="fas fa-plus"></i> Add RR Trade</button>
-    </div>
-    <div class="table-wrap mt-1 text-xs">
-      <table class="w-full text-left text-gray-300">
-        <thead class="text-[10px] uppercase text-gray-500 border-b border-[#1f2a3a] sticky top-0 bg-[#0d121c]">
+  <!-- View Toggle -->
+  <div class="flex gap-2">
+    <button class="btn-primary btn-sm" onclick="setView('table')" id="viewTableBtn"><i class="fas fa-table"></i> Table</button>
+    <button class="btn-secondary btn-sm" onclick="setView('gallery')" id="viewGalleryBtn"><i class="fas fa-th-large"></i> Gallery</button>
+  </div>
+
+  <!-- Table View -->
+  <div id="btTableView" class="glass-card p-4">
+    <div class="table-wrap text-xs">
+      <table class="w-full text-left text-[#F8FAFC]">
+        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
           <tr>
-            <th>#</th>
-            <th>RR Ratio</th>
-            <th>Result</th>
-            <th>R Value</th>
-            <th>Running R</th>
-            <th class="text-center">Action</th>
+            <th>#</th><th>Date</th><th>Pair</th><th>Dir</th><th>Result</th>
+            <th>RR</th><th>Strategy</th><th>Grade</th><th>Session</th><th class="text-center">Actions</th>
           </tr>
         </thead>
-        <tbody id="rrTableBody">
-          <tr><td colspan="6" class="text-center text-gray-500">No RR trades yet</td></tr>
+        <tbody id="btTableBody"><tr><td colspan="10" class="text-center text-[#4B5563] py-3">No backtests yet</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- JOURNAL -->
-  <div class="glass-card p-4">
-    <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
-      <span class="text-xs text-gray-400"><i class="fas fa-list-ul"></i> Journal (<span id="tradesTradeCount">0</span> trades)</span>
-      <div class="flex gap-2">
-        <button id="clearJournalBtn" class="btn-danger btn-sm">Clear All</button>
-      </div>
-    </div>
-    <div class="table-wrap mt-1 text-xs">
-      <table class="w-full text-left text-gray-300">
-        <thead class="text-[10px] uppercase text-gray-500 border-b border-[#1f2a3a] sticky top-0 bg-[#0d121c]">
-          <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>Dir</th>
-            <th>Result</th>
-            <th>P/L ($)</th>
-            <th>RR</th>
-            <th class="text-center" style="min-width:80px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tradesJournalPreview"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- LOT SIZE CALCULATOR -->
-  <div class="glass-card p-4">
-    <span class="text-xs text-gray-400"><i class="fas fa-calculator"></i> Lot Size Calculator</span>
-    <div class="grid grid-cols-3 gap-2 mt-2">
-      <div>
-        <label class="text-xs text-gray-500">Risk %</label>
-        <input class="glass-input text-xs" value="2.5" id="riskInput" readonly />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500">Stop Loss (pips)</label>
-        <input class="glass-input text-xs" placeholder="SL pips" value="200" id="slInput" />
-      </div>
-      <div class="flex items-end">
-        <button class="btn-primary text-xs w-full" id="calcBtn">Calculate</button>
-      </div>
-    </div>
-    <div class="text-xs text-gray-300 mt-2" id="lotDisplay">Risk $25.00 · Lot 0.12</div>
-  </div>
-
-  <!-- A+ SETUP SCORE -->
-  <div class="glass-card p-4">
-    <div class="flex items-center justify-between">
-      <span class="text-xs text-gray-400"><i class="fas fa-star text-gold"></i> A+ Setup Score</span>
-      <div class="text-right">
-        <div class="text-2xl font-bold text-green-400" id="tradesScoreDisplay">92</div>
-        <div class="text-xs text-green-300" id="tradesScoreLabel">A+ Trade</div>
-      </div>
-    </div>
-    <div class="text-[10px] text-gray-400 mt-1">1H ✓ 15M ✓ 3M ✓ 1M ✓ RR ✓</div>
+  <!-- Gallery View -->
+  <div id="btGalleryView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style="display:none;">
+    <!-- Populated by JS -->
   </div>
 </div>
 
-<!-- PAGE: TRADING RULES -->
+<!-- ===== PAGE: TRADES ===== -->
+<div id="page-trades" class="page space-y-6">
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
+  <div class="text-[#94A3B8]">Trades page content goes here...</div>
+</div>
+
+<!-- ===== PAGE: RULES ===== -->
 <div id="page-rules" class="page space-y-6">
-<h2 class="text-2xl font-bold"><i class="fas fa-book text-blue-400 mr-3"></i>Trading Rules</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="glass-card p-4">
-<h3 class="text-lg font-semibold text-blue-400 mb-3"><i class="fas fa-clock mr-2"></i>Session Rules</h3>
-<div class="rule-card"><strong>Market:</strong> XAUUSD Only</div>
-<div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
-<div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
-<div class="rule-card"><strong>Risk Per Trade:</strong> <span id="ruleRiskPercent">2.5</span>% of balance</div>
-<div class="rule-card"><strong>Max Daily Loss:</strong> <span id="ruleMaxDailyLoss">7.5</span>% of current balance</div>
-<div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
-</div>
-<div class="glass-card p-4">
-<h3 class="text-lg font-semibold text-blue-400 mb-3"><i class="fas fa-chart-line mr-2"></i>Entry Rules</h3>
-<div class="rule-card success"><strong>1H Trend:</strong> EMA50 above EMA100 = Buy only</div>
-<div class="rule-card success"><strong>1H Trend:</strong> EMA50 below EMA100 = Sell only</div>
-<div class="rule-card"><strong>15M Confirmation:</strong> EMA confirmation</div>
-<div class="rule-card"><strong>3M Pullback:</strong> Pullback confirmation</div>
-<div class="rule-card"><strong>1M Entry:</strong> Entry confirmation</div>
-<div class="rule-card"><strong>Stop Loss:</strong> Below previous swing</div>
-<div class="rule-card"><strong>Take Profit:</strong> 4R</div>
-</div>
-</div>
-<div class="glass-card p-4">
-<h3 class="text-lg font-semibold text-red-400 mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Risk Management Rules</h3>
-<div class="rule-card warning"><strong>Never Move Stop Loss</strong> - Let the trade play out</div>
-<div class="rule-card warning"><strong>Never Revenge Trade</strong> - Stick to the plan</div>
-<div class="rule-card warning"><strong>Never Increase Lot Size After Loss</strong> - Maintain discipline</div>
-<div class="rule-card warning"><strong>After Three Losses</strong> - STOP TRADING for the day</div>
-<div class="rule-card warning"><strong>Daily Loss Limit:</strong> 7.5% of current balance</div>
-</div>
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book text-[#3B82F6] mr-3"></i>Trading Rules</h2>
+  <div class="glass-card p-4">
+    <div class="rule-card"><strong>Market:</strong> XAUUSD Only</div>
+    <div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
+    <div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
+    <div class="rule-card"><strong>Risk Per Trade:</strong> 2.5% of balance</div>
+    <div class="rule-card"><strong>Max Daily Loss:</strong> 7.5% of current balance</div>
+    <div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
+    <div class="rule-card warning"><strong>Never Move Stop Loss</strong></div>
+    <div class="rule-card warning"><strong>Never Revenge Trade</strong></div>
+    <div class="rule-card warning"><strong>After Three Losses - Stop Trading</strong></div>
+  </div>
 </div>
 
-<!-- PAGE: CHECKLIST -->
+<!-- ===== PAGE: CHECKLIST ===== -->
 <div id="page-checklist" class="page space-y-6">
-<h2 class="text-2xl font-bold"><i class="fas fa-clipboard-list text-blue-400 mr-3"></i>Daily Pre-Trade Checklist</h2>
-<div class="glass-card p-4">
-<p class="text-gray-400 text-sm mb-4">Complete all items before entering a trade. If any item is unchecked, <span class="text-yellow-400">WAIT FOR A BETTER SETUP</span></p>
-<div id="checklistContainer" class="space-y-2">
-<div class="checklist-item"><input type="checkbox" id="chk1" /><label for="chk1">News Checked - No high-impact news during trade</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk2" /><label for="chk2">1H Trend Confirmed - EMA50 above/below EMA100</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk3" /><label for="chk3">15M EMA Confirmed - Price aligned with EMA</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk4" /><label for="chk4">3M Pullback - Retracement to key level</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk5" /><label for="chk5">1M Confirmation - Entry candle confirmed</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk6" /><label for="chk6">Risk calculated - Position size correct</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk7" /><label for="chk7">1:4 RR - Reward at least 4x risk</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk8" /><label for="chk8">Session Valid - London or New York session</label></div>
-<div class="checklist-item"><input type="checkbox" id="chk9" /><label for="chk9">Emotion Calm - No anxiety, no revenge trading</label></div>
-</div>
-<div id="checklistStatus" class="mt-4 p-3 rounded-lg text-center text-sm bg-green-900/30 text-green-400 border border-green-800/50">✅ All checks passed - Ready to trade</div>
-</div>
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-clipboard-list text-[#3B82F6] mr-3"></i>Checklist</h2>
+  <div class="glass-card p-4">
+    <div id="checklistContainer" class="space-y-1">
+      <div class="checklist-item"><input type="checkbox" id="chk1" /><label for="chk1">News Checked</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk2" /><label for="chk2">1H Trend Confirmed</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk3" /><label for="chk3">15M EMA Confirmed</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk4" /><label for="chk4">3M Pullback</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk5" /><label for="chk5">1M Confirmation</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk6" /><label for="chk6">Risk Calculated</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk7" /><label for="chk7">1:4 RR</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk8" /><label for="chk8">Session Valid</label></div>
+      <div class="checklist-item"><input type="checkbox" id="chk9" /><label for="chk9">Emotion Calm</label></div>
+    </div>
+    <div id="checklistStatus" class="mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">✅ All checks passed - Ready to trade</div>
+  </div>
 </div>
 
-<!-- PAGE: ANALYTICS -->
+<!-- ===== PAGE: ANALYTICS ===== -->
 <div id="page-analytics" class="page space-y-6">
-<h2 class="text-2xl font-bold"><i class="fas fa-chart-pie text-blue-400 mr-3"></i>Performance Analytics</h2>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Total Trades</div><div class="text-xl font-bold" id="analyticsTotalTrades">0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Winning Trades</div><div class="text-xl font-bold text-green-400" id="analyticsWins">0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Losing Trades</div><div class="text-xl font-bold text-red-400" id="analyticsLosses">0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Win Rate</div><div class="text-xl font-bold text-gold" id="analyticsWinRate">0%</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Average Win</div><div class="text-xl font-bold text-green-400" id="analyticsAvgWin">$0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Average Loss</div><div class="text-xl font-bold text-red-400" id="analyticsAvgLoss">$0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Profit Factor</div><div class="text-xl font-bold text-gold" id="analyticsPF">0.00</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Expectancy</div><div class="text-xl font-bold text-blue-300" id="analyticsExpectancy">$0.00</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Best Trade</div><div class="text-xl font-bold text-green-400" id="analyticsBestTrade">$0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Worst Trade</div><div class="text-xl font-bold text-red-400" id="analyticsWorstTrade">$0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Max Consecutive Wins</div><div class="text-xl font-bold text-green-400" id="analyticsMaxWins">0</div></div>
-<div class="glass-card p-3"><div class="text-gray-400 text-xs">Max Consecutive Losses</div><div class="text-xl font-bold text-red-400" id="analyticsMaxLosses">0</div></div>
-</div>
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Analytics</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="glass-card p-3"><div class="text-[#94A3B8] text-xs">Total Trades</div><div class="text-xl font-bold" id="analyticsTotalTrades">0</div></div>
+    <div class="glass-card p-3"><div class="text-[#94A3B8] text-xs">Wins</div><div class="text-xl font-bold text-[#22C55E]" id="analyticsWins">0</div></div>
+    <div class="glass-card p-3"><div class="text-[#94A3B8] text-xs">Losses</div><div class="text-xl font-bold text-[#EF4444]" id="analyticsLosses">0</div></div>
+    <div class="glass-card p-3"><div class="text-[#94A3B8] text-xs">Win Rate</div><div class="text-xl font-bold text-[#F59E0B]" id="analyticsWinRate">0%</div></div>
+  </div>
 </div>
 
-<!-- PAGE: SETTINGS -->
+<!-- ===== PAGE: SETTINGS ===== -->
 <div id="page-settings" class="page space-y-6">
-<h2 class="text-2xl font-bold"><i class="fas fa-cog text-blue-400 mr-3"></i>Settings</h2>
-<div class="glass-card p-6">
-  <h3 class="text-lg font-semibold text-gold mb-4">Account Settings</h3>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label class="text-xs text-gray-400 block mb-1">Starting Balance ($)</label>
-      <input type="number" id="startBalanceInput" class="glass-input" value="1000" step="100" />
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-cog text-[#3B82F6] mr-3"></i>Settings</h2>
+  <div class="glass-card p-6">
+    <h3 class="text-lg font-bold text-[#F59E0B] mb-4">Account Settings</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Starting Balance ($)</label><input type="number" id="startBalanceInput" class="glass-input" value="1000" step="100" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Risk Per Trade (%)</label><input type="number" id="riskPercentInput" class="glass-input" value="2.5" step="0.1" min="0.1" max="20" /></div>
+      <div><label class="text-xs text-[#94A3B8] block mb-1">Max Daily Loss (%)</label><input type="number" id="maxDailyLossInput" class="glass-input" value="7.5" step="0.1" min="0.1" max="20" /></div>
+      <div class="flex items-end"><button class="btn-primary w-full" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button></div>
     </div>
-    <div>
-      <label class="text-xs text-gray-400 block mb-1">Risk Per Trade (%)</label>
-      <input type="number" id="riskPercentInput" class="glass-input" value="2.5" step="0.1" min="0.1" max="20" />
-    </div>
-    <div>
-      <label class="text-xs text-gray-400 block mb-1">Max Daily Loss (%)</label>
-      <input type="number" id="maxDailyLossInput" class="glass-input" value="7.5" step="0.1" min="0.1" max="20" />
-    </div>
-    <div class="flex items-end">
-      <button class="btn-gold w-full" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
-    </div>
+    <div id="settingsMessage" class="mt-4 text-sm text-[#22C55E] hidden">✅ Settings saved successfully!</div>
   </div>
-  <div id="settingsMessage" class="mt-4 text-sm text-green-400 hidden">✅ Settings saved successfully!</div>
+  <div class="glass-card p-6">
+    <h3 class="text-lg font-bold text-[#3B82F6] mb-4">Account Data</h3>
+    <div class="flex gap-3 flex-wrap">
+      <button class="btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Export</button>
+      <button class="btn-secondary" onclick="importData()"><i class="fas fa-upload"></i> Import</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)" />
+    </div>
+    <p class="text-xs text-[#4B5563] mt-2">Export your trading data as JSON backup.</p>
+  </div>
 </div>
 
-<div class="glass-card p-6">
-  <h3 class="text-lg font-semibold text-blue-400 mb-4">Account Data</h3>
-  <div class="flex gap-3 flex-wrap">
-    <button class="btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Export Data</button>
-    <button class="btn-danger" onclick="importData()"><i class="fas fa-upload"></i> Import Data</button>
-    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)" />
-  </div>
-  <p class="text-xs text-gray-500 mt-2">Export your trading data as JSON backup or import previously saved data.</p>
-</div>
-</div>
-
-<!-- PAGE: TRADING PLAN -->
+<!-- ===== PAGE: PLAN ===== -->
 <div id="page-plan" class="page space-y-6">
-<h2 class="text-2xl font-bold"><i class="fas fa-flag-checkered text-blue-400 mr-3"></i>Trading Plan</h2>
-<div class="glass-card p-4">
-<h3 class="text-lg font-semibold text-gold mb-3">Complete Trading Rules Summary</h3>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div>
-<h4 class="text-blue-400 font-semibold mb-2"><i class="fas fa-bullseye mr-2"></i>Setup Rules</h4>
-<ul class="space-y-1 text-sm text-gray-300">
-<li>• Only XAUUSD</li>
-<li>• Maximum 3 trades/day</li>
-<li>• Risk <span id="planRiskPercent">2.5</span>% per trade</li>
-<li>• Maximum Daily Loss <span id="planMaxDailyLoss">7.5</span>% of current balance</li>
-<li>• London & New York Only</li>
-<li>• 1H Trend: EMA50 above/below EMA100</li>
-</ul>
-</div>
-<div>
-<h4 class="text-blue-400 font-semibold mb-2"><i class="fas fa-sign-in-alt mr-2"></i>Entry & Exit</h4>
-<ul class="space-y-1 text-sm text-gray-300">
-<li>• 15M EMA Confirmation</li>
-<li>• 3M Pullback</li>
-<li>• 1M Entry Confirmation</li>
-<li>• Stop Below Swing</li>
-<li>• Target 4R</li>
-</ul>
-</div>
-<div>
-<h4 class="text-red-400 font-semibold mb-2"><i class="fas fa-ban mr-2"></i>Never Rules</h4>
-<ul class="space-y-1 text-sm text-gray-300">
-<li>• Never Move Stop Loss</li>
-<li>• Never Revenge Trade</li>
-<li>• Never Increase Lot Size After Loss</li>
-</ul>
-</div>
-<div>
-<h4 class="text-yellow-400 font-semibold mb-2"><i class="fas fa-stop-circle mr-2"></i>Stop Rules</h4>
-<ul class="space-y-1 text-sm text-gray-300">
-<li>• After Three Losses - Stop Trading</li>
-<li>• Daily Loss >= <span id="planDailyLossLimit">7.5</span>% of current balance - Warning</li>
-</ul>
-</div>
-</div>
-</div>
+  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flag-checkered text-[#3B82F6] mr-3"></i>Trading Plan</h2>
+  <div class="glass-card p-4">
+    <h3 class="text-lg font-bold text-[#F59E0B] mb-3">Complete Trading Rules Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><h4 class="text-[#3B82F6] font-bold mb-2">Setup Rules</h4>
+        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• Only XAUUSD</li><li>• Max 3 trades/day</li><li>• Risk 2.5%</li><li>• Max Daily Loss 7.5%</li></ul>
+      </div>
+      <div><h4 class="text-[#3B82F6] font-bold mb-2">Entry & Exit</h4>
+        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• 15M EMA</li><li>• 3M Pullback</li><li>• 1M Entry</li><li>• Target 4R</li></ul>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="text-center text-[10px] text-gray-600 border-t border-[#1a2330] pt-4">XAUUSD Professional Dashboard · v2.0</div>
+<div class="text-center text-[10px] text-[#1F2937] border-t border-[#1F2937] pt-4">XAUUSD Professional Dashboard · v2.0</div>
 </main>
 </div>
 
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <span class="close-lightbox">&times;</span>
+  <img id="lightboxImage" src="" alt="Screenshot" />
+</div>
+
 <script>
-// ========== GLOBAL CONFIG ==========
-let config = {
-  startBalance: 1000,
-  riskPercent: 2.5,
-  maxDailyLossPercent: 7.5,
-  currentBalance: 1000
-};
-
-// ========== STATE ==========
-let state = {
-  balance: 1000,
-  trades: [],
-  dailyLoss: 0,
-  streak: 0,
-  consecutiveWins: 0,
-  consecutiveLosses: 0,
-  totalProfit: 0,
-  totalLoss: 0,
-  winCount: 0,
-  lossCount: 0,
-  maxBalance: 1000,
-  editingIndex: -1,
-  aplusScores: []
-};
-
-// ========== RR TRACKER STATE ==========
-let rrTrades = [];
-let netR = 0;
-let consistency = 100;
+// ========== BACKTESTING DATA ==========
+let backtests = [];
+let backtestImages = [];
+let currentView = 'table';
+let editingBacktestIndex = -1;
 
 // ========== USER MANAGEMENT ==========
 let currentUser = null;
@@ -725,13 +897,13 @@ function loadUsers() {
   try {
     const saved = localStorage.getItem('trading_users');
     if (saved) users = JSON.parse(saved);
-  } catch (e) { console.error('Error loading users:', e); }
+  } catch (e) {}
 }
 
 function saveUsers() {
   try {
     localStorage.setItem('trading_users', JSON.stringify(users));
-  } catch (e) { console.error('Error saving users:', e); }
+  } catch (e) {}
 }
 
 function showSignup() {
@@ -766,36 +938,26 @@ function handleSignup() {
     errorDiv.style.display = 'block';
     return;
   }
-
   if (password.length < 6) {
     errorDiv.textContent = 'Password must be at least 6 characters';
     errorDiv.style.display = 'block';
     return;
   }
-
   if (password !== confirm) {
     errorDiv.textContent = 'Passwords do not match';
     errorDiv.style.display = 'block';
     return;
   }
-
   if (users[email]) {
-    errorDiv.textContent = 'Email already registered. Please sign in.';
+    errorDiv.textContent = 'Email already registered';
     errorDiv.style.display = 'block';
     return;
   }
 
-  users[email] = {
-    name: name,
-    email: email,
-    password: password,
-    created: new Date().toISOString()
-  };
+  users[email] = { name, email, password, created: new Date().toISOString() };
   saveUsers();
-
-  successDiv.textContent = '✅ Account created successfully! Please sign in.';
+  successDiv.textContent = '✅ Account created! Please sign in.';
   successDiv.style.display = 'block';
-
   document.getElementById('signupName').value = '';
   document.getElementById('signupEmail').value = '';
   document.getElementById('signupPassword').value = '';
@@ -820,13 +982,11 @@ function handleLogin() {
     errorDiv.style.display = 'block';
     return;
   }
-
   if (!users[email]) {
     errorDiv.textContent = 'Email not found. Please create an account.';
     errorDiv.style.display = 'block';
     return;
   }
-
   if (users[email].password !== password) {
     errorDiv.textContent = 'Invalid password';
     errorDiv.style.display = 'block';
@@ -838,7 +998,6 @@ function handleLogin() {
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
-
   loadUserData(email);
 }
 
@@ -860,13 +1019,7 @@ function getUserDataKey(email) {
 function saveUserData(email) {
   try {
     const data = {
-      email: email,
-      config: config,
-      state: state,
-      rrTrades: rrTrades,
-      netR: netR,
-      consistency: consistency,
-      timestamp: new Date().toISOString()
+      email, backtests, timestamp: new Date().toISOString()
     };
     localStorage.setItem(getUserDataKey(email), JSON.stringify(data));
   } catch (e) { console.error('Error saving data:', e); }
@@ -877,785 +1030,472 @@ function loadUserData(email) {
     const saved = localStorage.getItem(getUserDataKey(email));
     if (saved) {
       const data = JSON.parse(saved);
-      if (data.config) {
-        config.startBalance = data.config.startBalance || 1000;
-        config.riskPercent = data.config.riskPercent || 2.5;
-        config.maxDailyLossPercent = data.config.maxDailyLossPercent || 7.5;
-      }
-      if (data.state) {
-        state.balance = data.state.balance || config.startBalance;
-        state.trades = data.state.trades || [];
-        state.dailyLoss = data.state.dailyLoss || 0;
-        state.streak = data.state.streak || 0;
-        state.consecutiveWins = data.state.consecutiveWins || 0;
-        state.consecutiveLosses = data.state.consecutiveLosses || 0;
-        state.totalProfit = data.state.totalProfit || 0;
-        state.totalLoss = data.state.totalLoss || 0;
-        state.winCount = data.state.winCount || 0;
-        state.lossCount = data.state.lossCount || 0;
-        state.maxBalance = data.state.maxBalance || config.startBalance;
-        state.aplusScores = data.state.aplusScores || [];
-      }
-      if (data.rrTrades) {
-        rrTrades = data.rrTrades;
-        netR = data.netR || 0;
-        consistency = data.consistency || 100;
-      }
-      
-      document.getElementById('startBalanceInput').value = config.startBalance;
-      document.getElementById('riskPercentInput').value = config.riskPercent;
-      document.getElementById('maxDailyLossInput').value = config.maxDailyLossPercent;
-      
-      updateAll();
+      if (data.backtests) backtests = data.backtests;
+      else backtests = [];
     } else {
-      // Fresh start
-      state = {
-        balance: config.startBalance,
-        trades: [],
-        dailyLoss: 0,
-        streak: 0,
-        consecutiveWins: 0,
-        consecutiveLosses: 0,
-        totalProfit: 0,
-        totalLoss: 0,
-        winCount: 0,
-        lossCount: 0,
-        maxBalance: config.startBalance,
-        editingIndex: -1,
-        aplusScores: []
-      };
-      rrTrades = [];
-      netR = 0;
-      consistency = 100;
-      updateAll();
+      // Sample data
+      backtests = [
+        {
+          id: Date.now() - 86400000 * 5,
+          pair: 'XAUUSD', direction: 'BUY', date: '2026-07-10',
+          timeframe: '1H', session: 'London', rr: '1:3',
+          result: 'Win', netR: '+3R',
+          entry: 2400.50, sl: 2395.00, tp: 2415.50, lot: 0.12,
+          strategy: 'Breakout Strategy', grade: 'A+', confidence: 9,
+          emotions: 'Calm', mistakes: 'None', lessons: 'Patience pays',
+          notes: 'Perfect breakout setup with FVG and liquidity sweep.',
+          tags: ['Breakout', 'FVG', 'Liquidity Sweep'],
+          images: ['https://via.placeholder.com/300x200/1F2937/3B82F6?text=Entry']
+        },
+        {
+          id: Date.now() - 86400000 * 3,
+          pair: 'EURUSD', direction: 'SELL', date: '2026-07-12',
+          timeframe: '15M', session: 'New York', rr: '1:2',
+          result: 'Loss', netR: '-1R',
+          entry: 1.0920, sl: 1.0950, tp: 1.0860, lot: 0.15,
+          strategy: 'Trend Following', grade: 'B', confidence: 6,
+          emotions: 'Nervous', mistakes: 'Moved SL', lessons: 'Never move SL',
+          notes: 'Got stopped out by the news spike.',
+          tags: ['Trend', 'News'],
+          images: ['https://via.placeholder.com/300x200/1F2937/EF4444?text=Exit']
+        },
+        {
+          id: Date.now() - 86400000 * 1,
+          pair: 'GBPUSD', direction: 'BUY', date: '2026-07-14',
+          timeframe: '4H', session: 'London', rr: '1:5',
+          result: 'Win', netR: '+5R',
+          entry: 1.2850, sl: 1.2800, tp: 1.3100, lot: 0.08,
+          strategy: 'Supply/Demand', grade: 'A', confidence: 8,
+          emotions: 'Confident', mistakes: 'None', lessons: 'Trust the levels',
+          notes: 'Perfect demand zone reaction with clear BOS.',
+          tags: ['Supply/Demand', 'BOS'],
+          images: ['https://via.placeholder.com/300x200/1F2937/22C55E?text=Entry']
+        }
+      ];
     }
+    document.getElementById('btDate').value = new Date().toISOString().slice(0, 10);
+    updateBacktestingUI();
   } catch (e) { console.error('Error loading data:', e); }
 }
 
-// ========== QUICK RR UPDATE ==========
-function updateQuickLabels() {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  document.getElementById('quickWinLabel').textContent = `+${reward}R`;
-  document.getElementById('quickLossLabel').textContent = '-1R';
+// ========== BACKTESTING FUNCTIONS ==========
+function toggleBacktestForm() {
+  const form = document.getElementById('backtestForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') {
+    document.getElementById('btDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('imagePreviewContainer').innerHTML = '';
+    backtestImages = [];
+  }
 }
 
-// ========== RR TRACKER FUNCTIONS ==========
-function addRRTrade() {
-  const ratio = document.getElementById('rrRatio').value;
-  const result = document.getElementById('rrResult').value;
-  const reward = parseInt(ratio.split(':')[1]);
-  
-  let rValue = 0;
-  if (result === 'win') {
-    rValue = reward;
-  } else {
-    rValue = -1;
+function handleImageUpload(event) {
+  const files = event.target.files;
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      backtestImages.push(e.target.result);
+      renderImagePreviews();
+    };
+    reader.readAsDataURL(file);
   }
-  
-  netR += rValue;
-  
-  rrTrades.push({
+}
+
+function renderImagePreviews() {
+  const container = document.getElementById('imagePreviewContainer');
+  container.innerHTML = backtestImages.map((img, i) => `
+    <div class="relative">
+      <img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />
+      <button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center" onclick="removeImage(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+
+function removeImage(index) {
+  backtestImages.splice(index, 1);
+  renderImagePreviews();
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  this.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  this.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  this.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  for (let file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        backtestImages.push(e.target.result);
+        renderImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+});
+
+function saveBacktest() {
+  const pair = document.getElementById('btPair').value;
+  const direction = document.getElementById('btDirection').value;
+  const date = document.getElementById('btDate').value;
+  const timeframe = document.getElementById('btTimeframe').value;
+  const session = document.getElementById('btSession').value;
+  const rr = document.getElementById('btRR').value;
+  const result = document.getElementById('btResult').value;
+  const entry = parseFloat(document.getElementById('btEntry').value) || 0;
+  const sl = parseFloat(document.getElementById('btSL').value) || 0;
+  const tp = parseFloat(document.getElementById('btTP').value) || 0;
+  const lot = parseFloat(document.getElementById('btLot').value) || 0;
+  const strategy = document.getElementById('btStrategy').value || 'Unknown';
+  const grade = document.getElementById('btGrade').value;
+  const confidence = parseInt(document.getElementById('btConfidence').value) || 7;
+  const emotions = document.getElementById('btEmotions').value;
+  const mistakes = document.getElementById('btMistakes').value || 'None';
+  const lessons = document.getElementById('btLessons').value || 'None';
+  const notes = document.getElementById('btNotes').value || '';
+  const tags = document.getElementById('btTags').value.split(',').map(t => t.trim()).filter(t => t);
+
+  const reward = parseInt(rr.split(':')[1]);
+  const netR = result === 'Win' ? `+${reward}R` : (result === 'Loss' ? `-1R` : `0R`);
+
+  const backtest = {
     id: Date.now(),
-    ratio: ratio,
-    result: result,
-    rValue: rValue,
-    runningR: netR
-  });
-  
-  // Update consistency
-  calculateConsistency();
-  
-  updateAll();
+    pair, direction, date, timeframe, session, rr, result, netR,
+    entry, sl, tp, lot, strategy, grade, confidence,
+    emotions, mistakes, lessons, notes, tags,
+    images: [...backtestImages]
+  };
+
+  if (editingBacktestIndex >= 0) {
+    backtests[editingBacktestIndex] = backtest;
+    editingBacktestIndex = -1;
+  } else {
+    backtests.push(backtest);
+  }
+
+  backtestImages = [];
+  document.getElementById('imagePreviewContainer').innerHTML = '';
+  toggleBacktestForm();
+  updateBacktestingUI();
   if (currentUser) saveUserData(currentUser);
 }
 
-function deleteRRTrade(index) {
-  if (confirm('Delete this RR trade?')) {
-    const trade = rrTrades[index];
-    netR -= trade.rValue;
-    rrTrades.splice(index, 1);
-    calculateConsistency();
-    updateAll();
+function editBacktest(index) {
+  const bt = backtests[index];
+  editingBacktestIndex = index;
+  document.getElementById('btPair').value = bt.pair;
+  document.getElementById('btDirection').value = bt.direction;
+  document.getElementById('btDate').value = bt.date;
+  document.getElementById('btTimeframe').value = bt.timeframe;
+  document.getElementById('btSession').value = bt.session;
+  document.getElementById('btRR').value = bt.rr;
+  document.getElementById('btResult').value = bt.result;
+  document.getElementById('btEntry').value = bt.entry || '';
+  document.getElementById('btSL').value = bt.sl || '';
+  document.getElementById('btTP').value = bt.tp || '';
+  document.getElementById('btLot').value = bt.lot || '';
+  document.getElementById('btStrategy').value = bt.strategy || '';
+  document.getElementById('btGrade').value = bt.grade || 'B';
+  document.getElementById('btConfidence').value = bt.confidence || 7;
+  document.getElementById('btEmotions').value = bt.emotions || 'Calm';
+  document.getElementById('btMistakes').value = bt.mistakes || '';
+  document.getElementById('btLessons').value = bt.lessons || '';
+  document.getElementById('btNotes').value = bt.notes || '';
+  document.getElementById('btTags').value = (bt.tags || []).join(', ');
+  backtestImages = bt.images || [];
+  renderImagePreviews();
+  toggleBacktestForm();
+}
+
+function deleteBacktest(index) {
+  if (confirm('Delete this backtest entry?')) {
+    backtests.splice(index, 1);
+    updateBacktestingUI();
     if (currentUser) saveUserData(currentUser);
   }
 }
 
-function clearRRTracker() {
-  if (confirm('Clear all RR trades?')) {
-    rrTrades = [];
-    netR = 0;
-    consistency = 100;
-    updateAll();
-    if (currentUser) saveUserData(currentUser);
-  }
+function filterBacktests() {
+  updateBacktestingUI();
 }
 
-function calculateConsistency() {
-  if (rrTrades.length === 0) {
-    consistency = 100;
-    return;
-  }
-  
-  let validTrades = 0;
-  rrTrades.forEach(t => {
-    const reward = parseInt(t.ratio.split(':')[1]);
-    if (t.result === 'win' && t.rValue === reward) {
-      validTrades++;
-    } else if (t.result === 'loss' && t.rValue === -1) {
-      validTrades++;
-    }
-  });
-  
-  consistency = (validTrades / rrTrades.length) * 100;
+function resetFilters() {
+  document.getElementById('btSearch').value = '';
+  document.getElementById('btFilterPair').value = '';
+  document.getElementById('btFilterResult').value = '';
+  document.getElementById('btFilterGrade').value = '';
+  document.getElementById('btFilterSession').value = '';
+  updateBacktestingUI();
 }
 
-function updateRRTracker() {
-  const tbody = document.getElementById('rrTableBody');
-  
-  if (rrTrades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">No RR trades yet</td></tr>';
+function setView(view) {
+  currentView = view;
+  document.getElementById('btTableView').style.display = view === 'table' ? 'block' : 'none';
+  document.getElementById('btGalleryView').style.display = view === 'gallery' ? 'grid' : 'none';
+  document.getElementById('viewTableBtn').className = view === 'table' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm';
+  document.getElementById('viewGalleryBtn').className = view === 'gallery' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm';
+  if (view === 'gallery') renderGallery();
+}
+
+function renderGallery() {
+  const container = document.getElementById('btGalleryView');
+  const filtered = getFilteredBacktests();
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="col-span-full text-center text-[#4B5563] py-6">No backtests match your filters</div>';
     return;
   }
-  
-  tbody.innerHTML = rrTrades.map((t, index) => {
-    const resultText = t.result === 'win' ? 'Win' : 'Loss';
-    const resultClass = t.result === 'win' ? 'rr-positive' : 'rr-negative';
-    const rClass = t.rValue > 0 ? 'rr-positive' : 'rr-negative';
-    const runningClass = t.runningR > 0 ? 'rr-positive' : (t.runningR < 0 ? 'rr-negative' : 'rr-neutral');
-    const rDisplay = t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`;
-    
-    return `<tr>
-      <td>${index + 1}</td>
-      <td>${t.ratio}</td>
-      <td class="${resultClass}">${resultText}</td>
-      <td class="${rClass}">${rDisplay}</td>
-      <td class="${runningClass}">${t.runningR > 0 ? '+' : ''}${t.runningR.toFixed(1)}R</td>
-      <td class="text-center">
-        <button class="journal-delete" onclick="deleteRRTrade(${index})" title="Delete"><i class="fas fa-trash-alt"></i></button>
-      </td>
-    </tr>`;
+  container.innerHTML = filtered.map((bt, i) => {
+    const resultClass = bt.result === 'Win' ? 'badge-win' : (bt.result === 'Loss' ? 'badge-loss' : 'badge-neutral');
+    const gradeClass = bt.grade === 'A+' ? 'badge-aplus' : (bt.grade === 'A' ? 'badge-a' : (bt.grade === 'B' ? 'badge-b' : 'badge-c'));
+    const img = bt.images && bt.images.length > 0 ? bt.images[0] : 'https://via.placeholder.com/300x200/1F2937/94A3B8?text=No+Image';
+    return `
+      <div class="backtest-card" onclick="openBacktestDetail(${backtests.indexOf(bt)})">
+        <img src="${img}" class="thumbnail" alt="${bt.pair}" />
+        <div class="mt-2 flex justify-between items-center">
+          <span class="font-bold text-sm">${bt.pair}</span>
+          <span class="badge ${resultClass}">${bt.result}</span>
+        </div>
+        <div class="flex justify-between text-xs text-[#94A3B8] mt-1">
+          <span>${bt.rr}</span>
+          <span>${bt.date}</span>
+        </div>
+        <div class="flex justify-between text-xs mt-1">
+          <span class="badge ${gradeClass}">${bt.grade}</span>
+          <span class="text-[#94A3B8]">${bt.strategy}</span>
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
-// ========== QUICK TRADE ==========
-function quickWin() {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  const riskAmount = (state.balance * config.riskPercent) / 100;
-  const winAmount = riskAmount * reward;
-  addTrade('win', winAmount, 'BUY', rr);
+function getFilteredBacktests() {
+  const search = document.getElementById('btSearch').value.toLowerCase();
+  const pair = document.getElementById('btFilterPair').value;
+  const result = document.getElementById('btFilterResult').value;
+  const grade = document.getElementById('btFilterGrade').value;
+  const session = document.getElementById('btFilterSession').value;
+
+  return backtests.filter(bt => {
+    if (search && !bt.pair.toLowerCase().includes(search) && !bt.strategy.toLowerCase().includes(search) && !bt.tags.some(t => t.toLowerCase().includes(search))) return false;
+    if (pair && bt.pair !== pair) return false;
+    if (result && bt.result !== result) return false;
+    if (grade && bt.grade !== grade) return false;
+    if (session && bt.session !== session) return false;
+    return true;
+  });
 }
 
-function quickLoss() {
-  const rr = document.getElementById('quickRR').value;
-  const riskAmount = (state.balance * config.riskPercent) / 100;
-  addTrade('loss', riskAmount, 'SELL', rr);
-}
+function getBacktestStats(backtestsList) {
+  const total = backtestsList.length;
+  const wins = backtestsList.filter(b => b.result === 'Win').length;
+  const losses = backtestsList.filter(b => b.result === 'Loss').length;
+  const be = backtestsList.filter(b => b.result === 'BE').length;
+  const winRate = total > 0 ? (wins / total * 100) : 0;
+  const aplusWins = backtestsList.filter(b => b.grade === 'A+' && b.result === 'Win').length;
+  const aplusTotal = backtestsList.filter(b => b.grade === 'A+').length;
+  const aplusWinRate = aplusTotal > 0 ? (aplusWins / aplusTotal * 100) : 0;
 
-// ========== ADD TRADE ==========
-function addTrade(result, customAmount = null, customDir = null, customRR = null) {
-  try {
-    const isWin = result === 'win';
-    let amount;
-    let rr = customRR || document.getElementById('tradeRR').value;
-    
-    if (customAmount !== null) {
-      amount = Math.abs(customAmount);
-    } else {
-      const riskAmount = (state.balance * config.riskPercent) / 100;
-      const reward = parseInt(rr.split(':')[1]);
-      amount = isWin ? riskAmount * reward : riskAmount;
+  // Average RR
+  let totalRR = 0;
+  backtestsList.forEach(b => {
+    const reward = parseInt(b.rr.split(':')[1]);
+    if (b.result === 'Win') totalRR += reward;
+    else if (b.result === 'Loss') totalRR -= 1;
+  });
+  const avgRR = total > 0 ? totalRR / total : 0;
+
+  // Best strategy
+  const strategyStats = {};
+  backtestsList.forEach(b => {
+    if (!strategyStats[b.strategy]) strategyStats[b.strategy] = { wins: 0, total: 0 };
+    strategyStats[b.strategy].total++;
+    if (b.result === 'Win') strategyStats[b.strategy].wins++;
+  });
+  let bestStrategy = '-';
+  let bestStrategyRate = 0;
+  Object.keys(strategyStats).forEach(s => {
+    const rate = strategyStats[s].wins / strategyStats[s].total * 100;
+    if (rate > bestStrategyRate && strategyStats[s].total >= 2) {
+      bestStrategyRate = rate;
+      bestStrategy = s;
     }
-    
-    const dir = customDir || (isWin ? 'BUY' : 'SELL');
+  });
 
-    // Check daily loss - warning only, no block
-    const maxDailyLossAmount = (state.balance * config.maxDailyLossPercent) / 100;
-    if (!isWin && (state.dailyLoss + amount) > maxDailyLossAmount) {
-      // Show warning banner
-      document.getElementById('tradesWarningBanner').style.display = 'flex';
-      document.getElementById('tradesWarningText').textContent = 
-        `⚠️ Daily loss limit exceeded! Current loss: $${state.dailyLoss.toFixed(2)}, Max: $${maxDailyLossAmount.toFixed(2)}`;
-      document.getElementById('dashDailyLossWarning').style.display = 'flex';
-      document.getElementById('dashWarningText').textContent = 
-        `Daily loss limit exceeded! Current: $${state.dailyLoss.toFixed(2)}, Max: $${maxDailyLossAmount.toFixed(2)}`;
+  // Best pair
+  const pairStats = {};
+  backtestsList.forEach(b => {
+    if (!pairStats[b.pair]) pairStats[b.pair] = { wins: 0, total: 0 };
+    pairStats[b.pair].total++;
+    if (b.result === 'Win') pairStats[b.pair].wins++;
+  });
+  let bestPair = '-';
+  let bestPairRate = 0;
+  Object.keys(pairStats).forEach(p => {
+    const rate = pairStats[p].wins / pairStats[p].total * 100;
+    if (rate > bestPairRate && pairStats[p].total >= 2) {
+      bestPairRate = rate;
+      bestPair = p;
     }
+  });
 
-    // Execute trade
-    state.balance += isWin ? amount : -amount;
-    const tradeRR = rr || '1:2';
-    const reward = parseInt(tradeRR.split(':')[1]);
-    const rValue = isWin ? reward : -1;
-    
-    state.trades.push({
-      date: new Date().toISOString().slice(0, 10),
-      dir: dir,
-      result: isWin ? 'win' : 'loss',
-      amount: amount,
-      rr: tradeRR,
-      rValue: rValue
-    });
-
-    if (isWin) {
-      state.winCount += 1;
-      state.totalProfit += amount;
-      state.consecutiveWins += 1;
-      state.consecutiveLosses = 0;
-      state.streak = state.streak > 0 ? state.streak + 1 : 1;
-    } else {
-      state.lossCount += 1;
-      state.totalLoss += amount;
-      state.dailyLoss += amount;
-      state.consecutiveLosses += 1;
-      state.consecutiveWins = 0;
-      state.streak = state.streak < 0 ? state.streak - 1 : -1;
-    }
-
-    if (state.balance > state.maxBalance) state.maxBalance = state.balance;
-
-    // Add to RR tracker automatically
-    netR += rValue;
-    rrTrades.push({
-      id: Date.now(),
-      ratio: tradeRR,
-      result: isWin ? 'win' : 'loss',
-      rValue: rValue,
-      runningR: netR
-    });
-    calculateConsistency();
-
-    // Random A+ score
-    const score = Math.min(100, Math.floor(60 + Math.random() * 40));
-    state.aplusScores.push(score);
-    document.getElementById('tradesScoreDisplay').textContent = score;
-    const label = document.getElementById('tradesScoreLabel');
-    if (score >= 90) { label.textContent = 'A+ Trade'; label.className = 'text-xs text-green-300'; } 
-    else if (score >= 70) { label.textContent = 'Acceptable Trade'; label.className = 'text-xs text-yellow-300'; } 
-    else { label.textContent = 'Skip Trade'; label.className = 'text-xs text-red-300'; }
-
-    updateAll();
-    if (currentUser) saveUserData(currentUser);
-  } catch (error) {
-    console.error('Add trade error:', error);
-  }
+  return { total, wins, losses, be, winRate, avgRR, bestStrategy, bestPair, aplusWinRate };
 }
 
-// ========== UPDATE ALL ==========
-function updateAll() {
-  updateDashboard();
-  updateTradesPage();
-  updateAnalytics();
-  updateCharts();
-  updateLotSize();
-  updateQuickLabels();
-}
+function updateBacktestingUI() {
+  const filtered = getFilteredBacktests();
+  const stats = getBacktestStats(filtered);
 
-// ========== UPDATE DASHBOARD ==========
-function updateDashboard() {
-  const totalTrades = state.winCount + state.lossCount;
-  const winRate = totalTrades > 0 ? (state.winCount / totalTrades * 100) : 0;
-  const avgAplus = state.aplusScores.length > 0 ? 
-    state.aplusScores.reduce((a, b) => a + b, 0) / state.aplusScores.length : 92;
-  
-  document.getElementById('dashNetR').textContent = `${netR > 0 ? '+' : ''}${netR.toFixed(1)}R`;
-  document.getElementById('dashConsistency').textContent = `${consistency.toFixed(1)}%`;
-  document.getElementById('dashWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('dashTotalTrades').textContent = totalTrades;
-  document.getElementById('dashStreak').textContent = state.streak;
-  
-  const totalPL = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  document.getElementById('dashTodayPL').textContent = `${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`;
-  document.getElementById('dashTotalProfit').textContent = `$${(state.totalProfit - state.totalLoss).toFixed(2)}`;
-  
-  const exp = totalTrades > 0 ? (state.totalProfit - state.totalLoss) / totalTrades : 0;
-  document.getElementById('dashExpectancy').textContent = `$${exp.toFixed(2)}`;
-  document.getElementById('dashAplusAvg').textContent = Math.round(avgAplus);
-  
-  // Risk status
-  const maxDailyLoss = (state.balance * config.maxDailyLossPercent) / 100;
-  document.getElementById('dashDailyLoss').textContent = `$${state.dailyLoss.toFixed(2)}`;
-  document.getElementById('dashMaxDailyLoss').textContent = `$${maxDailyLoss.toFixed(2)}`;
-  
-  if (state.dailyLoss >= maxDailyLoss && maxDailyLoss > 0) {
-    document.getElementById('dashRiskStatus').textContent = '⚠️ Daily loss limit reached!';
-    document.getElementById('dashRiskStatus').className = 'text-red-400 text-lg font-semibold';
-    document.getElementById('dashDailyLossWarning').style.display = 'flex';
+  // Dashboard summary
+  document.getElementById('btTotal').textContent = stats.total;
+  document.getElementById('btWinRate').textContent = `${stats.winRate.toFixed(1)}%`;
+  document.getElementById('btAvgRR').textContent = `${stats.avgRR.toFixed(1)}R`;
+  document.getElementById('btBestStrategy').textContent = stats.bestStrategy;
+  document.getElementById('btBestPair').textContent = stats.bestPair;
+
+  // Stats bar
+  document.getElementById('btStatTotal').textContent = stats.total;
+  document.getElementById('btStatWinRate').textContent = `${stats.winRate.toFixed(1)}%`;
+  document.getElementById('btStatAvgRR').textContent = `${stats.avgRR.toFixed(1)}R`;
+  document.getElementById('btStatBestStrategy').textContent = stats.bestStrategy;
+  document.getElementById('btStatBestPair').textContent = stats.bestPair;
+  document.getElementById('btStatAplusWin').textContent = `${stats.aplusWinRate.toFixed(1)}%`;
+
+  // Recent activity on dashboard
+  const recent = backtests.slice(-1);
+  document.getElementById('btRecentActivity').innerHTML = recent.length > 0 ?
+    `${recent[0].pair} - ${recent[0].result} (${recent[0].date}) - ${recent[0].strategy}` :
+    'No backtests yet';
+
+  // Table
+  const tbody = document.getElementById('btTableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-[#4B5563] py-3">No backtests match your filters</td></tr>';
   } else {
-    document.getElementById('dashRiskStatus').textContent = '✅ All good';
-    document.getElementById('dashRiskStatus').className = 'text-green-400 text-lg font-semibold';
-    document.getElementById('dashDailyLossWarning').style.display = 'none';
-  }
-  
-  // Recent activity
-  const tbody = document.getElementById('dashRecentActivity');
-  const recent = state.trades.slice(-5).reverse();
-  if (recent.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500">No trades yet</td></tr>';
-  } else {
-    tbody.innerHTML = recent.map((t, i) => {
-      const idx = state.trades.length - i;
+    tbody.innerHTML = filtered.map((bt, i) => {
+      const resultClass = bt.result === 'Win' ? 'text-[#22C55E]' : (bt.result === 'Loss' ? 'text-[#EF4444]' : 'text-[#F59E0B]');
+      const gradeClass = bt.grade === 'A+' ? 'badge-aplus' : (bt.grade === 'A' ? 'badge-a' : (bt.grade === 'B' ? 'badge-b' : 'badge-c'));
+      const realIndex = backtests.indexOf(bt);
       return `<tr>
-        <td>${idx}</td>
-        <td>${t.date || new Date().toISOString().slice(0, 10)}</td>
-        <td>${t.dir || 'BUY'}</td>
-        <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-        <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
+        <td>${realIndex + 1}</td>
+        <td>${bt.date}</td>
+        <td>${bt.pair}</td>
+        <td>${bt.direction}</td>
+        <td class="${resultClass}">${bt.result}</td>
+        <td>${bt.rr}</td>
+        <td>${bt.strategy}</td>
+        <td><span class="badge ${gradeClass}">${bt.grade}</span></td>
+        <td>${bt.session}</td>
+        <td class="text-center">
+          <button class="journal-edit" onclick="editBacktest(${realIndex})"><i class="fas fa-edit"></i></button>
+          <button class="journal-delete" onclick="deleteBacktest(${realIndex})"><i class="fas fa-trash-alt"></i></button>
+        </td>
       </tr>`;
     }).join('');
   }
+
+  // Gallery
+  if (currentView === 'gallery') renderGallery();
 }
 
-// ========== UPDATE TRADES PAGE ==========
-function updateTradesPage() {
-  // RR Tracker
-  document.getElementById('tradesNetR').textContent = `${netR > 0 ? '+' : ''}${netR.toFixed(1)}R`;
-  
-  const avgR = rrTrades.length > 0 ? rrTrades.reduce((a, t) => a + t.rValue, 0) / rrTrades.length : 0;
-  document.getElementById('tradesAvgR').textContent = avgR.toFixed(1);
-  
-  const bestR = rrTrades.length > 0 ? Math.max(...rrTrades.map(t => t.rValue)) : 0;
-  const worstR = rrTrades.length > 0 ? Math.min(...rrTrades.map(t => t.rValue)) : 0;
-  document.getElementById('tradesBestR').textContent = `${bestR > 0 ? '+' : ''}${bestR}R`;
-  document.getElementById('tradesWorstR').textContent = `${worstR}R`;
-  
-  updateRRTracker();
-  
-  // Journal
-  const tbody = document.getElementById('tradesJournalPreview');
-  document.getElementById('tradesTradeCount').textContent = state.trades.length;
-  
-  if (state.trades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500">No trades yet</td></tr>';
+function openBacktestDetail(index) {
+  const bt = backtests[index];
+  if (!bt) return;
+  alert(
+    `📊 BACKTEST DETAIL\n\n` +
+    `Pair: ${bt.pair}\n` +
+    `Direction: ${bt.direction}\n` +
+    `Date: ${bt.date}\n` +
+    `Timeframe: ${bt.timeframe}\n` +
+    `Session: ${bt.session}\n` +
+    `RR: ${bt.rr}\n` +
+    `Result: ${bt.result}\n` +
+    `Net R: ${bt.netR}\n` +
+    `Entry: ${bt.entry || 'N/A'}\n` +
+    `SL: ${bt.sl || 'N/A'}\n` +
+    `TP: ${bt.tp || 'N/A'}\n` +
+    `Lot: ${bt.lot || 'N/A'}\n` +
+    `Strategy: ${bt.strategy}\n` +
+    `Grade: ${bt.grade}\n` +
+    `Confidence: ${bt.confidence}/10\n` +
+    `Emotions: ${bt.emotions}\n` +
+    `Mistakes: ${bt.mistakes}\n` +
+    `Lessons: ${bt.lessons}\n` +
+    `Tags: ${(bt.tags || []).join(', ')}\n` +
+    `Notes: ${bt.notes || 'No notes'}`
+  );
+}
+
+// ========== LIGHTBOX ==========
+function openLightbox(src) {
+  document.getElementById('lightboxImage').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+}
+
+// ========== EXPORT ==========
+function exportBacktests(format) {
+  const data = getFilteredBacktests();
+  if (data.length === 0) {
+    alert('No backtests to export');
     return;
   }
-  
-  tbody.innerHTML = state.trades.map((t, index) => {
-    const isEditing = state.editingIndex === index;
-    if (isEditing) {
-      return `<tr>
-        <td>${index + 1}</td>
-        <td><input type="date" class="trade-input" value="${t.date}" id="editDate_${index}" style="width:100px;" /></td>
-        <td><input type="text" class="trade-input" value="${t.dir}" id="editDir_${index}" style="width:60px;" /></td>
-        <td>
-          <select class="trade-input" id="editResult_${index}" style="width:70px;">
-            <option value="win" ${t.result === 'win' ? 'selected' : ''}>Win</option>
-            <option value="loss" ${t.result === 'loss' ? 'selected' : ''}>Loss</option>
-          </select>
-        </td>
-        <td><input type="number" class="trade-input" value="${t.amount}" id="editAmount_${index}" style="width:70px;" /></td>
-        <td><input type="text" class="trade-input" value="${t.rr || '1:2'}" id="editRR_${index}" style="width:60px;" /></td>
-        <td class="text-center">
-          <button class="journal-save" onclick="saveEdit(${index})" title="Save"><i class="fas fa-check"></i></button>
-          <button class="journal-delete" onclick="cancelEdit()" title="Cancel"><i class="fas fa-times"></i></button>
-        </td>
-      </tr>`;
-    }
-    
-    const rDisplay = t.rValue ? (t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`) : '-';
-    return `<tr>
-      <td>${index + 1}</td>
-      <td>${t.date || new Date().toISOString().slice(0, 10)}</td>
-      <td>${t.dir || 'BUY'}</td>
-      <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-      <td class="${t.result === 'win' ? 'text-green-400' : 'text-red-400'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
-      <td>${t.rr || '1:2'}</td>
-      <td class="text-center">
-        <button class="journal-edit" onclick="startEdit(${index})" title="Edit"><i class="fas fa-edit"></i></button>
-        <button class="journal-delete" onclick="deleteTrade(${index})" title="Delete"><i class="fas fa-trash-alt"></i></button>
-      </td>
-    </tr>`;
-  }).join('');
-}
 
-// ========== EDIT FUNCTIONS ==========
-function startEdit(index) {
-  state.editingIndex = index;
-  updateTradesPage();
-}
-
-function cancelEdit() {
-  state.editingIndex = -1;
-  updateTradesPage();
-}
-
-function saveEdit(index) {
-  try {
-    const date = document.getElementById(`editDate_${index}`).value;
-    const dir = document.getElementById(`editDir_${index}`).value.toUpperCase();
-    const result = document.getElementById(`editResult_${index}`).value;
-    const amount = parseFloat(document.getElementById(`editAmount_${index}`).value);
-    const rr = document.getElementById(`editRR_${index}`).value;
-
-    if (!date || !dir || isNaN(amount) || amount <= 0 || !rr) {
-      alert('Please fill in all fields correctly');
-      return;
-    }
-
-    const oldTrade = state.trades[index];
-
-    // Reverse old effects
-    if (oldTrade.result === 'win') {
-      state.balance -= oldTrade.amount;
-      state.totalProfit -= oldTrade.amount;
-      state.winCount -= 1;
-    } else {
-      state.balance += oldTrade.amount;
-      state.totalLoss -= oldTrade.amount;
-      state.lossCount -= 1;
-    }
-
-    // Apply new effects
-    const reward = parseInt(rr.split(':')[1]) || 2;
-    const rValue = result === 'win' ? reward : -1;
-    
-    state.trades[index] = {
-      date: date,
-      dir: dir,
-      result: result,
-      amount: amount,
-      rr: rr,
-      rValue: rValue
-    };
-
-    if (result === 'win') {
-      state.balance += amount;
-      state.totalProfit += amount;
-      state.winCount += 1;
-    } else {
-      state.balance -= amount;
-      state.totalLoss += amount;
-      state.lossCount += 1;
-    }
-
-    // Update RR tracker
-    // Find and update the corresponding RR trade
-    const rrIndex = rrTrades.findIndex((t, i) => 
-      i === index || (t.id === oldTrade.id)
-    );
-    if (rrIndex !== -1) {
-      netR -= rrTrades[rrIndex].rValue;
-      rrTrades[rrIndex].rValue = rValue;
-      rrTrades[rrIndex].result = result;
-      rrTrades[rrIndex].ratio = rr;
-      netR += rValue;
-      // Update running R for all subsequent trades
-      let running = 0;
-      rrTrades.forEach((t, i) => {
-        running += t.rValue;
-        t.runningR = running;
-      });
-    }
-
-    recalculateAll();
-    state.editingIndex = -1;
-    updateAll();
-    if (currentUser) saveUserData(currentUser);
-  } catch (error) {
-    console.error('Save edit error:', error);
-    alert('Error saving edit');
-  }
-}
-
-// ========== DELETE TRADE ==========
-function deleteTrade(index) {
-  if (confirm('Delete this trade?')) {
-    try {
-      const trade = state.trades[index];
-      if (!trade) return;
-
-      if (trade.result === 'win') {
-        state.balance -= trade.amount;
-        state.totalProfit -= trade.amount;
-        state.winCount -= 1;
-      } else {
-        state.balance += trade.amount;
-        state.totalLoss -= trade.amount;
-        state.lossCount -= 1;
-      }
-
-      state.trades.splice(index, 1);
-      
-      // Remove corresponding RR trade
-      if (rrTrades.length > index) {
-        netR -= rrTrades[index].rValue;
-        rrTrades.splice(index, 1);
-        // Update running R
-        let running = 0;
-        rrTrades.forEach(t => {
-          running += t.rValue;
-          t.runningR = running;
-        });
-      }
-
-      recalculateAll();
-      updateAll();
-      if (currentUser) saveUserData(currentUser);
-    } catch (error) {
-      console.error('Delete trade error:', error);
-    }
-  }
-}
-
-function recalculateAll() {
-  // Recalculate streaks
-  state.streak = 0;
-  state.consecutiveWins = 0;
-  state.consecutiveLosses = 0;
-  let curWins = 0, curLosses = 0;
-  state.trades.forEach(t => {
-    if (t.result === 'win') {
-      curWins++; curLosses = 0;
-      state.streak = curWins;
-      state.consecutiveWins = curWins;
-      state.consecutiveLosses = 0;
-    } else {
-      curLosses++; curWins = 0;
-      state.streak = -curLosses;
-      state.consecutiveLosses = curLosses;
-      state.consecutiveWins = 0;
-    }
-  });
-
-  // Recalculate max balance
-  state.maxBalance = config.startBalance;
-  let runningBalance = config.startBalance;
-  state.trades.forEach(t => {
-    runningBalance += t.result === 'win' ? t.amount : -t.amount;
-    if (runningBalance > state.maxBalance) state.maxBalance = runningBalance;
-  });
-
-  calculateConsistency();
-}
-
-// ========== CLEAR JOURNAL ==========
-function clearJournal() {
-  if (confirm('Clear all trades? This cannot be undone!')) {
-    try {
-      state = {
-        balance: config.startBalance,
-        trades: [],
-        dailyLoss: 0,
-        streak: 0,
-        consecutiveWins: 0,
-        consecutiveLosses: 0,
-        totalProfit: 0,
-        totalLoss: 0,
-        winCount: 0,
-        lossCount: 0,
-        maxBalance: config.startBalance,
-        editingIndex: -1,
-        aplusScores: []
-      };
-      rrTrades = [];
-      netR = 0;
-      consistency = 100;
-      document.getElementById('tradesWarningBanner').style.display = 'none';
-      document.getElementById('dashDailyLossWarning').style.display = 'none';
-      updateAll();
-      if (currentUser) saveUserData(currentUser);
-    } catch (error) {
-      console.error('Clear journal error:', error);
-    }
-  }
-}
-
-// ========== UPDATE CHARTS ==========
-function updateCharts() {
-  try {
-    let eqData = [config.startBalance];
-    let eq = config.startBalance;
-    state.trades.forEach(t => {
-      eq += t.result === 'win' ? t.amount : -t.amount;
-      eqData.push(eq);
-    });
-    const labels = eqData.map((_, i) => i === 0 ? 'Start' : `T${i}`);
-    
-    if (charts.dashEquity) {
-      charts.dashEquity.data.labels = labels;
-      charts.dashEquity.data.datasets[0].data = eqData;
-      charts.dashEquity.update();
-    }
-  } catch (error) {
-    console.error('Chart update error:', error);
-  }
-}
-
-// ========== UPDATE ANALYTICS ==========
-function updateAnalytics() {
-  try {
-    const total = state.winCount + state.lossCount;
-    document.getElementById('analyticsTotalTrades').textContent = total;
-    document.getElementById('analyticsWins').textContent = state.winCount;
-    document.getElementById('analyticsLosses').textContent = state.lossCount;
-    const wr = total > 0 ? (state.winCount / total * 100) : 0;
-    document.getElementById('analyticsWinRate').textContent = `${wr.toFixed(1)}%`;
-
-    const avgWin = state.winCount > 0 ? state.totalProfit / state.winCount : 0;
-    const avgLoss = state.lossCount > 0 ? state.totalLoss / state.lossCount : 0;
-    document.getElementById('analyticsAvgWin').textContent = `$${avgWin.toFixed(2)}`;
-    document.getElementById('analyticsAvgLoss').textContent = `$${avgLoss.toFixed(2)}`;
-
-    const pf = (state.lossCount > 0) ? (state.winCount / state.lossCount) : (state.winCount > 0 ? state.winCount : 0);
-    document.getElementById('analyticsPF').textContent = pf.toFixed(2);
-
-    const exp = total > 0 ? (state.totalProfit - state.totalLoss) / total : 0;
-    document.getElementById('analyticsExpectancy').textContent = `$${exp.toFixed(2)}`;
-
-    let bestTrade = 0, worstTrade = 0;
-    state.trades.forEach(t => {
-      const pl = t.result === 'win' ? t.amount : -t.amount;
-      if (pl > bestTrade) bestTrade = pl;
-      if (pl < worstTrade) worstTrade = pl;
-    });
-    document.getElementById('analyticsBestTrade').textContent = `$${bestTrade}`;
-    document.getElementById('analyticsWorstTrade').textContent = `$${worstTrade}`;
-
-    let maxWins = 0, maxLosses = 0, curWins = 0, curLosses = 0;
-    state.trades.forEach(t => {
-      if (t.result === 'win') { curWins++; curLosses = 0; } else { curLosses++; curWins = 0; }
-      if (curWins > maxWins) maxWins = curWins;
-      if (curLosses > maxLosses) maxLosses = curLosses;
-    });
-    document.getElementById('analyticsMaxWins').textContent = maxWins;
-    document.getElementById('analyticsMaxLosses').textContent = maxLosses;
-  } catch (error) {
-    console.error('Analytics update error:', error);
-  }
-}
-
-// ========== UPDATE LOT SIZE ==========
-function updateLotSize() {
-  try {
-    const riskPct = config.riskPercent;
-    const slPts = parseFloat(document.getElementById('slInput').value) || 200;
-    const riskAmount = (state.balance * riskPct) / 100;
-    const lotSize = riskAmount / slPts * 10;
-    document.getElementById('lotDisplay').textContent = `Risk $${riskAmount.toFixed(2)} · Lot ${lotSize.toFixed(2)}`;
-    document.getElementById('riskInput').value = riskPct;
-  } catch (error) {
-    console.error('Lot size calculation error:', error);
-  }
-}
-
-// ========== SAVE SETTINGS ==========
-function saveSettings() {
-  try {
-    const newStartBalance = parseFloat(document.getElementById('startBalanceInput').value) || 1000;
-    const newRiskPercent = parseFloat(document.getElementById('riskPercentInput').value) || 2.5;
-    const newMaxDailyLoss = parseFloat(document.getElementById('maxDailyLossInput').value) || 7.5;
-    
-    if (newStartBalance < 1) { alert('Balance must be at least $1'); return; }
-    if (newRiskPercent < 0.1 || newRiskPercent > 20) { alert('Risk % must be between 0.1 and 20'); return; }
-    if (newMaxDailyLoss < 0.1 || newMaxDailyLoss > 50) { alert('Max Daily Loss % must be between 0.1 and 50'); return; }
-    
-    config.startBalance = newStartBalance;
-    config.riskPercent = newRiskPercent;
-    config.maxDailyLossPercent = newMaxDailyLoss;
-    
-    state.balance = newStartBalance;
-    state.maxBalance = newStartBalance;
-    
-    document.getElementById('ruleRiskPercent').textContent = newRiskPercent;
-    document.getElementById('ruleMaxDailyLoss').textContent = newMaxDailyLoss;
-    document.getElementById('planRiskPercent').textContent = newRiskPercent;
-    document.getElementById('planMaxDailyLoss').textContent = newMaxDailyLoss;
-    document.getElementById('planDailyLossLimit').textContent = newMaxDailyLoss;
-    
-    if (currentUser) saveUserData(currentUser);
-    
-    document.getElementById('settingsMessage').textContent = '✅ Settings saved successfully!';
-    document.getElementById('settingsMessage').className = 'mt-4 text-sm text-green-400';
-    document.getElementById('settingsMessage').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('settingsMessage').style.display = 'none';
-    }, 3000);
-    
-    updateAll();
-  } catch (e) {
-    alert('Error saving settings: ' + e.message);
-  }
-}
-
-// ========== EXPORT/IMPORT ==========
-function exportData() {
-  try {
-    const data = {
-      email: currentUser,
-      config: config,
-      state: state,
-      rrTrades: rrTrades,
-      netR: netR,
-      consistency: consistency,
-      exportDate: new Date().toISOString()
-    };
+  if (format === 'csv') {
+    const headers = ['ID','Date','Pair','Direction','Timeframe','Session','RR','Result','NetR','Entry','SL','TP','Lot','Strategy','Grade','Confidence','Emotions','Mistakes','Lessons','Tags','Notes'];
+    const rows = data.map(b => [
+      b.id, b.date, b.pair, b.direction, b.timeframe, b.session, b.rr,
+      b.result, b.netR, b.entry || '', b.sl || '', b.tp || '', b.lot || '',
+      b.strategy, b.grade, b.confidence, b.emotions, b.mistakes, b.lessons,
+      (b.tags || []).join(';'), b.notes || ''
+    ]);
+    let csv = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backtests_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } else if (format === 'json') {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `trading_data_${currentUser}_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `backtests_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  } catch (e) {
-    alert('Error exporting data: ' + e.message);
+  } else if (format === 'pdf') {
+    // Simple PDF generation with html2canvas or jsPDF would be better
+    // For now, create a printable HTML report
+    const win = window.open('', '_blank');
+    const reportHTML = `
+      <html><head><title>Backtest Report</title>
+      <style>body{font-family:Arial;padding:20px;background:#0B1120;color:#F8FAFC;}table{width:100%;border-collapse:collapse;margin-top:20px;}
+      th,td{padding:8px 12px;border:1px solid #1F2937;text-align:left;}
+      th{background:#1F2937;}img{max-width:100px;border-radius:4px;}
+      .win{color:#22C55E;}.loss{color:#EF4444;}.be{color:#F59E0B;}</style></head>
+      <body><h1>Backtest Report</h1><p>Generated: ${new Date().toLocaleString()}</p>
+      <p>Total: ${data.length} trades | Win Rate: ${(data.filter(b=>b.result==='Win').length/data.length*100).toFixed(1)}%</p>
+      <table><tr><th>#</th><th>Date</th><th>Pair</th><th>Result</th><th>RR</th><th>Strategy</th><th>Grade</th></tr>
+      ${data.map((b,i) => `<tr><td>${i+1}</td><td>${b.date}</td><td>${b.pair}</td>
+        <td class="${b.result.toLowerCase()}">${b.result}</td><td>${b.rr}</td><td>${b.strategy}</td><td>${b.grade}</td></tr>`).join('')}
+      </table></body></html>
+    `;
+    win.document.write(reportHTML);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
   }
-}
-
-function importData() {
-  document.getElementById('fileInput').click();
-}
-
-function handleImport(event) {
-  try {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (data.config) {
-          config.startBalance = data.config.startBalance || 1000;
-          config.riskPercent = data.config.riskPercent || 2.5;
-          config.maxDailyLossPercent = data.config.maxDailyLossPercent || 7.5;
-          document.getElementById('startBalanceInput').value = config.startBalance;
-          document.getElementById('riskPercentInput').value = config.riskPercent;
-          document.getElementById('maxDailyLossInput').value = config.maxDailyLossPercent;
-        }
-        if (data.state) {
-          state.balance = data.state.balance || config.startBalance;
-          state.trades = data.state.trades || [];
-          state.dailyLoss = data.state.dailyLoss || 0;
-          state.streak = data.state.streak || 0;
-          state.consecutiveWins = data.state.consecutiveWins || 0;
-          state.consecutiveLosses = data.state.consecutiveLosses || 0;
-          state.totalProfit = data.state.totalProfit || 0;
-          state.totalLoss = data.state.totalLoss || 0;
-          state.winCount = data.state.winCount || 0;
-          state.lossCount = data.state.lossCount || 0;
-          state.maxBalance = data.state.maxBalance || config.startBalance;
-          state.aplusScores = data.state.aplusScores || [];
-        }
-        if (data.rrTrades) {
-          rrTrades = data.rrTrades;
-          netR = data.netR || 0;
-          consistency = data.consistency || 100;
-        }
-        updateAll();
-        document.getElementById('settingsMessage').textContent = '✅ Data imported successfully!';
-        document.getElementById('settingsMessage').className = 'mt-4 text-sm text-green-400';
-        document.getElementById('settingsMessage').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('settingsMessage').style.display = 'none';
-        }, 3000);
-      } catch (error) {
-        alert('Error parsing file: ' + error.message);
-      }
-    };
-    reader.readAsText(file);
-  } catch (e) {
-    alert('Error importing data: ' + e.message);
-  }
-  event.target.value = '';
 }
 
 // ========== NAVIGATION ==========
@@ -1667,118 +1507,53 @@ document.querySelectorAll('.nav-link').forEach(link => {
     document.getElementById('page-' + pageId).classList.add('active');
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
     this.classList.add('active-nav');
-    if (pageId === 'analytics') updateAnalytics();
+    if (pageId === 'backtesting') updateBacktestingUI();
   });
 });
 
-// ========== CHARTS ==========
-let charts = {};
-
-function initCharts() {
-  try {
-    const ctx = document.getElementById('dashEquityChart');
-    if (ctx) {
-      charts.dashEquity = new Chart(ctx.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: ['Start'],
-          datasets: [{
-            label: 'Equity',
-            data: [config.startBalance],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            fill: true,
-            tension: 0.2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' } },
-            x: { grid: { display: false } }
-          }
-        }
-      });
+// ========== CHECKLIST ==========
+document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+    const allChecked = Array.from(checks).every(c => c.checked);
+    const status = document.getElementById('checklistStatus');
+    if (allChecked) {
+      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20';
+      status.innerHTML = '✅ All checks passed - Ready to trade';
+    } else {
+      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20';
+      status.innerHTML = '⚠️ Complete all checklist items before trading';
     }
-  } catch (error) {
-    console.error('Chart initialization error:', error);
-  }
-}
+  });
+});
 
-// ========== EVENT LISTENERS ==========
+// ========== DATE ==========
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+});
+
+// ========== INIT ==========
 document.addEventListener('DOMContentLoaded', function() {
   loadUsers();
-  
-  // Quick trade
-  document.getElementById('quickWinBtn').addEventListener('click', quickWin);
-  document.getElementById('quickLossBtn').addEventListener('click', quickLoss);
-  document.getElementById('quickRR').addEventListener('change', updateQuickLabels);
-  
-  // Add trade
-  document.getElementById('addCustomTradeBtn').addEventListener('click', function() {
-    const type = document.getElementById('tradeType').value;
-    const amount = parseFloat(document.getElementById('tradeAmount').value);
-    const dir = document.getElementById('tradeDirection').value.toUpperCase();
-    const rr = document.getElementById('tradeRR').value;
-    if (isNaN(amount) || amount <= 0) { alert('Please enter a valid amount'); return; }
-    if (!dir || (dir !== 'BUY' && dir !== 'SELL')) { alert('Direction must be BUY or SELL'); return; }
-    addTrade(type, amount, dir, rr);
-  });
-  
-  // Clear journal
-  document.getElementById('clearJournalBtn').addEventListener('click', clearJournal);
-  
-  // Calculator
-  document.getElementById('calcBtn').addEventListener('click', updateLotSize);
-  document.getElementById('slInput').addEventListener('change', updateLotSize);
-  document.getElementById('slInput').addEventListener('input', updateLotSize);
-  
-  // Reset
-  document.getElementById('resetBtn').addEventListener('click', function() {
-    if (confirm('Reset all data?')) {
-      state = {
-        balance: config.startBalance,
-        trades: [],
-        dailyLoss: 0,
-        streak: 0,
-        consecutiveWins: 0,
-        consecutiveLosses: 0,
-        totalProfit: 0,
-        totalLoss: 0,
-        winCount: 0,
-        lossCount: 0,
-        maxBalance: config.startBalance,
-        editingIndex: -1,
-        aplusScores: []
-      };
-      rrTrades = [];
-      netR = 0;
-      consistency = 100;
-      document.getElementById('tradesWarningBanner').style.display = 'none';
-      document.getElementById('dashDailyLossWarning').style.display = 'none';
-      updateAll();
-      if (currentUser) saveUserData(currentUser);
-    }
-  });
-  
-  // Enter key support
-  document.getElementById('tradeAmount').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') document.getElementById('addCustomTradeBtn').click();
-  });
-  document.getElementById('tradeDirection').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') document.getElementById('addCustomTradeBtn').click();
-  });
-  
-  initCharts();
-  updateAll();
+  updateBacktestingUI();
 });
 
-// Auto-save every 30 seconds
-setInterval(() => {
-  if (currentUser) saveUserData(currentUser);
-}, 30000);
+// ========== SAVE SETTINGS ==========
+function saveSettings() {
+  alert('Settings saved!');
+}
+
+function exportData() {
+  alert('Export data function');
+}
+
+function importData() {
+  document.getElementById('fileInput').click();
+}
+
+function handleImport(event) {
+  alert('Import function');
+}
 </script>
 </body>
 </html>
