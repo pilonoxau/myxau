@@ -1,1198 +1,1333 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
-<title>TradeVault · Premium Trading Journal</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-  background: #0B1120; 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-  color: #F8FAFC; 
-}
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #111827; }
-::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import {
+  LayoutDashboard, LineChart as LineChartIcon, FlaskConical, BookOpen, BarChart3,
+  Calendar as CalendarIcon, ListChecks, ShieldCheck, ClipboardCheck, Target, Settings as SettingsIcon,
+  Search, Plus, Filter, Download, X, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
+  Flame, Sun, Moon, Upload, Image as ImageIcon, Tag, Trash2, Edit3, Star, Percent,
+  DollarSign, Activity, Award, Layers, Clock, Bell, Sliders, Calculator, ArrowUpRight,
+  ArrowDownRight, Maximize2, ChevronDown, CheckCircle2, Circle
+} from "lucide-react";
+import {
+  AreaChart, Area, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+} from "recharts";
 
-.glass-card {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-.glass-card:hover {
-  border-color: #3B82F6;
-  box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
-  transform: translateY(-2px);
-}
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
-  pointer-events: none;
-  border-radius: 16px;
-}
+/* ============================= THEME ============================= */
 
-.nav-link {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 12px;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
-  color: #94A3B8;
-  font-weight: 500;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.nav-link:hover { 
-  background: rgba(59, 130, 246, 0.08); 
-  color: #F8FAFC;
-  transform: translateX(4px);
-}
-.active-nav { 
-  background: rgba(59, 130, 246, 0.12); 
-  color: #3B82F6;
-  border-left: 3px solid #3B82F6;
-}
-.nav-link i { width: 20px; text-align: center; }
-
-.summary-card { 
-  padding: 1.25rem; 
-  text-align: center;
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: default;
-}
-.summary-card:hover {
-  border-color: #3B82F6;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
-}
-.summary-card .value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
-.summary-card .label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; margin-top: 0.25rem; font-weight: 600; letter-spacing: 0.06em; }
-
-.btn-primary {
-  background: #3B82F6;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-primary:hover { 
-  background: #2563EB; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.35);
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #1F2937;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #94A3B8;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-secondary:hover { 
-  background: rgba(59, 130, 246, 0.06); 
-  border-color: #3B82F6;
-  color: #F8FAFC;
-}
-
-.btn-success {
-  background: #22C55E;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
-}
-.btn-success:hover { 
-  background: #16A34A; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
-}
-
-.btn-danger {
-  background: #EF4444;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
-}
-.btn-danger:hover { 
-  background: #DC2626; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35);
-}
-
-.btn-sm { padding: 0.3rem 0.9rem; font-size: 0.7rem; }
-.btn-xs { padding: 0.15rem 0.6rem; font-size: 0.6rem; }
-
-.glass-input {
-  background: #0B1120;
-  border: 1px solid #1F2937;
-  border-radius: 10px;
-  padding: 0.4rem 0.8rem;
-  color: #F8FAFC;
-  width: 100%;
-  font-size: 0.8rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-input:focus { 
-  border-color: #3B82F6; 
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.page { display: none; animation: fadeSlide 0.3s ease; }
-.page.active { display: block; }
-
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 600;
-}
-.badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
-.badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
-.badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-
-.rule-card { 
-  border-left: 3px solid #3B82F6; 
-  padding-left: 1rem; 
-  margin-bottom: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: rgba(59, 130, 246, 0.03);
-  border-radius: 0 8px 8px 0;
-}
-.rule-card.warning { border-left-color: #EF4444; background: rgba(239, 68, 68, 0.03); }
-.rule-card.success { border-left-color: #22C55E; background: rgba(34, 197, 94, 0.03); }
-.rule-card .rule-title { font-weight: 700; color: #F8FAFC; }
-.rule-card .rule-desc { color: #94A3B8; font-size: 0.85rem; margin-top: 0.15rem; }
-
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(11, 17, 32, 0.97);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  backdrop-filter: blur(20px);
-}
-.login-box {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 24px;
-  padding: 2.5rem;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-}
-.login-box h2 {
-  background: linear-gradient(135deg, #3B82F6, #60A5FA);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 0.5rem;
-  font-weight: 800;
-  font-size: 1.8rem;
-}
-.login-box .subtitle {
-  color: #94A3B8;
-  text-align: center;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-.login-input {
-  background: #0B1120;
-  border: 1px solid #1F2937;
-  border-radius: 12px;
-  padding: 0.8rem 1rem;
-  color: #F8FAFC;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-.login-input:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-.login-btn {
-  width: 100%;
-  padding: 0.8rem;
-  background: #3B82F6;
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-.login-btn:hover { background: #2563EB; transform: translateY(-1px); }
-.login-btn-secondary {
-  width: 100%;
-  padding: 0.8rem;
-  background: transparent;
-  border: 1px solid #1F2937;
-  border-radius: 12px;
-  color: #94A3B8;
-  font-weight: 500;
-  cursor: pointer;
-}
-.login-btn-secondary:hover { background: rgba(59, 130, 246, 0.05); border-color: #3B82F6; color: #F8FAFC; }
-.login-error { color: #EF4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
-.login-success { color: #22C55E; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #94A3B8;
-  font-size: 0.75rem;
-}
-.user-info i { color: #3B82F6; }
-.logout-btn {
-  background: transparent;
-  border: 1px solid #1F2937;
-  color: #94A3B8;
-  padding: 0.15rem 0.6rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.65rem;
-}
-.logout-btn:hover { border-color: #EF4444; color: #EF4444; }
-
-.status-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-.status-dot.green { background: #22C55E; }
-.status-dot.red { background: #EF4444; }
-.status-dot.blue { background: #3B82F6; }
-
-.lot-result {
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  border-radius: 12px;
-  padding: 1rem;
-}
-.lot-result .value { font-size: 1.8rem; font-weight: 800; color: #22C55E; }
-.lot-result .label { font-size: 0.7rem; color: #94A3B8; }
-
-@media (max-width: 640px) {
-  .summary-card .value { font-size: 1.2rem; }
-  .summary-card { padding: 0.75rem; }
-  .glass-card { padding: 0.75rem; }
-}
-</style>
-</head>
-<body>
-
-<!-- LOGIN OVERLAY -->
-<div id="loginOverlay" class="login-overlay">
-  <div class="login-box">
-    <h2><i class="fas fa-chart-line"></i> Trade<span style="-webkit-text-fill-color:#F8FAFC;">Vault</span></h2>
-    <p class="subtitle">Sign in to your trading journal</p>
-    <div id="loginForm">
-      <input type="email" id="loginEmail" class="login-input" placeholder="Email address" />
-      <input type="password" id="loginPassword" class="login-input" placeholder="Password (min 6 chars)" />
-      <button class="login-btn" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-      <button class="login-btn-secondary" onclick="showSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
-      <div id="loginError" class="login-error">Invalid credentials</div>
-      <div id="loginSuccess" class="login-success">Account created! Please sign in.</div>
-    </div>
-    <div id="signupForm" style="display:none;">
-      <input type="text" id="signupName" class="login-input" placeholder="Full Name" />
-      <input type="email" id="signupEmail" class="login-input" placeholder="Email address" />
-      <input type="password" id="signupPassword" class="login-input" placeholder="Password (min 6 chars)" />
-      <input type="password" id="signupConfirm" class="login-input" placeholder="Confirm Password" />
-      <button class="login-btn" onclick="handleSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
-      <button class="login-btn-secondary" onclick="showLogin()"><i class="fas fa-arrow-left"></i> Back to Sign In</button>
-      <div id="signupError" class="login-error"></div>
-      <div id="signupSuccess" class="login-success">Account created! Please sign in.</div>
-    </div>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div class="flex h-screen overflow-hidden">
-<!-- SIDEBAR -->
-<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-1 overflow-y-auto">
-  <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
-    <i class="fas fa-chart-line text-[#3B82F6]"></i>
-    <span class="hidden md:inline text-white">Trade<span class="text-[#3B82F6]">Vault</span></span>
-  </div>
-  <div class="w-full border-b border-[#1F2937] my-1"></div>
-  <nav class="w-full space-y-0.5 text-sm">
-    <a class="nav-link active-nav" data-page="dashboard"><i class="fas fa-th-large"></i><span class="hidden md:inline">Dashboard</span></a>
-    <a class="nav-link" data-page="trades"><i class="fas fa-exchange-alt"></i><span class="hidden md:inline">Trades</span></a>
-    <a class="nav-link" data-page="backtesting"><i class="fas fa-flask"></i><span class="hidden md:inline">Backtesting</span></a>
-    <a class="nav-link" data-page="journal"><i class="fas fa-book-open"></i><span class="hidden md:inline">Journal</span></a>
-    <a class="nav-link" data-page="analytics"><i class="fas fa-chart-pie"></i><span class="hidden md:inline">Analytics</span></a>
-    <a class="nav-link" data-page="calendar"><i class="fas fa-calendar-alt"></i><span class="hidden md:inline">Calendar</span></a>
-    <a class="nav-link" data-page="rules"><i class="fas fa-book"></i><span class="hidden md:inline">Trading Rules</span></a>
-    <a class="nav-link" data-page="checklist"><i class="fas fa-clipboard-list"></i><span class="hidden md:inline">Checklist</span></a>
-    <a class="nav-link" data-page="plan"><i class="fas fa-flag-checkered"></i><span class="hidden md:inline">Trading Plan</span></a>
-    <a class="nav-link" data-page="settings"><i class="fas fa-cog"></i><span class="hidden md:inline">Settings</span></a>
-  </nav>
-  <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8] space-y-1.5">
-    <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
-    <div class="flex items-center gap-2"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$1,000</span></div>
-    <div class="flex items-center gap-2 user-info">
-      <i class="fas fa-user"></i>
-      <span id="userEmailDisplay" class="hidden md:inline truncate max-w-[100px]">user@email.com</span>
-      <button class="logout-btn" onclick="handleLogout()">Logout</button>
-    </div>
-  </div>
-</aside>
-
-<!-- MAIN CONTENT -->
-<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0B1120] space-y-6">
-
-<!-- ===== PAGE: DASHBOARD ===== -->
-<div id="page-dashboard" class="page active space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h2 class="text-2xl font-extrabold text-white">Dashboard</h2>
-      <p class="text-sm text-[#94A3B8]">Real-time trading performance overview</p>
-    </div>
-    <div class="flex items-center gap-3 text-sm text-[#94A3B8]">
-      <i class="fas fa-calendar-alt text-[#3B82F6]"></i>
-      <span id="currentDate"></span>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="summary-card"><div class="value text-[#3B82F6]" id="dashBalance">$1,000</div><div class="label">Balance</div></div>
-    <div class="summary-card"><div class="value text-[#22C55E]" id="dashTotalProfit">$0</div><div class="label">Total Profit</div></div>
-    <div class="summary-card"><div class="value text-[#F59E0B]" id="dashNetR">0.0R</div><div class="label">Net RR</div></div>
-    <div class="summary-card"><div class="value text-[#22C55E]" id="dashWinRate">0%</div><div class="label">Win Rate</div></div>
-    <div class="summary-card"><div class="value text-[#F59E0B]" id="dashProfitFactor">0.00</div><div class="label">Profit Factor</div></div>
-  </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="summary-card"><div class="value text-[#3B82F6]" id="dashExpectancy">$0.00</div><div class="label">Expectancy</div></div>
-    <div class="summary-card"><div class="value text-[#22C55E]" id="dashAvgWin">$0</div><div class="label">Avg Win</div></div>
-    <div class="summary-card"><div class="value text-[#EF4444]" id="dashAvgLoss">$0</div><div class="label">Avg Loss</div></div>
-    <div class="summary-card"><div class="value text-[#F59E0B]" id="dashStreak">0</div><div class="label">Current Streak</div></div>
-    <div class="summary-card"><div class="value text-[#22C55E]" id="dashBestStreak">0</div><div class="label">Best Streak</div></div>
-  </div>
-</div>
-
-<!-- ===== PAGE: TRADES ===== -->
-<div id="page-trades" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
-  <p class="text-sm text-[#94A3B8]">Manage all your trades with the Universal Lot Size Calculator</p>
-
-  <!-- Quick Trade -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-4">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-bolt text-[#3B82F6] mr-1"></i>Quick Trade</span>
-      <select id="quickRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
-      </select>
-      <button class="btn-success btn-sm" onclick="quickTrade('win')"><i class="fas fa-check"></i> Win <span id="quickWinLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">+2R</span></button>
-      <button class="btn-danger btn-sm" onclick="quickTrade('loss')"><i class="fas fa-times"></i> Loss <span id="quickLossLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">-1R</span></button>
-    </div>
-  </div>
-
-  <!-- UNIVERSAL LOT SIZE CALCULATOR -->
-  <div class="glass-card p-4">
-    <span class="text-sm font-bold text-white"><i class="fas fa-calculator text-[#3B82F6] mr-2"></i>Universal Lot Size Calculator</span>
-    <p class="text-xs text-[#94A3B8] mt-1 mb-3">Automatically calculates lot size for any instrument based on your risk settings</p>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Account Balance ($)</label>
-        <input type="number" id="calcBalance" class="glass-input" value="10000" step="100" oninput="calculateLotSize()" />
-      </div>
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Risk (%)</label>
-        <input type="number" id="calcRisk" class="glass-input" value="2" step="0.1" min="0.1" max="100" oninput="calculateLotSize()" />
-      </div>
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Instrument</label>
-        <select id="calcInstrument" class="glass-input" onchange="calculateLotSize()">
-          <option value="EURUSD">EURUSD</option>
-          <option value="GBPUSD">GBPUSD</option>
-          <option value="USDJPY">USDJPY</option>
-          <option value="AUDUSD">AUDUSD</option>
-          <option value="NZDUSD">NZDUSD</option>
-          <option value="USDCAD">USDCAD</option>
-          <option value="USDCHF">USDCHF</option>
-          <option value="EURJPY">EURJPY</option>
-          <option value="GBPJPY">GBPJPY</option>
-          <option value="XAUUSD" selected>XAUUSD (Gold)</option>
-          <option value="XAGUSD">XAGUSD (Silver)</option>
-          <option value="BTCUSD">BTCUSD</option>
-          <option value="ETHUSD">ETHUSD</option>
-          <option value="NAS100">NAS100</option>
-          <option value="US30">US30</option>
-          <option value="SPX500">SPX500</option>
-          <option value="GER40">GER40</option>
-          <option value="UK100">UK100</option>
-          <option value="CUSTOM">Custom (Enter Pip Value)</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Entry Price</label>
-        <input type="number" id="calcEntry" class="glass-input" value="3350.00" step="0.01" oninput="calculateLotSize()" />
-      </div>
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Stop Loss Price</label>
-        <input type="number" id="calcSL" class="glass-input" value="3345.00" step="0.01" oninput="calculateLotSize()" />
-      </div>
-      <div>
-        <label class="text-xs text-[#94A3B8] block mb-1">Custom Pip Value (if Custom selected)</label>
-        <input type="number" id="calcPipValue" class="glass-input" value="1" step="0.01" oninput="calculateLotSize()" />
-      </div>
-    </div>
-
-    <!-- Results -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4" id="lotResults">
-      <div class="lot-result text-center">
-        <div class="text-xs text-[#94A3B8]">Recommended Lot Size</div>
-        <div class="value text-[#22C55E]" id="resultLot">0.00</div>
-      </div>
-      <div class="lot-result text-center">
-        <div class="text-xs text-[#94A3B8]">Risk Amount</div>
-        <div class="value text-[#F59E0B]" id="resultRisk">$0.00</div>
-      </div>
-      <div class="lot-result text-center">
-        <div class="text-xs text-[#94A3B8]">SL Distance</div>
-        <div class="value text-[#3B82F6]" id="resultSL">0.00</div>
-      </div>
-      <div class="lot-result text-center">
-        <div class="text-xs text-[#94A3B8]">Pip Value</div>
-        <div class="value text-[#3B82F6]" id="resultPipValue">$0.00</div>
-      </div>
-      <div class="lot-result text-center">
-        <div class="text-xs text-[#94A3B8]">Position Size (Units)</div>
-        <div class="value text-[#F8FAFC]" id="resultUnits">0</div>
-      </div>
-    </div>
-
-    <div class="mt-3 flex gap-2">
-      <button class="btn-primary btn-sm" onclick="applyLotToTrade()"><i class="fas fa-arrow-right"></i> Apply to Trade</button>
-      <button class="btn-secondary btn-sm" onclick="resetCalculator()"><i class="fas fa-undo"></i> Reset</button>
-    </div>
-  </div>
-
-  <!-- Add Trade -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-plus-circle text-[#3B82F6] mr-1"></i>Add Trade</span>
-      <select id="tradeType" class="glass-input" style="width:auto; padding:0.3rem 1rem;"><option value="win">Win</option><option value="loss">Loss</option></select>
-      <input type="number" id="tradeAmount" class="glass-input" placeholder="$" value="100" style="width:90px;" />
-      <input type="text" id="tradeDirection" class="glass-input" placeholder="Dir" value="BUY" style="width:60px;" />
-      <select id="tradeRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
-      </select>
-      <input type="text" id="tradePair" class="glass-input" placeholder="Pair" value="XAUUSD" style="width:80px;" />
-      <button class="btn-primary btn-sm" onclick="manualAddTrade()"><i class="fas fa-plus"></i> Add</button>
-    </div>
-  </div>
-
-  <!-- RR Tracker -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-arrows-left-right text-[#F59E0B] mr-1"></i>RR Tracker</span>
-      <div class="flex flex-wrap items-center gap-3 text-xs">
-        <span class="text-[#94A3B8]">Net: <span id="tradesNetR" class="text-[#F59E0B] font-bold">0.0R</span></span>
-        <span class="text-[#94A3B8]">Avg: <span id="tradesAvgR" class="text-[#3B82F6] font-bold">0.0</span></span>
-        <button class="btn-danger btn-xs" onclick="clearRRTracker()">Clear</button>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-2 mb-2">
-      <select id="rrRatio" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
-      </select>
-      <select id="rrResult" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
-        <option value="win">Win</option><option value="loss">Loss</option>
-      </select>
-      <button class="btn-primary btn-xs" onclick="addRRTrade()"><i class="fas fa-plus"></i> Add RR</button>
-    </div>
-    <div class="table-wrap text-xs">
-      <table class="w-full text-left">
-        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
-          <tr><th>#</th><th>RR</th><th>Result</th><th>R Value</th><th>Running R</th><th class="text-center">Action</th></tr>
-        </thead>
-        <tbody id="rrTableBody"><tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Trade History -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-list-ul text-[#3B82F6] mr-1"></i>Trade History (<span id="tradeCount">0</span>)</span>
-      <button class="btn-danger btn-xs" onclick="clearAllTrades()">Clear All</button>
-    </div>
-    <div class="table-wrap text-xs">
-      <table class="w-full text-left">
-        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
-          <tr><th>#</th><th>Date</th><th>Pair</th><th>Dir</th><th>Result</th><th>P/L</th><th>RR</th><th class="text-center">Action</th></tr>
-        </thead>
-        <tbody id="tradeHistoryBody"><tr><td colspan="8" class="text-center text-[#4B5563] py-3">No trades yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PAGE: TRADING RULES ===== -->
-<div id="page-rules" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book text-[#3B82F6] mr-3"></i>Trading Rules</h2>
-  <p class="text-sm text-[#94A3B8]">Clear, structured trading rules to maintain discipline and consistency</p>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <!-- Session Rules -->
-    <div class="glass-card p-4">
-      <h3 class="text-lg font-bold text-[#3B82F6] mb-3"><i class="fas fa-clock mr-2"></i>Session Rules</h3>
-      <div class="rule-card"><div class="rule-title">Market</div><div class="rule-desc">Trade only XAUUSD (Gold) for optimal liquidity and volatility</div></div>
-      <div class="rule-card"><div class="rule-title">Trading Sessions</div><div class="rule-desc">London Session: 08:00 - 16:00 GMT | New York Session: 13:00 - 21:00 GMT</div></div>
-      <div class="rule-card"><div class="rule-title">Maximum Trades Per Day</div><div class="rule-desc">Maximum 3 trades per day to prevent overtrading</div></div>
-    </div>
-
-    <!-- Risk Management -->
-    <div class="glass-card p-4">
-      <h3 class="text-lg font-bold text-[#EF4444] mb-3"><i class="fas fa-shield-alt mr-2"></i>Risk Management</h3>
-      <div class="rule-card warning"><div class="rule-title">Risk Per Trade</div><div class="rule-desc">Risk exactly 2.5% of your current account balance per trade</div></div>
-      <div class="rule-card warning"><div class="rule-title">Maximum Daily Loss</div><div class="rule-desc">Stop trading when daily loss reaches 7.5% of account balance</div></div>
-      <div class="rule-card warning"><div class="rule-title">Never Move Stop Loss</div><div class="rule-desc">Set SL and never move it. Let the trade play out.</div></div>
-      <div class="rule-card warning"><div class="rule-title">Never Revenge Trade</div><div class="rule-desc">After a loss, don't increase lot size. Stick to the plan.</div></div>
-    </div>
-
-    <!-- Entry Rules -->
-    <div class="glass-card p-4">
-      <h3 class="text-lg font-bold text-[#22C55E] mb-3"><i class="fas fa-sign-in-alt mr-2"></i>Entry Rules</h3>
-      <div class="rule-card success"><div class="rule-title">1H Trend</div><div class="rule-desc">EMA50 above EMA100 = BUY only | EMA50 below EMA100 = SELL only</div></div>
-      <div class="rule-card success"><div class="rule-title">15M Confirmation</div><div class="rule-desc">Price must be aligned with EMA50 on 15M timeframe</div></div>
-      <div class="rule-card success"><div class="rule-title">3M Pullback</div><div class="rule-desc">Wait for a pullback to key support/resistance level</div></div>
-      <div class="rule-card success"><div class="rule-title">1M Entry</div><div class="rule-desc">Enter only after a clear entry candle confirms the move</div></div>
-    </div>
-
-    <!-- Exit Rules -->
-    <div class="glass-card p-4">
-      <h3 class="text-lg font-bold text-[#F59E0B] mb-3"><i class="fas fa-sign-out-alt mr-2"></i>Exit Rules</h3>
-      <div class="rule-card"><div class="rule-title">Stop Loss Placement</div><div class="rule-desc">Place SL below the previous swing low (BUY) or above previous swing high (SELL)</div></div>
-      <div class="rule-card"><div class="rule-title">Take Profit</div><div class="rule-desc">Target 4x your risk (1:4 Reward:Risk ratio)</div></div>
-      <div class="rule-card"><div class="rule-title">Partial Takes</div><div class="rule-desc">Take 50% at 2R, move SL to breakeven, let rest run to 4R</div></div>
-    </div>
-
-    <!-- Stop Rules -->
-    <div class="glass-card p-4 md:col-span-2">
-      <h3 class="text-lg font-bold text-[#EF4444] mb-3"><i class="fas fa-stop-circle mr-2"></i>Stop Trading Rules</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div class="rule-card warning"><div class="rule-title">After 3 Consecutive Losses</div><div class="rule-desc">Immediately stop trading for the remainder of the day</div></div>
-        <div class="rule-card warning"><div class="rule-title">Daily Loss Limit</div><div class="rule-desc">When daily loss reaches 7.5% of balance, stop all trading</div></div>
-        <div class="rule-card warning"><div class="rule-title">Emotional State</div><div class="rule-desc">If feeling anxious, revengeful, or emotional, stop trading</div></div>
-        <div class="rule-card warning"><div class="rule-title">Market Conditions</div><div class="rule-desc">Stop trading during high-impact news events or extreme volatility</div></div>
-      </div>
-    </div>
-
-    <!-- Checklist Summary -->
-    <div class="glass-card p-4 md:col-span-2">
-      <h3 class="text-lg font-bold text-[#3B82F6] mb-3"><i class="fas fa-clipboard-check mr-2"></i>Pre-Trade Checklist</h3>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> News Checked</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> 1H Trend Confirmed</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> 15M EMA Confirmed</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> 3M Pullback</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> 1M Entry Confirmation</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> Risk Calculated</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> 1:4 RR Confirmed</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> Session Valid</div>
-        <div class="flex items-center gap-2 text-sm text-[#94A3B8]"><span class="text-[#22C55E]">✓</span> Emotion Calm</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== OTHER PAGES (simplified) ===== -->
-<div id="page-backtesting" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flask text-[#3B82F6] mr-3"></i>Backtesting</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Backtesting page content - full implementation available</p></div>
-</div>
-
-<div id="page-journal" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book-open text-[#3B82F6] mr-3"></i>Journal</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Journal page content - full implementation available</p></div>
-</div>
-
-<div id="page-analytics" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Analytics</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Analytics page content - full implementation available</p></div>
-</div>
-
-<div id="page-calendar" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-calendar-alt text-[#3B82F6] mr-3"></i>Calendar</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Calendar page content - full implementation available</p></div>
-</div>
-
-<div id="page-checklist" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-clipboard-list text-[#3B82F6] mr-3"></i>Checklist</h2>
-  <div class="glass-card p-4">
-    <div id="checklistContainer" class="space-y-1">
-      <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk1" class="accent-[#3B82F6]" /><label for="chk1">News Checked</label></div>
-      <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk2" class="accent-[#3B82F6]" /><label for="chk2">1H Trend Confirmed</label></div>
-      <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk3" class="accent-[#3B82F6]" /><label for="chk3">15M EMA Confirmed</label></div>
-      <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk4" class="accent-[#3B82F6]" /><label for="chk4">3M Pullback</label></div>
-      <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk5" class="accent-[#3B82F6]" /><label for="chk5">1M Confirmation</label></div>
-    </div>
-    <div id="checklistStatus" class="mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">✅ All checks passed - Ready to trade</div>
-  </div>
-</div>
-
-<div id="page-plan" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flag-checkered text-[#3B82F6] mr-3"></i>Trading Plan</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Trading Plan page content - full implementation available</p></div>
-</div>
-
-<div id="page-settings" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-cog text-[#3B82F6] mr-3"></i>Settings</h2>
-  <div class="glass-card p-4"><p class="text-[#94A3B8]">Settings page content - full implementation available</p></div>
-</div>
-
-<div class="text-center text-[10px] text-[#1F2937] border-t border-[#1F2937] pt-4">TradeVault · Premium Trading Journal</div>
-</main>
-</div>
-
-<script>
-// ========== STATE ==========
-let state = {
-  balance: 1000,
-  trades: [],
-  rrTrades: [],
-  netR: 0,
-  currentUser: null,
-  users: {}
+const darkTheme = {
+  bg: "#0B1120",
+  bgAlt: "#0E1524",
+  card: "#111827",
+  border: "#1F2937",
+  blue: "#3B82F6",
+  green: "#22C55E",
+  red: "#EF4444",
+  orange: "#F59E0B",
+  text: "#F8FAFC",
+  textSecondary: "#94A3B8",
 };
 
-// ========== USER MANAGEMENT ==========
-function loadUsers() {
-  try { const saved = localStorage.getItem('trading_users'); if (saved) state.users = JSON.parse(saved); } catch(e) {}
-}
-function saveUsers() { try { localStorage.setItem('trading_users', JSON.stringify(state.users)); } catch(e) {} }
+const lightTheme = {
+  bg: "#F3F5F9",
+  bgAlt: "#FFFFFF",
+  card: "#FFFFFF",
+  border: "#E2E8F0",
+  blue: "#3B82F6",
+  green: "#16A34A",
+  red: "#DC2626",
+  orange: "#D97706",
+  text: "#0F172A",
+  textSecondary: "#64748B",
+};
 
-function showSignup() {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('signupForm').style.display = 'block';
-  document.getElementById('loginSubtitle').textContent = 'Create your account';
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('loginSuccess').style.display = 'none';
-}
+/* ============================= MOCK DATA ============================= */
 
-function showLogin() {
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('signupForm').style.display = 'none';
-  document.getElementById('loginSubtitle').textContent = 'Sign in to your trading journal';
-  document.getElementById('signupError').style.display = 'none';
-  document.getElementById('signupSuccess').style.display = 'none';
-}
-
-function handleSignup() {
-  const name = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
-  const password = document.getElementById('signupPassword').value;
-  const confirm = document.getElementById('signupConfirm').value;
-  const errorDiv = document.getElementById('signupError');
-  const successDiv = document.getElementById('signupSuccess');
-
-  errorDiv.style.display = 'none';
-  successDiv.style.display = 'none';
-
-  if (!name || !email || !password || !confirm) {
-    errorDiv.textContent = 'Please fill in all fields';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (password.length < 6) {
-    errorDiv.textContent = 'Password must be at least 6 characters';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (password !== confirm) {
-    errorDiv.textContent = 'Passwords do not match';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (state.users[email]) {
-    errorDiv.textContent = 'Email already registered';
-    errorDiv.style.display = 'block';
-    return;
-  }
-
-  state.users[email] = { name, email, password, created: new Date().toISOString() };
-  saveUsers();
-  successDiv.textContent = '✅ Account created! Please sign in.';
-  successDiv.style.display = 'block';
-  document.getElementById('signupName').value = '';
-  document.getElementById('signupEmail').value = '';
-  document.getElementById('signupPassword').value = '';
-  document.getElementById('signupConfirm').value = '';
-
-  setTimeout(() => {
-    showLogin();
-    document.getElementById('loginEmail').value = email;
-    successDiv.style.display = 'none';
-  }, 2000);
-}
-
-function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
-  const errorDiv = document.getElementById('loginError');
-
-  errorDiv.style.display = 'none';
-
-  if (!email || !password) {
-    errorDiv.textContent = 'Please enter email and password';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (!state.users[email]) {
-    errorDiv.textContent = 'Email not found. Please create an account.';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (state.users[email].password !== password) {
-    errorDiv.textContent = 'Invalid password';
-    errorDiv.style.display = 'block';
-    return;
-  }
-
-  state.currentUser = email;
-  document.getElementById('userEmailDisplay').textContent = email;
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPassword').value = '';
-  loadUserData(email);
-}
-
-function handleLogout() {
-  if (confirm('Logout? Your data will be saved.')) {
-    saveUserData(state.currentUser);
-    state.currentUser = null;
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
-  }
-}
-
-function getUserDataKey(email) { return `tradevault_data_${email}`; }
-
-function saveUserData(email) {
-  try {
-    const data = { balance: state.balance, trades: state.trades, rrTrades: state.rrTrades, netR: state.netR };
-    localStorage.setItem(getUserDataKey(email), JSON.stringify(data));
-  } catch(e) { console.error('Error saving data:', e); }
-}
-
-function loadUserData(email) {
-  try {
-    const saved = localStorage.getItem(getUserDataKey(email));
-    if (saved) {
-      const data = JSON.parse(saved);
-      if (data.balance !== undefined) state.balance = data.balance;
-      if (data.trades) state.trades = data.trades;
-      if (data.rrTrades) state.rrTrades = data.rrTrades;
-      if (data.netR !== undefined) state.netR = data.netR;
-    }
-    document.getElementById('startBalanceInput').value = 1000;
-    updateAll();
-  } catch(e) { console.error('Error loading data:', e); }
-}
-
-// ========== DATE ==========
-document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-});
-
-// ========== UNIVERSAL LOT SIZE CALCULATOR ==========
-function getInstrumentInfo(instrument) {
-  const instruments = {
-    'EURUSD': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'GBPUSD': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'USDJPY': { pipValue: 1, digits: 3, contractSize: 100000 },
-    'AUDUSD': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'NZDUSD': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'USDCAD': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'USDCHF': { pipValue: 1, digits: 5, contractSize: 100000 },
-    'EURJPY': { pipValue: 1, digits: 3, contractSize: 100000 },
-    'GBPJPY': { pipValue: 1, digits: 3, contractSize: 100000 },
-    'XAUUSD': { pipValue: 0.1, digits: 2, contractSize: 100 },
-    'XAGUSD': { pipValue: 0.01, digits: 3, contractSize: 5000 },
-    'BTCUSD': { pipValue: 1, digits: 2, contractSize: 1 },
-    'ETHUSD': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'NAS100': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'US30': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'SPX500': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'GER40': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'UK100': { pipValue: 0.1, digits: 2, contractSize: 1 },
-    'CUSTOM': { pipValue: 1, digits: 2, contractSize: 100000 }
+function seededRandom(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
   };
-  return instruments[instrument] || instruments['XAUUSD'];
 }
 
-function calculateLotSize() {
-  try {
-    const balance = parseFloat(document.getElementById('calcBalance').value) || 10000;
-    const riskPct = parseFloat(document.getElementById('calcRisk').value) || 2;
-    const instrument = document.getElementById('calcInstrument').value;
-    const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
-    const sl = parseFloat(document.getElementById('calcSL').value) || 0;
-    const customPipValue = parseFloat(document.getElementById('calcPipValue').value) || 1;
+const PAIRS = ["EUR/USD", "GBP/USD", "XAU/USD", "US30", "NAS100", "BTC/USD", "USD/JPY"];
+const STRATEGIES = ["Liquidity Sweep Reversal", "ORB Breakout", "FVG Continuation", "Trend Pullback", "Range Fade"];
+const SESSIONS = ["London", "New York", "Asia", "London/NY Overlap"];
+const EMOTIONS = ["Calm", "Confident", "Anxious", "Impatient", "Focused", "FOMO"];
+const GRADES = ["A+", "A", "B", "C"];
+const TAGS_POOL = ["Breakout", "Reversal", "News", "Revenge Trade", "High Conviction", "Scalp", "Swing"];
 
-    const riskAmount = balance * (riskPct / 100);
-    const slDistance = Math.abs(entry - sl);
-    
-    let info = getInstrumentInfo(instrument);
-    let pipValue = info.pipValue;
-    if (instrument === 'CUSTOM') pipValue = customPipValue;
-    
-    // Calculate pip distance
-    let pipDistance = slDistance / pipValue;
-    if (instrument === 'XAUUSD' || instrument === 'XAGUSD') {
-      pipDistance = slDistance / pipValue;
-    }
-    
-    // Calculate lot size
-    let lotSize = 0;
-    if (pipDistance > 0) {
-      lotSize = riskAmount / (pipDistance * 10);
-    }
-    
-    // Cap at reasonable values
-    if (lotSize > 100) lotSize = 100;
-    if (lotSize < 0.01) lotSize = 0.01;
-    
-    // Display results
-    document.getElementById('resultLot').textContent = lotSize.toFixed(2);
-    document.getElementById('resultRisk').textContent = `$${riskAmount.toFixed(2)}`;
-    document.getElementById('resultSL').textContent = pipDistance.toFixed(2);
-    document.getElementById('resultPipValue').textContent = `$${pipValue.toFixed(4)}`;
-    document.getElementById('resultUnits').textContent = (lotSize * (info.contractSize || 100000)).toFixed(0);
-    
-    // Update sidebar balance
-    document.getElementById('sidebarBalance').textContent = `$${state.balance.toFixed(0)}`;
-    
-    return { lotSize, riskAmount, pipDistance, pipValue };
-  } catch(e) {
-    console.error('Calculator error:', e);
-    return null;
+function generateTrades(count = 96) {
+  const rand = seededRandom(42);
+  const trades = [];
+  const today = new Date();
+  for (let i = 0; i < count; i++) {
+    const daysAgo = Math.floor(rand() * 120);
+    const date = new Date(today);
+    date.setDate(date.getDate() - daysAgo);
+    const win = rand() > 0.42;
+    const rr = win ? +(0.8 + rand() * 3.2).toFixed(2) : -1 * +(0.4 + rand() * 1.1).toFixed(2);
+    const riskAmount = 100 + Math.floor(rand() * 150);
+    const pnl = +(rr * riskAmount).toFixed(2);
+    const grade = GRADES[Math.floor(rand() * GRADES.length)];
+    trades.push({
+      id: `T-${1000 + i}`,
+      date: date.toISOString().slice(0, 10),
+      pair: PAIRS[Math.floor(rand() * PAIRS.length)],
+      strategy: STRATEGIES[Math.floor(rand() * STRATEGIES.length)],
+      session: SESSIONS[Math.floor(rand() * SESSIONS.length)],
+      direction: rand() > 0.5 ? "Long" : "Short",
+      rr,
+      pnl,
+      win,
+      grade,
+      confidence: Math.floor(3 + rand() * 3),
+      emotion: EMOTIONS[Math.floor(rand() * EMOTIONS.length)],
+      tags: [TAGS_POOL[Math.floor(rand() * TAGS_POOL.length)], TAGS_POOL[Math.floor(rand() * TAGS_POOL.length)]],
+      notes: "Waited for liquidity sweep of session high before entering. Followed plan, exited at partial target.",
+      mistakes: rand() > 0.7 ? "Entered slightly early, before full confirmation candle closed." : "",
+      lessons: rand() > 0.6 ? "Wait for the 5m close next time before committing risk." : "",
+    });
   }
+  return trades.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-function applyLotToTrade() {
-  const result = calculateLotSize();
-  if (result) {
-    document.getElementById('tradeAmount').value = result.riskAmount.toFixed(2);
-    alert(`✅ Lot size ${result.lotSize.toFixed(2)} applied to trade with risk $${result.riskAmount.toFixed(2)}`);
-  }
-}
+const TRADES = generateTrades();
 
-function resetCalculator() {
-  document.getElementById('calcBalance').value = 10000;
-  document.getElementById('calcRisk').value = 2;
-  document.getElementById('calcInstrument').value = 'XAUUSD';
-  document.getElementById('calcEntry').value = 3350.00;
-  document.getElementById('calcSL').value = 3345.00;
-  document.getElementById('calcPipValue').value = 1;
-  calculateLotSize();
-}
+/* ============================= DERIVED STATS ============================= */
 
-// ========== QUICK TRADE ==========
-function updateQuickLabels() {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  document.getElementById('quickWinLabel').textContent = `+${reward}R`;
-  document.getElementById('quickLossLabel').textContent = '-1R';
-}
-document.getElementById('quickRR').addEventListener('change', updateQuickLabels);
-updateQuickLabels();
+function computeStats(trades) {
+  const total = trades.length;
+  const wins = trades.filter(t => t.win);
+  const losses = trades.filter(t => !t.win);
+  const winRate = total ? (wins.length / total) * 100 : 0;
+  const netPnl = trades.reduce((a, t) => a + t.pnl, 0);
+  const netRR = trades.reduce((a, t) => a + t.rr, 0);
+  const grossWin = wins.reduce((a, t) => a + t.pnl, 0);
+  const grossLoss = Math.abs(losses.reduce((a, t) => a + t.pnl, 0));
+  const profitFactor = grossLoss ? grossWin / grossLoss : grossWin > 0 ? Infinity : 0;
+  const avgWin = wins.length ? grossWin / wins.length : 0;
+  const avgLoss = losses.length ? grossLoss / losses.length : 0;
+  const avgRR = total ? netRR / total : 0;
+  const expectancy = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
+  const aPlusCount = trades.filter(t => t.grade === "A+").length;
+  const aPlusPct = total ? (aPlusCount / total) * 100 : 0;
 
-function quickTrade(result) {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  const riskAmount = (state.balance * 2.5) / 100;
-  const amount = result === 'win' ? riskAmount * reward : riskAmount;
-  addTrade(result, amount, result === 'win' ? 'BUY' : 'SELL', rr);
-}
-
-function manualAddTrade() {
-  const type = document.getElementById('tradeType').value;
-  const amount = parseFloat(document.getElementById('tradeAmount').value) || 100;
-  const dir = document.getElementById('tradeDirection').value.toUpperCase() || 'BUY';
-  const rr = document.getElementById('tradeRR').value;
-  const pair = document.getElementById('tradePair').value || 'XAUUSD';
-  addTrade(type, amount, dir, rr, pair);
-}
-
-function addTrade(result, amount, dir, rr, pair = 'XAUUSD') {
-  const isWin = result === 'win';
-  const reward = parseInt(rr.split(':')[1]);
-  const rValue = isWin ? reward : -1;
-  
-  state.balance += isWin ? amount : -amount;
-  state.trades.push({
-    id: Date.now(),
-    date: new Date().toISOString().slice(0,10),
-    pair: pair,
-    dir: dir,
-    result: isWin ? 'win' : 'loss',
-    amount: amount,
-    rr: rr,
-    rValue: rValue
-  });
-  
-  state.netR += rValue;
-  state.rrTrades.push({
-    id: Date.now(),
-    ratio: rr,
-    result: isWin ? 'win' : 'loss',
-    rValue: rValue,
-    runningR: state.netR
-  });
-  
-  updateAll();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
-
-// ========== RR TRACKER ==========
-function addRRTrade() {
-  const ratio = document.getElementById('rrRatio').value;
-  const result = document.getElementById('rrResult').value;
-  const reward = parseInt(ratio.split(':')[1]);
-  const rValue = result === 'win' ? reward : -1;
-  state.netR += rValue;
-  state.rrTrades.push({
-    id: Date.now(),
-    ratio: ratio,
-    result: result,
-    rValue: rValue,
-    runningR: state.netR
-  });
-  updateAll();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
-
-function clearRRTracker() {
-  if (confirm('Clear all RR trades?')) {
-    state.rrTrades = [];
-    state.netR = 0;
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-function deleteRRTrade(index) {
-  if (confirm('Delete this RR trade?')) {
-    state.netR -= state.rrTrades[index].rValue;
-    state.rrTrades.splice(index, 1);
-    let running = 0;
-    state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-function deleteTrade(index) {
-  if (confirm('Delete this trade?')) {
-    const t = state.trades[index];
-    state.balance -= t.result === 'win' ? t.amount : -t.amount;
-    state.trades.splice(index, 1);
-    if (index < state.rrTrades.length) {
-      state.netR -= state.rrTrades[index].rValue;
-      state.rrTrades.splice(index, 1);
-      let running = 0;
-      state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
-    }
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-function clearAllTrades() {
-  if (confirm('Clear all trades?')) {
-    state.trades = [];
-    state.rrTrades = [];
-    state.netR = 0;
-    state.balance = 1000;
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-// ========== UPDATE ALL ==========
-function updateAll() {
-  updateDashboard();
-  updateTradesPage();
-  updateRRTable();
-  updateTradeHistory();
-  calculateLotSize();
-}
-
-function updateDashboard() {
-  const total = state.trades.length;
-  const wins = state.trades.filter(t => t.result === 'win').length;
-  const winRate = total > 0 ? (wins / total * 100) : 0;
-  const totalProfit = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  const avgWin = wins > 0 ? state.trades.filter(t => t.result === 'win').reduce((a, t) => a + t.amount, 0) / wins : 0;
-  const avgLoss = (total - wins) > 0 ? state.trades.filter(t => t.result === 'loss').reduce((a, t) => a + t.amount, 0) / (total - wins) : 0;
-  const pf = (total - wins) > 0 ? (wins / (total - wins)) : (wins > 0 ? wins : 0);
-  const expectancy = total > 0 ? totalProfit / total : 0;
-  const streak = total > 0 ? (state.trades[state.trades.length - 1]?.result === 'win' ? 1 : -1) : 0;
-  
-  document.getElementById('dashBalance').textContent = `$${state.balance.toFixed(0)}`;
-  document.getElementById('dashTotalProfit').textContent = `$${totalProfit.toFixed(0)}`;
-  document.getElementById('dashNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
-  document.getElementById('dashWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('dashProfitFactor').textContent = pf.toFixed(2);
-  document.getElementById('dashExpectancy').textContent = `$${expectancy.toFixed(2)}`;
-  document.getElementById('dashAvgWin').textContent = `$${avgWin.toFixed(0)}`;
-  document.getElementById('dashAvgLoss').textContent = `$${avgLoss.toFixed(0)}`;
-  document.getElementById('dashStreak').textContent = streak;
-  document.getElementById('dashBestStreak').textContent = Math.max(state.trades.reduce((a, t) => {
-    if (t.result === 'win') { a++; return a; }
-    return 0;
-  }, 0), 0);
-  document.getElementById('sidebarBalance').textContent = `$${state.balance.toFixed(0)}`;
-}
-
-function updateTradesPage() {
-  document.getElementById('tradesNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
-  const avgR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
-  document.getElementById('tradesAvgR').textContent = avgR.toFixed(1);
-  document.getElementById('tradeCount').textContent = state.trades.length;
-}
-
-function updateRRTable() {
-  const tbody = document.getElementById('rrTableBody');
-  if (state.rrTrades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr>';
-    return;
-  }
-  tbody.innerHTML = state.rrTrades.map((t, i) => {
-    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    const rClass = t.rValue > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    const runClass = t.runningR > 0 ? 'text-[#22C55E]' : (t.runningR < 0 ? 'text-[#EF4444]' : 'text-[#F59E0B]');
-    const rDisplay = t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`;
-    return `<tr>
-      <td>${i+1}</td>
-      <td>${t.ratio}</td>
-      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-      <td class="${rClass}">${rDisplay}</td>
-      <td class="${runClass}">${t.runningR > 0 ? '+' : ''}${t.runningR.toFixed(1)}R</td>
-      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteRRTrade(${i})"><i class="fas fa-trash-alt"></i></button></td>
-    </tr>`;
-  }).join('');
-}
-
-function updateTradeHistory() {
-  const tbody = document.getElementById('tradeHistoryBody');
-  if (state.trades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-[#4B5563] py-3">No trades yet</td></tr>';
-    return;
-  }
-  tbody.innerHTML = state.trades.slice().reverse().map((t, i) => {
-    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    return `<tr>
-      <td>${state.trades.length - i}</td>
-      <td>${t.date}</td>
-      <td>${t.pair || 'XAUUSD'}</td>
-      <td>${t.dir}</td>
-      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-      <td class="${resultClass}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
-      <td>${t.rr}</td>
-      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteTrade(${state.trades.indexOf(t)})"><i class="fas fa-trash-alt"></i></button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ========== CHECKLIST ==========
-document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
-  cb.addEventListener('change', function() {
-    const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
-    const allChecked = Array.from(checks).every(c => c.checked);
-    const status = document.getElementById('checklistStatus');
-    if (allChecked) {
-      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20';
-      status.innerHTML = '✅ All checks passed - Ready to trade';
+  // streaks
+  let current = 0, best = 0, run = 0, lastWin = null;
+  const chronological = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+  chronological.forEach(t => {
+    if (t.win) {
+      run = lastWin === false ? 1 : run + 1;
     } else {
-      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20';
-      status.innerHTML = '⚠️ Complete all checklist items before trading';
+      run = lastWin === true ? 1 : run + 1;
     }
+    lastWin = t.win;
+    if (t.win) best = Math.max(best, run);
   });
-});
+  // current streak: from most recent backwards
+  const recent = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (recent.length) {
+    const kind = recent[0].win;
+    let c = 0;
+    for (const t of recent) {
+      if (t.win === kind) c++; else break;
+    }
+    current = kind ? c : -c;
+  }
 
-// ========== NAVIGATION ==========
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-    const pageId = this.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
-    this.classList.add('active-nav');
+  // consistency: stddev of daily pnl relative to average (simplified)
+  const byDay = {};
+  trades.forEach(t => { byDay[t.date] = (byDay[t.date] || 0) + t.pnl; });
+  const dayVals = Object.values(byDay);
+  const meanDay = dayVals.reduce((a, b) => a + b, 0) / (dayVals.length || 1);
+  const maxDay = Math.max(...dayVals.map(Math.abs), 1);
+  const consistency = Math.max(0, 100 - (Math.abs(maxDay - meanDay) / maxDay) * 40);
+
+  return {
+    total, winRate, netPnl, netRR, profitFactor, avgWin, avgLoss, avgRR,
+    expectancy, aPlusPct, current, best, consistency, byDay
+  };
+}
+
+/* ============================= SMALL HELPERS ============================= */
+
+function fmtMoney(n) {
+  const sign = n < 0 ? "-" : "";
+  return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+function fmtNum(n, d = 2) {
+  return n.toFixed(d);
+}
+
+/* ============================= APP ============================= */
+
+const NAV = [
+  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { key: "trades", label: "Trades", icon: LineChartIcon },
+  { key: "backtesting", label: "Backtesting", icon: FlaskConical },
+  { key: "journal", label: "Journal", icon: BookOpen },
+  { key: "reports", label: "Reports", icon: BarChart3 },
+  { key: "analytics", label: "Analytics", icon: Activity },
+  { key: "calendar", label: "Calendar", icon: CalendarIcon },
+  { key: "playbook", label: "Playbook", icon: Layers },
+  { key: "rules", label: "Trading Rules", icon: ShieldCheck },
+  { key: "checklist", label: "Checklist", icon: ClipboardCheck },
+  { key: "plan", label: "Trading Plan", icon: Target },
+  { key: "settings", label: "Settings", icon: SettingsIcon },
+];
+
+export default function TradingJournalApp() {
+  const [dark, setDark] = useState(true);
+  const [page, setPage] = useState("dashboard");
+  const [trades] = useState(TRADES);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const T = dark ? darkTheme : lightTheme;
+  const stats = useMemo(() => computeStats(trades), [trades]);
+
+  return (
+    <div style={{
+      background: T.bg, color: T.text, minHeight: "100vh", fontFamily: "Inter, ui-sans-serif, system-ui",
+      display: "flex", width: "100%"
+    }}>
+      <Sidebar T={T} page={page} setPage={setPage} dark={dark} setDark={setDark} />
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <TopBar T={T} page={page} dark={dark} setDark={setDark} />
+        <div style={{ padding: "24px 28px", flex: 1, overflowY: "auto" }}>
+          {page === "dashboard" && (
+            <Dashboard T={T} trades={trades} stats={stats} selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
+          )}
+          {page === "trades" && <TradesPage T={T} trades={trades} />}
+          {page === "backtesting" && <BacktestingPage T={T} trades={trades} />}
+          {page === "journal" && <JournalPage T={T} trades={trades} />}
+          {page === "reports" && <ReportsPage T={T} trades={trades} stats={stats} />}
+          {page === "analytics" && <AnalyticsPage T={T} trades={trades} stats={stats} />}
+          {page === "calendar" && <CalendarPage T={T} trades={trades} />}
+          {page === "playbook" && <PlaybookPage T={T} trades={trades} />}
+          {page === "rules" && <RulesPage T={T} />}
+          {page === "checklist" && <ChecklistPage T={T} />}
+          {page === "plan" && <PlanPage T={T} />}
+          {page === "settings" && <SettingsPage T={T} dark={dark} setDark={setDark} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================= SIDEBAR ============================= */
+
+function Sidebar({ T, page, setPage, dark, setDark }) {
+  return (
+    <div style={{
+      width: 232, flexShrink: 0, background: T.bgAlt, borderRight: `1px solid ${T.border}`,
+      display: "flex", flexDirection: "column", padding: "18px 12px", position: "sticky", top: 0, height: "100vh"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px 22px 10px" }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: 9, background: `linear-gradient(135deg, ${T.blue}, #8B5CF6)`,
+          display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "#fff"
+        }}>Ω</div>
+        <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>Omenta</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
+        {NAV.map(item => {
+          const Icon = item.icon;
+          const active = page === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => setPage(item.key)}
+              style={{
+                display: "flex", alignItems: "center", gap: 11, padding: "9px 12px", borderRadius: 10,
+                border: "none", cursor: "pointer", textAlign: "left", fontSize: 13.5, fontWeight: active ? 600 : 500,
+                background: active ? (dark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)") : "transparent",
+                color: active ? T.blue : T.textSecondary,
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.background = dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+            >
+              <Icon size={17} strokeWidth={2} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: "auto", paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px",
+          borderRadius: 10, background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: T.blue, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff" }}>JD</div>
+            <div style={{ fontSize: 12.5, fontWeight: 600 }}>Jordan Drake</div>
+          </div>
+          <button onClick={() => setDark(!dark)} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.textSecondary }}>
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================= TOP BAR ============================= */
+
+const PAGE_TITLES = {
+  dashboard: "Dashboard", trades: "Trades", backtesting: "Backtesting", journal: "Journal",
+  reports: "Reports", analytics: "Analytics", calendar: "Calendar", playbook: "Playbook",
+  rules: "Trading Rules", checklist: "Checklist", plan: "Trading Plan", settings: "Settings"
+};
+
+function TopBar({ T, page, dark }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px",
+      borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, background: T.bg, zIndex: 5,
+      backdropFilter: "blur(10px)"
+    }}>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>{PAGE_TITLES[page]}</div>
+        <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 2 }}>Monday, July 13, 2026</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, background: T.card, border: `1px solid ${T.border}`,
+          borderRadius: 10, padding: "8px 12px", width: 240
+        }}>
+          <Search size={15} color={T.textSecondary} />
+          <input placeholder="Search trades, tags, notes…" style={{
+            background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 13, width: "100%"
+          }} />
+        </div>
+        <button style={{
+          display: "flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${T.border}`,
+          borderRadius: 10, padding: "8px 10px", color: T.textSecondary, cursor: "pointer"
+        }}><Bell size={16} /></button>
+        <button style={{
+          display: "flex", alignItems: "center", gap: 7, background: T.blue, border: "none",
+          borderRadius: 10, padding: "9px 14px", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer"
+        }}><Plus size={15} /> New Trade</button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================= SHARED UI ============================= */
+
+function Card({ T, children, style, ...props }) {
+  return (
+    <div style={{
+      background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 18,
+      transition: "border-color 0.2s ease", ...style
+    }} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function StatCard({ T, label, value, icon: Icon, tint, sub, isNeg }) {
+  return (
+    <Card T={T} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 12, color: T.textSecondary, fontWeight: 600 }}>{label}</span>
+        <div style={{
+          width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${tint}22`
+        }}>
+          <Icon size={14} color={tint} />
+        </div>
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: isNeg ? T.red : T.text }}>
+        {value}
+      </div>
+      {sub && <div style={{ fontSize: 11.5, color: T.textSecondary }}>{sub}</div>}
+    </Card>
+  );
+}
+
+function SectionTitle({ T, title, action }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ fontSize: 15, fontWeight: 700 }}>{title}</div>
+      {action}
+    </div>
+  );
+}
+
+function Pill({ T, children, tint }) {
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 6,
+      background: `${tint}1f`, color: tint
+    }}>{children}</span>
+  );
+}
+
+/* ============================= DASHBOARD ============================= */
+
+function Dashboard({ T, trades, stats, selectedDay, setSelectedDay }) {
+  const [range, setRange] = useState("Daily");
+
+  const equityData = useMemo(() => {
+    const chron = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+    let bal = 10000;
+    return chron.map(t => {
+      bal += t.pnl;
+      return { date: t.date, balance: Math.round(bal) };
+    });
+  }, [trades]);
+
+  const plData = useMemo(() => {
+    const grouped = {};
+    trades.forEach(t => {
+      let key = t.date;
+      if (range === "Weekly") {
+        const d = new Date(t.date);
+        const firstDay = new Date(d.setDate(d.getDate() - d.getDay()));
+        key = firstDay.toISOString().slice(0, 10);
+      } else if (range === "Monthly") {
+        key = t.date.slice(0, 7);
+      }
+      grouped[key] = (grouped[key] || 0) + t.pnl;
+    });
+    return Object.entries(grouped)
+      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+      .slice(-14)
+      .map(([k, v]) => ({ label: k.slice(5), pnl: Math.round(v) }));
+  }, [trades, range]);
+
+  const cards = [
+    { label: "Account Balance", value: fmtMoney(10000 + stats.netPnl), icon: DollarSign, tint: T.blue },
+    { label: "Total Profit", value: fmtMoney(stats.netPnl), icon: TrendingUp, tint: stats.netPnl >= 0 ? T.green : T.red, isNeg: stats.netPnl < 0 },
+    { label: "Net RR", value: `${stats.netRR >= 0 ? "+" : ""}${fmtNum(stats.netRR)}R`, icon: Target, tint: T.blue },
+    { label: "Win Rate", value: `${fmtNum(stats.winRate, 1)}%`, icon: Percent, tint: T.green },
+    { label: "Profit Factor", value: isFinite(stats.profitFactor) ? fmtNum(stats.profitFactor) : "∞", icon: Award, tint: T.orange },
+    { label: "Expectancy", value: fmtMoney(stats.expectancy), icon: Activity, tint: T.blue },
+    { label: "Average RR", value: `${fmtNum(stats.avgRR)}R`, icon: LineChartIcon, tint: T.blue },
+    { label: "Average Win", value: fmtMoney(stats.avgWin), icon: ArrowUpRight, tint: T.green },
+    { label: "Average Loss", value: fmtMoney(-stats.avgLoss), icon: ArrowDownRight, tint: T.red },
+    { label: "Current Streak", value: `${stats.current >= 0 ? stats.current : Math.abs(stats.current)} ${stats.current >= 0 ? "W" : "L"}`, icon: Flame, tint: stats.current >= 0 ? T.green : T.red },
+    { label: "Best Streak", value: `${stats.best} W`, icon: Star, tint: T.orange },
+    { label: "Consistency", value: `${fmtNum(stats.consistency, 0)}%`, icon: ShieldCheck, tint: T.blue },
+    { label: "Total Trades", value: stats.total, icon: Layers, tint: T.blue },
+    { label: "A+ Setup %", value: `${fmtNum(stats.aPlusPct, 0)}%`, icon: CheckCircle2, tint: T.green },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
+        {cards.map((c, i) => <StatCard key={i} T={T} {...c} />)}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 16 }}>
+        <Card T={T}>
+          <SectionTitle T={T} title="Equity Curve" />
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={equityData}>
+              <defs>
+                <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={T.blue} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={T.blue} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: T.textSecondary }} tickFormatter={d => d.slice(5)} minTickGap={30} />
+              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={50} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Area type="monotone" dataKey="balance" stroke={T.blue} strokeWidth={2} fill="url(#eqGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card T={T}>
+          <SectionTitle T={T} title="P/L Breakdown" action={
+            <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3 }}>
+              {["Daily", "Weekly", "Monthly"].map(r => (
+                <button key={r} onClick={() => setRange(r)} style={{
+                  fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 6, border: "none", cursor: "pointer",
+                  background: range === r ? T.blue : "transparent", color: range === r ? "#fff" : T.textSecondary
+                }}>{r}</button>
+              ))}
+            </div>
+          } />
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={plData}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
+                {plData.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <Card T={T}>
+        <SectionTitle T={T} title="Trading Calendar" />
+        <MiniCalendar T={T} trades={trades} onSelectDay={setSelectedDay} />
+      </Card>
+
+      {selectedDay && <DayModal T={T} day={selectedDay} trades={trades} onClose={() => setSelectedDay(null)} />}
+    </div>
+  );
+}
+
+/* ============================= CALENDAR (shared logic) ============================= */
+
+function buildMonthGrid(year, month, trades) {
+  const byDay = {};
+  trades.forEach(t => {
+    if (!byDay[t.date]) byDay[t.date] = [];
+    byDay[t.date].push(t);
   });
-});
+  const first = new Date(year, month, 1);
+  const startWeekday = first.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = new Date(year, month, d).toISOString().slice(0, 10);
+    const dayTrades = byDay[dateStr] || [];
+    const pnl = dayTrades.reduce((a, t) => a + t.pnl, 0);
+    cells.push({ day: d, date: dateStr, trades: dayTrades, pnl });
+  }
+  return cells;
+}
 
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded', function() {
-  loadUsers();
-  updateAll();
-  calculateLotSize();
-});
-</script>
-</body>
-</html>
+function MiniCalendar({ T, trades, onSelectDay }) {
+  const [cursor, setCursor] = useState(new Date());
+  const year = cursor.getFullYear(), month = cursor.getMonth();
+  const cells = useMemo(() => buildMonthGrid(year, month, trades), [year, month, trades]);
+  const monthName = cursor.toLocaleString("default", { month: "long", year: "numeric" });
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <button onClick={() => setCursor(new Date(year, month - 1, 1))} style={navBtnStyle(T)}><ChevronLeft size={15} /></button>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{monthName}</div>
+        <button onClick={() => setCursor(new Date(year, month + 1, 1))} style={navBtnStyle(T)}><ChevronRight size={15} /></button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+          <div key={i} style={{ textAlign: "center", fontSize: 10.5, color: T.textSecondary, fontWeight: 600, paddingBottom: 4 }}>{d}</div>
+        ))}
+        {cells.map((c, i) => (
+          <div key={i} onClick={() => c && c.trades.length && onSelectDay(c)} style={{
+            aspectRatio: "1", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            fontSize: 11, cursor: c && c.trades.length ? "pointer" : "default",
+            background: !c ? "transparent" : c.trades.length === 0 ? (T.bg) : c.pnl >= 0 ? `${T.green}26` : `${T.red}26`,
+            border: c && c.trades.length ? `1px solid ${c.pnl >= 0 ? T.green : T.red}55` : `1px solid transparent`,
+            color: c ? T.text : "transparent", transition: "transform 0.15s ease"
+          }}
+            onMouseEnter={e => { if (c && c.trades.length) e.currentTarget.style.transform = "scale(1.05)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+          >
+            <span style={{ fontWeight: 600 }}>{c ? c.day : ""}</span>
+            {c && c.trades.length > 0 && (
+              <span style={{ fontSize: 9, color: c.pnl >= 0 ? T.green : T.red, fontWeight: 700 }}>
+                {c.pnl >= 0 ? "+" : ""}{Math.round(c.pnl)}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function navBtnStyle(T) {
+  return {
+    background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, width: 26, height: 26,
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textSecondary
+  };
+}
+
+function DayModal({ T, day, onClose }) {
+  return (
+    <Modal T={T} onClose={onClose} title={`Trades on ${day.date}`}>
+      <div style={{ display: "flex", gap: 14, marginBottom: 14 }}>
+        <Pill T={T} tint={day.pnl >= 0 ? T.green : T.red}>{day.pnl >= 0 ? "+" : ""}{fmtMoney(day.pnl)}</Pill>
+        <Pill T={T} tint={T.blue}>{day.trades.length} trades</Pill>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {day.trades.map(t => <TradeRow T={T} t={t} key={t.id} compact />)}
+      </div>
+    </Modal>
+  );
+}
+
+function Modal({ T, onClose, title, children, wide }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 22,
+        width: wide ? 720 : 480, maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.4)"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>{title}</div>
+          <button onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.textSecondary }}><X size={18} /></button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ============================= TRADE ROW ============================= */
+
+function TradeRow({ T, t, compact, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px",
+      borderRadius: 10, background: T.bg, border: `1px solid ${T.border}`, cursor: onClick ? "pointer" : "default"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+          background: t.direction === "Long" ? `${T.green}22` : `${T.red}22`
+        }}>
+          {t.direction === "Long" ? <TrendingUp size={14} color={T.green} /> : <TrendingDown size={14} color={T.red} />}
+        </div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>{t.pair} <span style={{ color: T.textSecondary, fontWeight: 500 }}>· {t.strategy}</span></div>
+          {!compact && <div style={{ fontSize: 11, color: T.textSecondary }}>{t.date} · {t.session}</div>}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <Pill T={T} tint={T.orange}>{t.grade}</Pill>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: t.rr >= 0 ? T.green : T.red, width: 50, textAlign: "right" }}>{t.rr >= 0 ? "+" : ""}{t.rr}R</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: t.pnl >= 0 ? T.green : T.red, width: 70, textAlign: "right" }}>{t.pnl >= 0 ? "+" : ""}{fmtMoney(t.pnl)}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================= TRADES PAGE ============================= */
+
+function TradesPage({ T, trades }) {
+  const [search, setSearch] = useState("");
+  const [filterPair, setFilterPair] = useState("All");
+  const [selected, setSelected] = useState(null);
+  const [showCalc, setShowCalc] = useState(false);
+
+  const filtered = trades.filter(t =>
+    (filterPair === "All" || t.pair === filterPair) &&
+    (t.pair.toLowerCase().includes(search.toLowerCase()) || t.strategy.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const tools = [
+    { label: "Quick Trade", icon: Plus },
+    { label: "Lot Size Calc", icon: Calculator },
+    { label: "Risk Calc", icon: Sliders },
+    { label: "Import", icon: Upload },
+    { label: "Export", icon: Download },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {tools.map((tool, i) => {
+          const Icon = tool.icon;
+          return (
+            <button key={i} onClick={() => tool.label === "Lot Size Calc" || tool.label === "Risk Calc" ? setShowCalc(tool.label) : null} style={{
+              display: "flex", alignItems: "center", gap: 7, background: T.card, border: `1px solid ${T.border}`,
+              borderRadius: 10, padding: "9px 13px", color: T.text, fontSize: 12.5, fontWeight: 600, cursor: "pointer"
+            }}><Icon size={14} /> {tool.label}</button>
+          );
+        })}
+      </div>
+
+      <Card T={T}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px", flex: 1, minWidth: 200 }}>
+            <Search size={14} color={T.textSecondary} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pair or strategy…" style={{ background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 12.5, width: "100%" }} />
+          </div>
+          <select value={filterPair} onChange={e => setFilterPair(e.target.value)} style={{
+            background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px", color: T.text, fontSize: 12.5
+          }}>
+            <option>All</option>
+            {PAIRS.map(p => <option key={p}>{p}</option>)}
+          </select>
+          <button style={{ display: "flex", alignItems: "center", gap: 6, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px", color: T.textSecondary, fontSize: 12.5, cursor: "pointer" }}>
+            <Filter size={13} /> Filters
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", padding: "0 12px 8px 12px", fontSize: 11, color: T.textSecondary, fontWeight: 600 }}>
+            <div style={{ flex: 1 }}>Trade</div>
+            <div style={{ width: 50, textAlign: "right", marginRight: 16 }}>Grade</div>
+            <div style={{ width: 50, textAlign: "right" }}>RR</div>
+            <div style={{ width: 70, textAlign: "right", marginLeft: 16 }}>P/L</div>
+          </div>
+          {filtered.slice(0, 25).map(t => (
+            <TradeRow T={T} t={t} key={t.id} onClick={() => setSelected(t)} />
+          ))}
+        </div>
+      </Card>
+
+      {selected && <TradeDetailModal T={T} t={selected} onClose={() => setSelected(null)} />}
+      {showCalc && <CalculatorModal T={T} kind={showCalc} onClose={() => setShowCalc(false)} />}
+    </div>
+  );
+}
+
+function CalculatorModal({ T, kind, onClose }) {
+  const [balance, setBalance] = useState(10000);
+  const [riskPct, setRiskPct] = useState(1);
+  const [stopPips, setStopPips] = useState(20);
+  const riskAmount = balance * (riskPct / 100);
+  const lotSize = (riskAmount / (stopPips * 10)).toFixed(2);
+  return (
+    <Modal T={T} onClose={onClose} title={kind}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <LabeledInput T={T} label="Account Balance ($)" value={balance} setValue={setBalance} />
+        <LabeledInput T={T} label="Risk %" value={riskPct} setValue={setRiskPct} />
+        {kind === "Lot Size Calc" && <LabeledInput T={T} label="Stop Loss (pips)" value={stopPips} setValue={setStopPips} />}
+        <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: 14, marginTop: 6 }}>
+          <div style={{ fontSize: 12, color: T.textSecondary }}>Risk Amount</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{fmtMoney(riskAmount)}</div>
+          {kind === "Lot Size Calc" && (
+            <>
+              <div style={{ fontSize: 12, color: T.textSecondary, marginTop: 10 }}>Suggested Lot Size</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: T.blue }}>{lotSize} lots</div>
+            </>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function LabeledInput({ T, label, value, setValue }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11.5, color: T.textSecondary, marginBottom: 5, fontWeight: 600 }}>{label}</div>
+      <input type="number" value={value} onChange={e => setValue(+e.target.value)} style={{
+        width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9, padding: "9px 12px",
+        color: T.text, fontSize: 13, outline: "none"
+      }} />
+    </div>
+  );
+}
+
+function TradeDetailModal({ T, t, onClose }) {
+  return (
+    <Modal T={T} onClose={onClose} title={`${t.pair} — ${t.date}`} wide>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{
+            height: 160, borderRadius: 12, background: T.bg, border: `1px dashed ${T.border}`,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, color: T.textSecondary
+          }}>
+            <ImageIcon size={22} />
+            <span style={{ fontSize: 11.5 }}>Entry / Exit chart screenshots</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {t.tags.map((tag, i) => <Pill T={T} key={i} tint={T.blue}><Tag size={9} style={{ marginRight: 3, display: "inline" }} />{tag}</Pill>)}
+          </div>
+          <div>
+            <div style={{ fontSize: 11.5, color: T.textSecondary, fontWeight: 600, marginBottom: 4 }}>NOTES</div>
+            <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.notes}</div>
+          </div>
+          {t.mistakes && (
+            <div>
+              <div style={{ fontSize: 11.5, color: T.red, fontWeight: 600, marginBottom: 4 }}>MISTAKES</div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.mistakes}</div>
+            </div>
+          )}
+          {t.lessons && (
+            <div>
+              <div style={{ fontSize: 11.5, color: T.green, fontWeight: 600, marginBottom: 4 }}>LESSONS</div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>{t.lessons}</div>
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[
+            ["Direction", t.direction], ["Strategy", t.strategy], ["Session", t.session],
+            ["Setup Grade", t.grade], ["Confidence", `${t.confidence}/6`], ["Emotion", t.emotion],
+            ["RR", `${t.rr >= 0 ? "+" : ""}${t.rr}R`], ["P/L", fmtMoney(t.pnl)],
+          ].map(([k, v], i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.border}` }}>
+              <span style={{ fontSize: 12, color: T.textSecondary }}>{k}</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ============================= BACKTESTING PAGE ============================= */
+
+function BacktestingPage({ T, trades }) {
+  const [selected, setSelected] = useState(null);
+  const sample = trades.slice(0, 12);
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+        {sample.map(t => (
+          <Card T={T} key={t.id} style={{ cursor: "pointer" }} onClick={() => setSelected(t)}>
+            <div style={{
+              height: 120, borderRadius: 10, background: T.bg, border: `1px dashed ${T.border}`,
+              display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: T.textSecondary
+            }}><ImageIcon size={20} /></div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t.pair}</div>
+              <Pill T={T} tint={T.orange}>{t.grade}</Pill>
+            </div>
+            <div style={{ fontSize: 11.5, color: T.textSecondary, marginBottom: 8 }}>{t.strategy}</div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: t.rr >= 0 ? T.green : T.red }}>{t.rr >= 0 ? "+" : ""}{t.rr}R</span>
+              <span style={{ fontSize: 11, color: T.textSecondary }}>{t.date}</span>
+            </div>
+          </Card>
+        ))}
+      </div>
+      {selected && <TradeDetailModal T={T} t={selected} onClose={() => setSelected(null)} />}
+    </div>
+  );
+}
+
+/* ============================= JOURNAL PAGE ============================= */
+
+function JournalPage({ T, trades }) {
+  const [search, setSearch] = useState("");
+  const entries = trades.filter(t => t.notes.toLowerCase().includes(search.toLowerCase())).slice(0, 20);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 13px", maxWidth: 340 }}>
+        <Search size={14} color={T.textSecondary} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search journal entries…" style={{ background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 12.5, width: "100%" }} />
+      </div>
+      {entries.map(t => (
+        <Card T={T} key={t.id}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t.pair}</div>
+              <Pill T={T} tint={T.blue}>{t.emotion}</Pill>
+              <Pill T={T} tint={T.orange}>{t.grade}</Pill>
+            </div>
+            <div style={{ fontSize: 11.5, color: T.textSecondary }}>{t.date}</div>
+          </div>
+          <div style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 10 }}>{t.notes}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {t.tags.map((tag, i) => <Pill key={i} T={T} tint={T.textSecondary}>{tag}</Pill>)}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/* ============================= REPORTS PAGE ============================= */
+
+function groupBy(trades, keyFn) {
+  const g = {};
+  trades.forEach(t => {
+    const k = keyFn(t);
+    if (!g[k]) g[k] = { key: k, pnl: 0, count: 0, wins: 0 };
+    g[k].pnl += t.pnl;
+    g[k].count += 1;
+    if (t.win) g[k].wins += 1;
+  });
+  return Object.values(g);
+}
+
+function ReportsPage({ T, trades, stats }) {
+  const byWeekday = useMemo(() => {
+    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const g = groupBy(trades, t => names[new Date(t.date).getDay()]);
+    return names.map(n => g.find(x => x.key === n) || { key: n, pnl: 0, count: 0, wins: 0 });
+  }, [trades]);
+
+  const byStrategy = useMemo(() => groupBy(trades, t => t.strategy), [trades]);
+  const bySession = useMemo(() => groupBy(trades, t => t.session), [trades]);
+  const byPair = useMemo(() => groupBy(trades, t => t.pair), [trades]);
+  const pieColors = [T.blue, T.green, T.orange, T.red, "#8B5CF6"];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card T={T}>
+          <SectionTitle T={T} title="Performance by Weekday" />
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={byWeekday}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="key" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
+                {byWeekday.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card T={T}>
+          <SectionTitle T={T} title="Performance by Session" />
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie data={bySession} dataKey="count" nameKey="key" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                {bySession.map((d, i) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card T={T}>
+          <SectionTitle T={T} title="Performance by Strategy" />
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={byStrategy} layout="vertical" margin={{ left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <YAxis type="category" dataKey="key" tick={{ fontSize: 10, fill: T.textSecondary }} width={140} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
+                {byStrategy.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.blue : T.red} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card T={T}>
+          <SectionTitle T={T} title="Performance by Pair" />
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie data={byPair} dataKey="count" nameKey="key" outerRadius={90} label={{ fontSize: 10 }}>
+                {byPair.map((d, i) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <Card T={T}>
+        <SectionTitle T={T} title="Setup Grade Distribution" />
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={GRADES.map(g => ({ grade: g, count: trades.filter(t => t.grade === g).length }))}>
+            <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+            <XAxis dataKey="grade" tick={{ fontSize: 11, fill: T.textSecondary }} />
+            <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={30} />
+            <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+            <Bar dataKey="count" fill={T.orange} radius={[6, 6, 6, 6]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================= ANALYTICS PAGE ============================= */
+
+function AnalyticsPage({ T, trades, stats }) {
+  const chron = useMemo(() => [...trades].sort((a, b) => new Date(a.date) - new Date(b.date)), [trades]);
+
+  const rollingWinRate = useMemo(() => {
+    const window = 10;
+    return chron.map((_, i) => {
+      const slice = chron.slice(Math.max(0, i - window + 1), i + 1);
+      const wr = (slice.filter(t => t.win).length / slice.length) * 100;
+      return { i, wr: +wr.toFixed(1) };
+    }).filter((_, i) => i % 3 === 0);
+  }, [chron]);
+
+  const drawdown = useMemo(() => {
+    let bal = 10000, peak = 10000;
+    return chron.map(t => {
+      bal += t.pnl;
+      peak = Math.max(peak, bal);
+      return { date: t.date.slice(5), dd: +(((bal - peak) / peak) * 100).toFixed(2) };
+    });
+  }, [chron]);
+
+  const scatterData = trades.map(t => ({ rr: t.rr, pnl: t.pnl, grade: t.grade }));
+  const radarData = STRATEGIES.map(s => {
+    const g = trades.filter(t => t.strategy === s);
+    const wr = g.length ? (g.filter(t => t.win).length / g.length) * 100 : 0;
+    return { strategy: s.split(" ")[0], winRate: Math.round(wr) };
+  });
+
+  const heatmap = useMemo(() => {
+    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const sessions = SESSIONS;
+    const grid = {};
+    sessions.forEach(s => { grid[s] = {}; names.forEach(n => grid[s][n] = { pnl: 0, count: 0 }); });
+    trades.forEach(t => {
+      const day = names[new Date(t.date).getDay()];
+      grid[t.session][day].pnl += t.pnl;
+      grid[t.session][day].count += 1;
+    });
+    return { grid, names, sessions };
+  }, [trades]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card T={T}>
+          <SectionTitle T={T} title="Rolling Win Rate (10-trade)" />
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={rollingWinRate}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="i" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} domain={[0, 100]} width={35} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Line type="monotone" dataKey="wr" stroke={T.blue} strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card T={T}>
+          <SectionTitle T={T} title="Drawdown %" />
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={drawdown}>
+              <defs>
+                <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={T.red} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={T.red} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: T.textSecondary }} minTickGap={30} />
+              <YAxis tick={{ fontSize: 10, fill: T.textSecondary }} width={40} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+              <Area type="monotone" dataKey="dd" stroke={T.red} strokeWidth={2} fill="url(#ddGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card T={T}>
+          <SectionTitle T={T} title="RR vs P/L Distribution" />
+          <ResponsiveContainer width="100%" height={230}>
+            <ScatterChart>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+              <XAxis type="number" dataKey="rr" name="RR" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <YAxis type="number" dataKey="pnl" name="P/L" tick={{ fontSize: 10, fill: T.textSecondary }} width={45} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} cursor={{ strokeDasharray: "3 3" }} />
+              <Scatter data={scatterData}>
+                {scatterData.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? T.green : T.red} />)}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card T={T}>
+          <SectionTitle T={T} title="Win Rate by Strategy" />
+          <ResponsiveContainer width="100%" height={230}>
+            <RadarChart data={radarData}>
+              <PolarGrid stroke={T.border} />
+              <PolarAngleAxis dataKey="strategy" tick={{ fontSize: 10, fill: T.textSecondary }} />
+              <PolarRadiusAxis tick={{ fontSize: 9, fill: T.textSecondary }} domain={[0, 100]} />
+              <Radar dataKey="winRate" stroke={T.blue} fill={T.blue} fillOpacity={0.35} />
+              <Tooltip contentStyle={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12 }} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <Card T={T}>
+        <SectionTitle T={T} title="Session × Weekday Heatmap (P/L)" />
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `120px repeat(7, 1fr)`, gap: 6, minWidth: 640 }}>
+            <div />
+            {heatmap.names.map(n => <div key={n} style={{ textAlign: "center", fontSize: 10.5, color: T.textSecondary, fontWeight: 600 }}>{n}</div>)}
+            {heatmap.sessions.map(s => (
+              <React.Fragment key={s}>
+                <div style={{ fontSize: 11.5, color: T.textSecondary, display: "flex", alignItems: "center" }}>{s}</div>
+                {heatmap.names.map(n => {
+                  const cell = heatmap.grid[s][n];
+                  const intensity = Math.min(1, Math.abs(cell.pnl) / 400);
+                  const color = cell.pnl === 0 ? T.border : cell.pnl > 0 ? T.green : T.red;
+                  return (
+                    <div key={n} title={`${fmtMoney(cell.pnl)}`} style={{
+                      height: 34, borderRadius: 6, background: cell.count ? color : T.bg,
+                      opacity: cell.count ? 0.25 + intensity * 0.75 : 1,
+                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5,
+                      color: cell.count ? "#fff" : T.textSecondary, fontWeight: 700
+                    }}>{cell.count ? cell.count : ""}</div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================= CALENDAR PAGE ============================= */
+
+function CalendarPage({ T, trades }) {
+  const [cursor, setCursor] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const year = cursor.getFullYear(), month = cursor.getMonth();
+  const cells = useMemo(() => buildMonthGrid(year, month, trades), [year, month, trades]);
+  const monthName = cursor.toLocaleString("default", { month: "long", year: "numeric" });
+
+  const monthTrades = cells.filter(c => c).flatMap(c => c.trades);
+  const monthPnl = monthTrades.reduce((a, t) => a + t.pnl, 0);
+  const monthWinDays = cells.filter(c => c && c.trades.length && c.pnl >= 0).length;
+  const monthLossDays = cells.filter(c => c && c.trades.length && c.pnl < 0).length;
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 16 }}>
+      <Card T={T}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <button onClick={() => setCursor(new Date(year, month - 1, 1))} style={navBtnStyle(T)}><ChevronLeft size={16} /></button>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>{monthName}</div>
+          <button onClick={() => setCursor(new Date(year, month + 1, 1))} style={navBtnStyle(T)}><ChevronRight size={16} /></button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+            <div key={d} style={{ textAlign: "center", fontSize: 11, color: T.textSecondary, fontWeight: 600, paddingBottom: 4 }}>{d}</div>
+          ))}
+          {cells.map((c, i) => (
+            <div key={i} onClick={() => c && c.trades.length && setSelectedDay(c)} style={{
+              minHeight: 78, borderRadius: 10, padding: 8, cursor: c && c.trades.length ? "pointer" : "default",
+              background: !c ? "transparent" : c.trades.length === 0 ? T.bg : c.pnl >= 0 ? `${T.green}1a` : `${T.red}1a`,
+              border: c ? `1px solid ${c.trades.length ? (c.pnl >= 0 ? T.green : T.red) + "55" : T.border}` : "none",
+              display: "flex", flexDirection: "column", justifyContent: "space-between", transition: "transform 0.15s ease"
+            }}
+              onMouseEnter={e => { if (c && c.trades.length) e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              {c && (
+                <>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: T.textSecondary }}>{c.day}</span>
+                  {c.trades.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: c.pnl >= 0 ? T.green : T.red }}>{c.pnl >= 0 ? "+" : ""}{fmtMoney(c.pnl)}</div>
+                      <div style={{ fontSize: 9.5, color: T.textSecondary }}>{c.trades.length} trades</div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Card T={T}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Monthly Summary</div>
+          <SummaryRow T={T} label="Net P/L" value={fmtMoney(monthPnl)} tint={monthPnl >= 0 ? T.green : T.red} />
+          <SummaryRow T={T} label="Trades" value={monthTrades.length} />
+          <SummaryRow T={T} label="Winning Days" value={monthWinDays} tint={T.green} />
+          <SummaryRow T={T} label="Losing Days" value={monthLossDays} tint={T.red} />
+        </Card>
+        <Card T={T}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Yearly Summary</div>
+          <SummaryRow T={T} label="Net P/L" value={fmtMoney(trades.filter(t => new Date(t.date).getFullYear() === year).reduce((a, t) => a + t.pnl, 0))} />
+          <SummaryRow T={T} label="Total Trades" value={trades.filter(t => new Date(t.date).getFullYear() === year).length} />
+        </Card>
+      </div>
+      {selectedDay && <DayModal T={T} day={selectedDay} onClose={() => setSelectedDay(null)} />}
+    </div>
+  );
+}
+
+function SummaryRow({ T, label, value, tint }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}` }}>
+      <span style={{ fontSize: 12, color: T.textSecondary }}>{label}</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: tint || T.text }}>{value}</span>
+    </div>
+  );
+}
+
+/* ============================= PLAYBOOK PAGE ============================= */
+
+function PlaybookPage({ T, trades }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+      {STRATEGIES.map(s => {
+        const g = trades.filter(t => t.strategy === s);
+        const wr = g.length ? (g.filter(t => t.win).length / g.length) * 100 : 0;
+        const avgRR = g.length ? g.reduce((a, t) => a + t.rr, 0) / g.length : 0;
+        return (
+          <Card T={T} key={s}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700 }}>{s}</div>
+              <Pill T={T} tint={wr >= 50 ? T.green : T.red}>{fmtNum(wr, 0)}% WR</Pill>
+            </div>
+            <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.6, marginBottom: 12 }}>
+              A rules-based setup traded across {g.length} instances, focused on precise entry timing and defined invalidation.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+              <MiniStat T={T} label="Avg RR" value={`${fmtNum(avgRR)}R`} />
+              <MiniStat T={T} label="Best Market" value="Trending" />
+              <MiniStat T={T} label="Worst Market" value="Choppy / Range" />
+              <MiniStat T={T} label="Instances" value={g.length} />
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button style={playbookBtn(T, true)}><Edit3 size={12} /> Edit</button>
+              <button style={playbookBtn(T, false)}><ImageIcon size={12} /> Examples</button>
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function MiniStat({ T, label, value }) {
+  return (
+    <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 10px" }}>
+      <div style={{ fontSize: 10, color: T.textSecondary }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
+
+function playbookBtn(T, primary) {
+  return {
+    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+    padding: "8px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+    border: primary ? "none" : `1px solid ${T.border}`,
+    background: primary ? T.blue : "transparent", color: primary ? "#fff" : T.textSecondary
+  };
+}
+
+/* ============================= RULES / CHECKLIST / PLAN ============================= */
+
+function RulesPage({ T }) {
+  const rules = [
+    "Never risk more than 1% of account equity on a single trade.",
+    "No trading during the first 5 minutes after high-impact news releases.",
+    "Wait for full candle close confirmation before entering.",
+    "Maximum of 3 trades per day, regardless of outcome.",
+    "Stop trading for the day after 2 consecutive losses.",
+    "Every trade must match a documented playbook setup.",
+  ];
+  return (
+    <Card T={T} style={{ maxWidth: 700 }}>
+      <SectionTitle T={T} title="Trading Rules" />
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {rules.map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", background: T.bg, borderRadius: 10, border: `1px solid ${T.border}` }}>
+            <ShieldCheck size={15} color={T.blue} style={{ marginTop: 1, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, lineHeight: 1.5 }}>{r}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function ChecklistPage({ T }) {
+  const [checked, setChecked] = useState({});
+  const items = [
+    "Higher timeframe bias identified",
+    "Key liquidity levels marked",
+    "Session and news calendar checked",
+    "Setup matches a playbook strategy",
+    "Risk sized to 1% or less",
+    "Stop loss and target defined before entry",
+    "Emotional state: calm and focused",
+  ];
+  return (
+    <Card T={T} style={{ maxWidth: 600 }}>
+      <SectionTitle T={T} title="Pre-Trade Checklist" />
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {items.map((item, i) => (
+          <div key={i} onClick={() => setChecked(c => ({ ...c, [i]: !c[i] }))} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+            background: checked[i] ? `${T.green}15` : T.bg, border: `1px solid ${checked[i] ? T.green + "55" : T.border}`
+          }}>
+            {checked[i] ? <CheckCircle2 size={17} color={T.green} /> : <Circle size={17} color={T.textSecondary} />}
+            <span style={{ fontSize: 13, textDecoration: checked[i] ? "line-through" : "none", color: checked[i] ? T.textSecondary : T.text }}>{item}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function PlanPage({ T }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <Card T={T}>
+        <SectionTitle T={T} title="Goals" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <MiniStat T={T} label="Monthly Return Target" value="+8%" />
+          <MiniStat T={T} label="Max Monthly Drawdown" value="-6%" />
+          <MiniStat T={T} label="Target Win Rate" value="55%" />
+        </div>
+      </Card>
+      <Card T={T}>
+        <SectionTitle T={T} title="Risk Framework" />
+        <div style={{ fontSize: 12.5, lineHeight: 1.7, color: T.textSecondary }}>
+          Risk 1% per trade, maximum 3% total exposure open at any time. Reduce size by half after two consecutive
+          losing days. Resume standard size after one profitable day.
+        </div>
+      </Card>
+      <Card T={T} style={{ gridColumn: "span 2" }}>
+        <SectionTitle T={T} title="Notes" />
+        <textarea placeholder="Write your trading plan, mission, and long-term vision here…" style={{
+          width: "100%", minHeight: 140, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10,
+          padding: 12, color: T.text, fontSize: 13, outline: "none", resize: "vertical", fontFamily: "inherit"
+        }} />
+      </Card>
+    </div>
+  );
+}
+
+/* ============================= SETTINGS PAGE ============================= */
+
+function SettingsPage({ T, dark, setDark }) {
+  const [notifications, setNotifications] = useState(true);
+  const [riskReminders, setRiskReminders] = useState(true);
+  const [autosave, setAutosave] = useState(true);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
+      <Card T={T}>
+        <SectionTitle T={T} title="Appearance" />
+        <ToggleRow T={T} label="Dark Mode" checked={dark} onChange={setDark} />
+      </Card>
+      <Card T={T}>
+        <SectionTitle T={T} title="Preferences" />
+        <ToggleRow T={T} label="Notifications" checked={notifications} onChange={setNotifications} />
+        <ToggleRow T={T} label="Risk Reminders (soft warnings, no hard lock)" checked={riskReminders} onChange={setRiskReminders} />
+        <ToggleRow T={T} label="Cloud Autosave" checked={autosave} onChange={setAutosave} />
+      </Card>
+      <Card T={T}>
+        <SectionTitle T={T} title="Account" />
+        <SummaryRow T={T} label="Name" value="Jordan Drake" />
+        <SummaryRow T={T} label="Plan" value="Premium" />
+        <SummaryRow T={T} label="Base Currency" value="USD" />
+      </Card>
+    </div>
+  );
+}
+
+function ToggleRow({ T, label, checked, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${T.border}` }}>
+      <span style={{ fontSize: 13 }}>{label}</span>
+      <div onClick={() => onChange(!checked)} style={{
+        width: 40, height: 22, borderRadius: 999, background: checked ? T.blue : T.border, cursor: "pointer",
+        position: "relative", transition: "background 0.2s ease"
+      }}>
+        <div style={{
+          width: 16, height: 16, borderRadius: "50%", background: "#fff", position: "absolute", top: 3,
+          left: checked ? 21 : 3, transition: "left 0.2s ease"
+        }} />
+      </div>
+    </div>
+  );
+}
