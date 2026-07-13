@@ -1,1699 +1,1522 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
-<title>TradeVault · Premium Trading Journal</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-  background: #0B1120; 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-  color: #F8FAFC; 
-  transition: background 0.3s ease, color 0.3s ease;
-}
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #111827; }
-::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
+    <title>TradeVault · Premium Trading Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #0B1120; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            color: #F8FAFC; 
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
 
-body.light-mode {
-  background: #F1F5F9;
-  color: #0B1120;
-}
-body.light-mode .glass-card,
-body.light-mode .summary-card,
-body.light-mode .backtest-card {
-  background: #FFFFFF;
-  border-color: #E2E8F0;
-  color: #0B1120;
-}
-body.light-mode .glass-card:hover,
-body.light-mode .summary-card:hover,
-body.light-mode .backtest-card:hover {
-  border-color: #3B82F6;
-}
-body.light-mode .nav-link { color: #64748B; }
-body.light-mode .nav-link:hover { color: #0B1120; background: rgba(59, 130, 246, 0.06); }
-body.light-mode .active-nav { color: #3B82F6; background: rgba(59, 130, 246, 0.08); }
-body.light-mode .glass-input { background: #F8FAFC; border-color: #E2E8F0; color: #0B1120; }
-body.light-mode .glass-input:focus { border-color: #3B82F6; }
-body.light-mode .glass-card::before { display: none; }
-body.light-mode .login-box { background: #FFFFFF; border-color: #E2E8F0; }
-body.light-mode .login-input { background: #F8FAFC; border-color: #E2E8F0; color: #0B1120; }
-body.light-mode aside { background: #FFFFFF; border-color: #E2E8F0; }
-body.light-mode .text-[#94A3B8] { color: #64748B; }
-body.light-mode .text-[#F8FAFC] { color: #0B1120; }
-body.light-mode .border-[#1F2937] { border-color: #E2E8F0; }
-body.light-mode .badge-win { background: rgba(34, 197, 94, 0.1); }
-body.light-mode .badge-loss { background: rgba(239, 68, 68, 0.1); }
-body.light-mode .badge-neutral { background: rgba(245, 158, 11, 0.1); }
-body.light-mode .drop-zone { border-color: #E2E8F0; background: #F8FAFC; }
-body.light-mode .drop-zone:hover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.04); }
+        .glass-card {
+            background: #111827;
+            border: 1px solid #1F2937;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
+            transform: translateY(-2px);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
+            pointer-events: none;
+            border-radius: 16px;
+        }
 
-.glass-card {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-.glass-card:hover {
-  border-color: #3B82F6;
-  box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
-  transform: translateY(-2px);
-}
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
-  pointer-events: none;
-  border-radius: 16px;
-}
+        .nav-link {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            color: #94A3B8;
+            font-weight: 500;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+        .nav-link:hover { 
+            background: rgba(59, 130, 246, 0.08); 
+            color: #F8FAFC;
+            transform: translateX(4px);
+        }
+        .active-nav { 
+            background: rgba(59, 130, 246, 0.12); 
+            color: #3B82F6;
+            border-left: 3px solid #3B82F6;
+        }
+        .nav-link i { width: 20px; text-align: center; }
 
-.nav-link {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 12px;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
-  color: #94A3B8;
-  font-weight: 500;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  position: relative;
-}
-.nav-link:hover { 
-  background: rgba(59, 130, 246, 0.08); 
-  color: #F8FAFC;
-  transform: translateX(4px);
-}
-.active-nav { 
-  background: rgba(59, 130, 246, 0.12); 
-  color: #3B82F6;
-  border-left: 3px solid #3B82F6;
-}
-.nav-link i { width: 20px; text-align: center; }
+        .summary-card { 
+            padding: 1.25rem; 
+            text-align: center;
+            background: #111827;
+            border: 1px solid #1F2937;
+            border-radius: 16px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+        }
+        .summary-card:hover {
+            border-color: #3B82F6;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
+        }
+        .summary-card .value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+        .summary-card .label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; margin-top: 0.25rem; font-weight: 600; letter-spacing: 0.06em; }
 
-.summary-card { 
-  padding: 1.25rem; 
-  text-align: center;
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: default;
-}
-.summary-card:hover {
-  border-color: #3B82F6;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
-}
-.summary-card .value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
-.summary-card .label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; margin-top: 0.25rem; font-weight: 600; letter-spacing: 0.06em; }
-.summary-card .icon { font-size: 1.2rem; opacity: 0.5; margin-bottom: 0.25rem; }
+        .btn-primary {
+            background: #3B82F6;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover { 
+            background: #2563EB; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.35);
+        }
 
-.btn-primary {
-  background: #3B82F6;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-primary:hover { 
-  background: #2563EB; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.35);
-}
-.btn-primary:active { transform: translateY(0); }
+        .btn-success {
+            background: #22C55E;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
+        }
+        .btn-success:hover { 
+            background: #16A34A; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
+        }
 
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #1F2937;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #94A3B8;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-secondary:hover { 
-  background: rgba(59, 130, 246, 0.06); 
-  border-color: #3B82F6;
-  color: #F8FAFC;
-}
+        .btn-danger {
+            background: #EF4444;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+        }
+        .btn-danger:hover { 
+            background: #DC2626; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35);
+        }
 
-.btn-success {
-  background: #22C55E;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-success:hover { 
-  background: #16A34A; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
-}
+        .btn-sm { padding: 0.3rem 0.9rem; font-size: 0.7rem; }
+        .btn-xs { padding: 0.15rem 0.6rem; font-size: 0.6rem; }
 
-.btn-danger {
-  background: #EF4444;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-danger:hover { 
-  background: #DC2626; 
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35);
-}
+        .glass-input {
+            background: #0B1120;
+            border: 1px solid #1F2937;
+            border-radius: 10px;
+            padding: 0.4rem 0.8rem;
+            color: #F8FAFC;
+            width: 100%;
+            font-size: 0.8rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-input:focus { 
+            border-color: #3B82F6; 
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
 
-.btn-sm { padding: 0.3rem 0.9rem; font-size: 0.7rem; }
-.btn-xs { padding: 0.15rem 0.6rem; font-size: 0.6rem; }
+        .page { display: none; animation: fadeSlide 0.3s ease; }
+        .page.active { display: block; }
 
-.glass-input {
-  background: #0B1120;
-  border: 1px solid #1F2937;
-  border-radius: 10px;
-  padding: 0.4rem 0.8rem;
-  color: #F8FAFC;
-  width: 100%;
-  font-size: 0.8rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-input:focus { 
-  border-color: #3B82F6; 
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-.page { display: none; animation: fadeSlide 0.3s ease; }
-.page.active { display: block; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
+        .badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+        .badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+        .badge-aplus { background: rgba(34, 197, 94, 0.2); color: #22C55E; }
+        .badge-a { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+        .badge-b { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+        .badge-c { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+        .rule-card { 
+            border-left: 3px solid #3B82F6; 
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            background: rgba(59, 130, 246, 0.03);
+            border-radius: 0 8px 8px 0;
+        }
+        .rule-card.warning { border-left-color: #EF4444; background: rgba(239, 68, 68, 0.03); }
+        .rule-card.success { border-left-color: #22C55E; background: rgba(34, 197, 94, 0.03); }
+        .rule-card .rule-title { font-weight: 700; color: #F8FAFC; }
+        .rule-card .rule-desc { color: #94A3B8; font-size: 0.85rem; margin-top: 0.15rem; }
 
-.badge {
-  display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 600;
-}
-.badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
-.badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
-.badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-.badge-aplus { background: rgba(34, 197, 94, 0.2); color: #22C55E; }
-.badge-a { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
-.badge-b { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
-.badge-c { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+        .table-wrap { max-height: 400px; overflow-y: auto; overflow-x: hidden; }
+        .table-wrap::-webkit-scrollbar { width: 3px; }
+        .table-wrap::-webkit-scrollbar-track { background: transparent; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 2px; }
 
-.status-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-.status-dot.green { background: #22C55E; }
-.status-dot.red { background: #EF4444; }
-.status-dot.yellow { background: #F59E0B; }
-.status-dot.blue { background: #3B82F6; }
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+        .image-gallery .gallery-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #1F2937;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .image-gallery .gallery-img:hover {
+            border-color: #3B82F6;
+            transform: scale(1.03);
+        }
 
-.table-wrap { max-height: 450px; overflow-y: auto; overflow-x: hidden; }
-.table-wrap::-webkit-scrollbar { width: 3px; }
-.table-wrap::-webkit-scrollbar-track { background: transparent; }
-.table-wrap::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 2px; }
+        .drop-zone {
+            border: 2px dashed #1F2937;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            color: #94A3B8;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #3B82F6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; }
 
-.backtest-card {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 16px;
-  padding: 1rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  overflow: hidden;
-}
-.backtest-card:hover {
-  border-color: #3B82F6;
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.1);
-}
-.backtest-card .thumbnail {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 10px;
-  background: #0B1120;
-  border: 1px solid #1F2937;
-}
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(16px);
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 14px;
+            border: 1px solid #1F2937;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        .lightbox .close-lightbox {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            color: #F8FAFC;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .lightbox .close-lightbox:hover { color: #EF4444; transform: rotate(90deg); }
 
-.image-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
-}
-.image-gallery .gallery-img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid #1F2937;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.image-gallery .gallery-img:hover {
-  border-color: #3B82F6;
-  transform: scale(1.03);
-}
+        .backtest-card {
+            background: #111827;
+            border: 1px solid #1F2937;
+            border-radius: 16px;
+            padding: 1rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .backtest-card:hover {
+            border-color: #3B82F6;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.1);
+        }
+        .backtest-card .thumbnail {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #0B1120;
+            border: 1px solid #1F2937;
+        }
 
-.drop-zone {
-  border: 2px dashed #1F2937;
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  color: #94A3B8;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-.drop-zone:hover, .drop-zone.dragover {
-  border-color: #3B82F6;
-  background: rgba(59, 130, 246, 0.05);
-}
-.drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .calendar-day {
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+            background: #111827;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .calendar-day:hover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.05); }
+        .calendar-day .day-number { font-size: 0.9rem; font-weight: 600; }
+        .calendar-day .day-pl { font-size: 0.6rem; font-weight: 600; }
+        .calendar-day.profit { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.2); }
+        .calendar-day.loss { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.2); }
+        .calendar-day.today { border-color: #3B82F6; border-width: 2px; }
+        .calendar-day.empty { background: transparent; cursor: default; }
 
-/* Lightbox */
-.lightbox {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.92);
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(16px);
-}
-.lightbox.active { display: flex; }
-.lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 14px;
-  border: 1px solid #1F2937;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-.lightbox .close-lightbox {
-  position: absolute;
-  top: 24px;
-  right: 32px;
-  color: #F8FAFC;
-  font-size: 2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.lightbox .close-lightbox:hover { color: #EF4444; transform: rotate(90deg); }
+        .status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-dot.green { background: #22C55E; }
+        .status-dot.red { background: #EF4444; }
+        .status-dot.blue { background: #3B82F6; }
 
-/* Calendar */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-.calendar-day {
-  padding: 0.5rem;
-  text-align: center;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: 1px solid transparent;
-  background: #111827;
-  min-height: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.calendar-day:hover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.05); }
-.calendar-day .day-number { font-size: 0.9rem; font-weight: 600; }
-.calendar-day .day-pl { font-size: 0.6rem; font-weight: 600; }
-.calendar-day.profit { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.2); }
-.calendar-day.loss { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.2); }
-.calendar-day.today { border-color: #3B82F6; border-width: 2px; }
-.calendar-day.empty { background: transparent; cursor: default; }
+        .chart-wrapper { 
+            position: relative; 
+            height: 220px; 
+            width: 100%; 
+            overflow: hidden;
+        }
+        .chart-wrapper canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
 
-/* Theme toggle */
-.theme-toggle {
-  background: transparent;
-  border: 1px solid #1F2937;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #94A3B8;
-}
-.theme-toggle:hover { border-color: #3B82F6; color: #F8FAFC; }
+        .journal-entry {
+            background: #111827;
+            border: 1px solid #1F2937;
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+        .journal-entry:hover { border-color: #3B82F6; }
 
-/* Login */
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(11, 17, 32, 0.97);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  backdrop-filter: blur(20px);
-}
-.login-box {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 24px;
-  padding: 2.5rem;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-}
-.login-box h2 {
-  background: linear-gradient(135deg, #3B82F6, #60A5FA);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 0.5rem;
-  font-weight: 800;
-  font-size: 1.8rem;
-}
-.login-box .subtitle {
-  color: #94A3B8;
-  text-align: center;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-.login-input {
-  background: #0B1120;
-  border: 1px solid #1F2937;
-  border-radius: 12px;
-  padding: 0.8rem 1rem;
-  color: #F8FAFC;
-  width: 100%;
-  margin-bottom: 1rem;
-  transition: all 0.2s ease;
-}
-.login-input:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-.login-btn {
-  width: 100%;
-  padding: 0.8rem;
-  background: #3B82F6;
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-.login-btn:hover { background: #2563EB; transform: translateY(-1px); }
-.login-btn-secondary {
-  width: 100%;
-  padding: 0.8rem;
-  background: transparent;
-  border: 1px solid #1F2937;
-  border-radius: 12px;
-  color: #94A3B8;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.login-btn-secondary:hover { background: rgba(59, 130, 246, 0.05); border-color: #3B82F6; color: #F8FAFC; }
-.login-error { color: #EF4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
-.login-success { color: #22C55E; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #94A3B8;
-  font-size: 0.75rem;
-}
-.user-info i { color: #3B82F6; }
-.logout-btn {
-  background: transparent;
-  border: 1px solid #1F2937;
-  color: #94A3B8;
-  padding: 0.15rem 0.6rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.65rem;
-  transition: all 0.15s ease;
-}
-.logout-btn:hover { border-color: #EF4444; color: #EF4444; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .summary-card .value { font-size: 1.2rem; }
-  .summary-card { padding: 0.75rem; }
-  .glass-card { padding: 0.75rem; }
-  .calendar-day { min-height: 40px; padding: 0.25rem; }
-  .calendar-day .day-number { font-size: 0.7rem; }
-  .calendar-day .day-pl { font-size: 0.5rem; }
-}
-@media (max-width: 640px) {
-  .sidebar-text { display: none; }
-  aside { width: 60px; }
-}
-</style>
+        @media (max-width: 640px) {
+            .summary-card .value { font-size: 1.2rem; }
+            .summary-card { padding: 0.75rem; }
+            .glass-card { padding: 0.75rem; }
+            .image-gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .calendar-day { min-height: 40px; padding: 0.25rem; }
+            .calendar-day .day-number { font-size: 0.7rem; }
+            .calendar-day .day-pl { font-size: 0.5rem; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
-<div id="loginOverlay" class="login-overlay">
-  <div class="login-box">
-    <h2><i class="fas fa-chart-line"></i> Trade<span style="-webkit-text-fill-color:#F8FAFC;">Vault</span></h2>
-    <p class="subtitle">Sign in to your trading journal</p>
-    <div id="loginForm">
-      <input type="email" id="loginEmail" class="login-input" placeholder="Email address" />
-      <input type="password" id="loginPassword" class="login-input" placeholder="Password (min 6 chars)" />
-      <button class="login-btn" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-      <button class="login-btn-secondary" onclick="showSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
-      <div id="loginError" class="login-error">Invalid credentials</div>
-      <div id="loginSuccess" class="login-success">Account created! Please sign in.</div>
-    </div>
-    <div id="signupForm" style="display:none;">
-      <input type="text" id="signupName" class="login-input" placeholder="Full Name" />
-      <input type="email" id="signupEmail" class="login-input" placeholder="Email address" />
-      <input type="password" id="signupPassword" class="login-input" placeholder="Password (min 6 chars)" />
-      <input type="password" id="signupConfirm" class="login-input" placeholder="Confirm Password" />
-      <button class="login-btn" onclick="handleSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
-      <button class="login-btn-secondary" onclick="showLogin()"><i class="fas fa-arrow-left"></i> Back to Sign In</button>
-      <div id="signupError" class="login-error"></div>
-      <div id="signupSuccess" class="login-success">Account created! Please sign in.</div>
-    </div>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div class="flex h-screen overflow-hidden">
-<!-- SIDEBAR -->
-<aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-1 overflow-y-auto transition-all duration-300">
-  <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
-    <i class="fas fa-chart-line text-[#3B82F6]"></i>
-    <span class="hidden md:inline text-white">Trade<span class="text-[#3B82F6]">Vault</span></span>
-  </div>
-  <div class="w-full border-b border-[#1F2937] my-1"></div>
-  
-  <nav class="w-full space-y-0.5 text-sm">
-    <a class="nav-link active-nav" data-page="dashboard"><i class="fas fa-th-large"></i><span class="hidden md:inline">Dashboard</span></a>
-    <a class="nav-link" data-page="trades"><i class="fas fa-exchange-alt"></i><span class="hidden md:inline">Trades</span></a>
-    <a class="nav-link" data-page="backtesting"><i class="fas fa-flask"></i><span class="hidden md:inline">Backtesting</span></a>
-    <a class="nav-link" data-page="journal"><i class="fas fa-book-open"></i><span class="hidden md:inline">Journal</span></a>
-    <a class="nav-link" data-page="analytics"><i class="fas fa-chart-pie"></i><span class="hidden md:inline">Analytics</span></a>
-    <a class="nav-link" data-page="calendar"><i class="fas fa-calendar-alt"></i><span class="hidden md:inline">Calendar</span></a>
-    <a class="nav-link" data-page="rules"><i class="fas fa-book"></i><span class="hidden md:inline">Trading Rules</span></a>
-    <a class="nav-link" data-page="checklist"><i class="fas fa-clipboard-list"></i><span class="hidden md:inline">Checklist</span></a>
-    <a class="nav-link" data-page="plan"><i class="fas fa-flag-checkered"></i><span class="hidden md:inline">Trading Plan</span></a>
-    <a class="nav-link" data-page="settings"><i class="fas fa-cog"></i><span class="hidden md:inline">Settings</span></a>
-  </nav>
-  
-  <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8] space-y-1.5">
-    <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
-    <div class="flex items-center gap-2"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$1,000</span></div>
-    <div class="flex items-center gap-2 user-info">
-      <i class="fas fa-user"></i>
-      <span id="userEmailDisplay" class="hidden md:inline truncate max-w-[100px]">user@email.com</span>
-      <button class="logout-btn" onclick="handleLogout()">Logout</button>
-    </div>
-    <button class="theme-toggle w-full mt-1" onclick="toggleTheme()" title="Toggle theme">
-      <i class="fas fa-moon"></i>
-    </button>
-  </div>
-</aside>
-
-<!-- MAIN CONTENT -->
-<main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0B1120] space-y-6 transition-colors duration-300">
-
-<!-- ===== PAGE: DASHBOARD ===== -->
-<div id="page-dashboard" class="page active space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h2 class="text-2xl font-extrabold text-white">Dashboard</h2>
-      <p class="text-sm text-[#94A3B8]">Real-time trading performance overview</p>
-    </div>
-    <div class="flex items-center gap-3 text-sm text-[#94A3B8]">
-      <i class="fas fa-calendar-alt text-[#3B82F6]"></i>
-      <span id="currentDate"></span>
-    </div>
-  </div>
-
-  <!-- Summary Cards -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="summary-card"><div class="icon"><i class="fas fa-wallet text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashBalance">$1,000</div><div class="label">Balance</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-chart-line text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashTotalProfit">$0</div><div class="label">Total Profit</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-arrows-left-right text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashNetR">0.0R</div><div class="label">Net RR</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-percent text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashWinRate">0%</div><div class="label">Win Rate</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-trophy text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashProfitFactor">0.00</div><div class="label">Profit Factor</div></div>
-  </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="summary-card"><div class="icon"><i class="fas fa-dollar-sign text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashExpectancy">$0.00</div><div class="label">Expectancy</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-arrow-up text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashAvgWin">$0</div><div class="label">Avg Win</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-arrow-down text-[#EF4444]"></i></div><div class="value text-[#EF4444]" id="dashAvgLoss">$0</div><div class="label">Avg Loss</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-fire text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashStreak">0</div><div class="label">Current Streak</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-crown text-[#22C55E]"></i></div><div class="value text-[#22C55E]" id="dashBestStreak">0</div><div class="label">Best Streak</div></div>
-  </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-    <div class="summary-card"><div class="icon"><i class="fas fa-check-circle text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashConsistency">100%</div><div class="label">Consistency</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-list-ul text-[#94A3B8]"></i></div><div class="value text-[#F8FAFC]" id="dashTotalTrades">0</div><div class="label">Total Trades</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-star text-[#F59E0B]"></i></div><div class="value text-[#F59E0B]" id="dashAplus">0%</div><div class="label">A+ Setup %</div></div>
-    <div class="summary-card"><div class="icon"><i class="fas fa-arrows-left-right text-[#3B82F6]"></i></div><div class="value text-[#3B82F6]" id="dashAvgRR">0.0R</div><div class="label">Average RR</div></div>
-  </div>
-
-  <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="glass-card p-4">
-      <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
-        <span>Equity Curve</span>
-        <i class="fas fa-chart-line text-[#3B82F6]"></i>
-      </div>
-      <div class="chart-wrapper" style="height:200px;"><canvas id="dashEquityChart"></canvas></div>
-    </div>
-    <div class="glass-card p-4">
-      <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
-        <span>Daily P/L Distribution</span>
-        <i class="fas fa-chart-bar text-[#3B82F6]"></i>
-      </div>
-      <div class="chart-wrapper" style="height:200px;"><canvas id="dashDailyChart"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Calendar Widget -->
-  <div class="glass-card p-4">
-    <div class="flex justify-between items-center mb-3">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-calendar-alt text-[#3B82F6] mr-2"></i>Calendar</span>
-      <div class="flex gap-2">
-        <button class="btn-secondary btn-xs" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-        <span class="text-sm font-medium" id="calendarMonthYear">July 2026</span>
-        <button class="btn-secondary btn-xs" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-    <div id="calendarGrid" class="calendar-grid"></div>
-  </div>
-</div>
-
-<!-- ===== PAGE: TRADES ===== -->
-<div id="page-trades" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
-  <p class="text-sm text-[#94A3B8]">Manage all your trades and RR tracking</p>
-
-  <!-- Quick Trade -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-4">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-bolt text-[#3B82F6] mr-1"></i>Quick Trade</span>
-      <select id="quickRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option>
-        <option value="1:5">1:5</option>
-      </select>
-      <button class="btn-success btn-sm" onclick="quickTrade('win')"><i class="fas fa-check"></i> Win <span id="quickWinLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">+2R</span></button>
-      <button class="btn-danger btn-sm" onclick="quickTrade('loss')"><i class="fas fa-times"></i> Loss <span id="quickLossLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">-1R</span></button>
-    </div>
-  </div>
-
-  <!-- Add Trade -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-plus-circle text-[#3B82F6] mr-1"></i>Add Trade</span>
-      <select id="tradeType" class="glass-input" style="width:auto; padding:0.3rem 1rem;"><option value="win">Win</option><option value="loss">Loss</option></select>
-      <input type="number" id="tradeAmount" class="glass-input" placeholder="$" value="100" style="width:90px;" />
-      <input type="text" id="tradeDirection" class="glass-input" placeholder="Dir" value="BUY" style="width:60px;" />
-      <select id="tradeRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
-      </select>
-      <button class="btn-primary btn-sm" onclick="manualAddTrade()"><i class="fas fa-plus"></i> Add</button>
-    </div>
-  </div>
-
-  <!-- RR Tracker -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-arrows-left-right text-[#F59E0B] mr-1"></i>RR Tracker</span>
-      <div class="flex flex-wrap items-center gap-3 text-xs">
-        <span class="text-[#94A3B8]">Net: <span id="tradesNetR" class="text-[#F59E0B] font-bold">0.0R</span></span>
-        <span class="text-[#94A3B8]">Avg: <span id="tradesAvgR" class="text-[#3B82F6] font-bold">0.0</span></span>
-        <button class="btn-danger btn-xs" onclick="clearRRTracker()">Clear</button>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-2 mb-2">
-      <select id="rrRatio" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
-        <option value="1:1">1:1</option><option value="1:2" selected>1:2</option>
-        <option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option>
-      </select>
-      <select id="rrResult" class="glass-input" style="width:auto; padding:0.2rem 0.8rem;">
-        <option value="win">Win</option><option value="loss">Loss</option>
-      </select>
-      <button class="btn-primary btn-xs" onclick="addRRTrade()"><i class="fas fa-plus"></i> Add RR</button>
-    </div>
-    <div class="table-wrap text-xs">
-      <table class="w-full text-left">
-        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
-          <tr><th>#</th><th>RR</th><th>Result</th><th>R Value</th><th>Running R</th><th class="text-center">Action</th></tr>
-        </thead>
-        <tbody id="rrTableBody"><tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Trade History -->
-  <div class="glass-card p-4">
-    <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-list-ul text-[#3B82F6] mr-1"></i>Trade History (<span id="tradeCount">0</span>)</span>
-      <div class="flex gap-2">
-        <input type="text" id="tradeSearch" class="glass-input" placeholder="Search..." style="width:120px; padding:0.2rem 0.6rem;" oninput="filterTrades()" />
-        <button class="btn-danger btn-xs" onclick="clearAllTrades()">Clear All</button>
-      </div>
-    </div>
-    <div class="table-wrap text-xs">
-      <table class="w-full text-left">
-        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
-          <tr><th>#</th><th>Date</th><th>Dir</th><th>Result</th><th>P/L</th><th>RR</th><th class="text-center">Action</th></tr>
-        </thead>
-        <tbody id="tradeHistoryBody"><tr><td colspan="7" class="text-center text-[#4B5563] py-3">No trades yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Lot Size Calculator -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="glass-card p-4">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-calculator text-[#3B82F6] mr-1"></i>Lot Size Calculator</span>
-      <div class="grid grid-cols-3 gap-2 mt-2">
-        <div><label class="text-xs text-[#4B5563]">Risk %</label><input class="glass-input text-xs" value="2.5" id="riskInput" readonly /></div>
-        <div><label class="text-xs text-[#4B5563]">SL (pips)</label><input class="glass-input text-xs" placeholder="200" value="200" id="slInput" /></div>
-        <div class="flex items-end"><button class="btn-primary btn-xs w-full" onclick="updateLotSize()">Calc</button></div>
-      </div>
-      <div class="text-xs mt-2" id="lotDisplay">Risk $25.00 · Lot 0.12</div>
-    </div>
-    <div class="glass-card p-4">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-star text-[#F59E0B] mr-1"></i>A+ Setup Score</span>
-      <div class="flex items-center justify-between mt-2">
-        <div class="text-2xl font-extrabold text-[#22C55E]" id="scoreDisplay">92</div>
-        <div class="text-xs text-[#22C55E]" id="scoreLabel">A+ Trade</div>
-      </div>
-      <div class="text-[10px] text-[#4B5563] mt-1">1H ✓ 15M ✓ 3M ✓ 1M ✓ RR ✓</div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PAGE: BACKTESTING ===== -->
-<div id="page-backtesting" class="page space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flask text-[#3B82F6] mr-3"></i>Backtesting</h2>
-      <p class="text-sm text-[#94A3B8]">Review, analyze, and store every trade with screenshots and notes</p>
-    </div>
-    <button class="btn-primary" onclick="toggleBacktestForm()"><i class="fas fa-plus"></i> New Backtest</button>
-  </div>
-
-  <!-- Form -->
-  <div id="backtestForm" class="glass-card p-4" style="display:none;">
-    <div class="flex justify-between items-center mb-3">
-      <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>Add Backtest Entry</span>
-      <button class="btn-secondary btn-xs" onclick="toggleBacktestForm()"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Pair</label>
-        <select id="btPair" class="glass-input"><option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option><option value="GBPUSD">GBPUSD</option><option value="USDJPY">USDJPY</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Direction</label>
-        <select id="btDirection" class="glass-input"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Date</label>
-        <input type="date" id="btDate" class="glass-input" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Timeframe</label>
-        <select id="btTimeframe" class="glass-input"><option value="15M">15M</option><option value="1H">1H</option><option value="4H">4H</option><option value="1D">1D</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Session</label>
-        <select id="btSession" class="glass-input"><option value="London">London</option><option value="New York">New York</option><option value="Asia">Asia</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">RR Ratio</label>
-        <select id="btRR" class="glass-input"><option value="1:1">1:1</option><option value="1:2" selected>1:2</option><option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Result</label>
-        <select id="btResult" class="glass-input"><option value="Win">Win</option><option value="Loss">Loss</option><option value="BE">BE</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Entry Price</label>
-        <input type="number" id="btEntry" class="glass-input" step="0.01" placeholder="0.00" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Stop Loss</label>
-        <input type="number" id="btSL" class="glass-input" step="0.01" placeholder="0.00" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Take Profit</label>
-        <input type="number" id="btTP" class="glass-input" step="0.01" placeholder="0.00" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Lot Size</label>
-        <input type="number" id="btLot" class="glass-input" step="0.01" placeholder="0.01" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Strategy</label>
-        <input type="text" id="btStrategy" class="glass-input" placeholder="Breakout" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Grade</label>
-        <select id="btGrade" class="glass-input"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Confidence (1-10)</label>
-        <input type="number" id="btConfidence" class="glass-input" min="1" max="10" value="7" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Emotions</label>
-        <select id="btEmotions" class="glass-input"><option value="Calm">Calm</option><option value="Nervous">Nervous</option><option value="Confident">Confident</option></select></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Mistakes</label>
-        <input type="text" id="btMistakes" class="glass-input" placeholder="Moved SL" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Lessons</label>
-        <input type="text" id="btLessons" class="glass-input" placeholder="Trust the setup" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Tags</label>
-        <input type="text" id="btTags" class="glass-input" placeholder="Breakout, FVG" /></div>
-    </div>
-    <div class="mt-3">
-      <label class="text-xs text-[#94A3B8] block mb-1">Notes</label>
-      <textarea id="btNotes" class="glass-input" rows="2" placeholder="Detailed notes..."></textarea>
-    </div>
-    <div class="mt-3">
-      <label class="text-xs text-[#94A3B8] block mb-1">Screenshots</label>
-      <div id="dropZone" class="drop-zone" onclick="document.getElementById('btImages').click()">
-        <i class="fas fa-cloud-upload-alt"></i>
-        <p>Drag & drop images or click to upload</p>
-      </div>
-      <input type="file" id="btImages" multiple accept="image/*" style="display:none" onchange="handleImageUpload(event)" />
-      <div id="imagePreviewContainer" class="image-gallery mt-2"></div>
-    </div>
-    <div class="mt-3 flex gap-2">
-      <button class="btn-primary" onclick="saveBacktest()"><i class="fas fa-save"></i> Save</button>
-      <button class="btn-secondary" onclick="toggleBacktestForm()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Stats -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btStatTotal">0</div><div class="text-xs text-[#94A3B8]">Total</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btStatWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btStatAvgRR">0.0R</div><div class="text-xs text-[#94A3B8]">Avg RR</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btStatBestStrategy">-</div><div class="text-xs text-[#94A3B8]">Best Strategy</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btStatBestPair">-</div><div class="text-xs text-[#94A3B8]">Best Pair</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btStatAplus">0%</div><div class="text-xs text-[#94A3B8]">A+ Win Rate</div></div>
-  </div>
-
-  <!-- Filters -->
-  <div class="glass-card p-3">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-filter text-[#3B82F6] mr-1"></i>Filters:</span>
-      <input type="text" id="btSearch" class="glass-input" placeholder="Search..." style="width:120px; padding:0.2rem 0.6rem;" oninput="filterBacktests()" />
-      <select id="btFilterPair" class="glass-input" style="width:auto; padding:0.2rem 0.6rem;" onchange="filterBacktests()">
-        <option value="">All Pairs</option><option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option>
-      </select>
-      <select id="btFilterResult" class="glass-input" style="width:auto; padding:0.2rem 0.6rem;" onchange="filterBacktests()">
-        <option value="">All Results</option><option value="Win">Win</option><option value="Loss">Loss</option>
-      </select>
-      <button class="btn-secondary btn-xs" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
-      <div class="ml-auto flex gap-2">
-        <button class="btn-secondary btn-xs" onclick="exportBacktests('csv')"><i class="fas fa-file-csv"></i> CSV</button>
-        <button class="btn-secondary btn-xs" onclick="exportBacktests('json')"><i class="fas fa-file-code"></i> JSON</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Gallery -->
-  <div id="btGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    <!-- Populated by JS -->
-  </div>
-</div>
-
-<!-- ===== PAGE: JOURNAL ===== -->
-<div id="page-journal" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book-open text-[#3B82F6] mr-3"></i>Journal</h2>
-  <p class="text-sm text-[#94A3B8]">Rich text journal entries with images, videos, and attachments</p>
-  <div class="glass-card p-4">
-    <div class="flex gap-2 mb-3">
-      <input type="text" id="journalSearch" class="glass-input" placeholder="Search journal..." style="max-width:300px;" />
-      <button class="btn-primary btn-sm" onclick="addJournalEntry()"><i class="fas fa-plus"></i> New Entry</button>
-    </div>
-    <div id="journalEntries" class="space-y-3">
-      <div class="text-center text-[#4B5563] py-6">No journal entries yet. Click "New Entry" to start.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PAGE: ANALYTICS ===== -->
-<div id="page-analytics" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Analytics</h2>
-  <p class="text-sm text-[#94A3B8]">Advanced performance analytics and insights</p>
-  
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#3B82F6]" id="anaTotal">0</div><div class="text-xs text-[#94A3B8]">Total Trades</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#22C55E]" id="anaWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#F59E0B]" id="anaAvgRR">0.0R</div><div class="text-xs text-[#94A3B8]">Avg RR</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-sm font-bold text-[#3B82F6]" id="anaProfit">$0</div><div class="text-xs text-[#94A3B8]">Total Profit</div></div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="glass-card p-4">
-      <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Session</div>
-      <div class="chart-wrapper" style="height:180px;"><canvas id="anaSessionChart"></canvas></div>
-    </div>
-    <div class="glass-card p-4">
-      <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Strategy</div>
-      <div class="chart-wrapper" style="height:180px;"><canvas id="anaStrategyChart"></canvas></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PAGE: CALENDAR ===== -->
-<div id="page-calendar" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-calendar-alt text-[#3B82F6] mr-3"></i>Calendar</h2>
-  <p class="text-sm text-[#94A3B8]">Complete trading calendar with daily performance</p>
-  
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="glass-card p-4 md:col-span-2">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-sm font-medium">Monthly View</span>
-        <div class="flex gap-2">
-          <button class="btn-secondary btn-xs" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-          <span class="text-sm font-medium" id="calMonthYear">July 2026</span>
-          <button class="btn-secondary btn-xs" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-      <div id="calGrid" class="calendar-grid"></div>
-    </div>
-    <div class="glass-card p-4">
-      <span class="text-xs font-medium text-[#94A3B8]">Day Details</span>
-      <div id="calDayDetails" class="mt-3 text-sm text-[#94A3B8]">Select a day to view details</div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="calMonthTotal">0</div><div class="text-xs text-[#94A3B8]">Trades</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="calMonthWin">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
-    <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="calMonthPL">$0</div><div class="text-xs text-[#94A3B8]">P/L</div></div>
-  </div>
-</div>
-
-<!-- ===== PAGE: RULES ===== -->
-<div id="page-rules" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book text-[#3B82F6] mr-3"></i>Trading Rules</h2>
-  <div class="glass-card p-4">
-    <div class="rule-card"><strong>Market:</strong> XAUUSD Only</div>
-    <div class="rule-card"><strong>Sessions:</strong> London & New York Only</div>
-    <div class="rule-card"><strong>Max Trades:</strong> 3 per day</div>
-    <div class="rule-card"><strong>Risk Per Trade:</strong> 2.5% of balance</div>
-    <div class="rule-card"><strong>Max Daily Loss:</strong> 7.5% of current balance</div>
-    <div class="rule-card"><strong>Reward:Risk:</strong> 1:4</div>
-    <div class="rule-card warning"><strong>Never Move Stop Loss</strong></div>
-    <div class="rule-card warning"><strong>Never Revenge Trade</strong></div>
-    <div class="rule-card warning"><strong>After Three Losses - Stop Trading</strong></div>
-  </div>
-</div>
-
-<!-- ===== PAGE: CHECKLIST ===== -->
-<div id="page-checklist" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-clipboard-list text-[#3B82F6] mr-3"></i>Checklist</h2>
-  <div class="glass-card p-4">
-    <div id="checklistContainer" class="space-y-1">
-      <div class="checklist-item"><input type="checkbox" id="chk1" /><label for="chk1">News Checked</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk2" /><label for="chk2">1H Trend Confirmed</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk3" /><label for="chk3">15M EMA Confirmed</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk4" /><label for="chk4">3M Pullback</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk5" /><label for="chk5">1M Confirmation</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk6" /><label for="chk6">Risk Calculated</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk7" /><label for="chk7">1:4 RR</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk8" /><label for="chk8">Session Valid</label></div>
-      <div class="checklist-item"><input type="checkbox" id="chk9" /><label for="chk9">Emotion Calm</label></div>
-    </div>
-    <div id="checklistStatus" class="mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">✅ All checks passed - Ready to trade</div>
-  </div>
-</div>
-
-<!-- ===== PAGE: PLAN ===== -->
-<div id="page-plan" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flag-checkered text-[#3B82F6] mr-3"></i>Trading Plan</h2>
-  <div class="glass-card p-4">
-    <h3 class="text-lg font-bold text-[#F59E0B] mb-3">Complete Trading Rules Summary</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div><h4 class="text-[#3B82F6] font-bold mb-2">Setup Rules</h4>
-        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• Only XAUUSD</li><li>• Max 3 trades/day</li><li>• Risk 2.5%</li><li>• Max Daily Loss 7.5%</li></ul>
-      </div>
-      <div><h4 class="text-[#3B82F6] font-bold mb-2">Entry & Exit</h4>
-        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• 15M EMA</li><li>• 3M Pullback</li><li>• 1M Entry</li><li>• Target 4R</li></ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PAGE: SETTINGS ===== -->
-<div id="page-settings" class="page space-y-6">
-  <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-cog text-[#3B82F6] mr-3"></i>Settings</h2>
-  <div class="glass-card p-6">
-    <h3 class="text-lg font-bold text-[#F59E0B] mb-4">Account Settings</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Starting Balance ($)</label><input type="number" id="startBalanceInput" class="glass-input" value="1000" step="100" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Risk Per Trade (%)</label><input type="number" id="riskPercentInput" class="glass-input" value="2.5" step="0.1" min="0.1" max="20" /></div>
-      <div><label class="text-xs text-[#94A3B8] block mb-1">Max Daily Loss (%)</label><input type="number" id="maxDailyLossInput" class="glass-input" value="7.5" step="0.1" min="0.1" max="20" /></div>
-      <div class="flex items-end"><button class="btn-primary w-full" onclick="saveSettings()"><i class="fas fa-save"></i> Save</button></div>
-    </div>
-    <div id="settingsMessage" class="mt-4 text-sm text-[#22C55E] hidden">✅ Settings saved successfully!</div>
-  </div>
-  <div class="glass-card p-6">
-    <h3 class="text-lg font-bold text-[#3B82F6] mb-4">Data Management</h3>
-    <div class="flex gap-3 flex-wrap">
-      <button class="btn-primary" onclick="exportAllData()"><i class="fas fa-download"></i> Export</button>
-      <button class="btn-secondary" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Import</button>
-      <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)" />
-    </div>
-    <p class="text-xs text-[#4B5563] mt-2">Export all trading data as JSON backup.</p>
-  </div>
-</div>
-
-<div class="text-center text-[10px] text-[#1F2937] border-t border-[#1F2937] pt-4">TradeVault · Premium Trading Journal</div>
-</main>
-</div>
-
-<!-- Lightbox -->
+<!-- LIGHTBOX -->
 <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-  <span class="close-lightbox">&times;</span>
-  <img id="lightboxImage" src="" alt="Screenshot" />
+    <span class="close-lightbox">&times;</span>
+    <img id="lightboxImage" src="" alt="Screenshot" />
+</div>
+
+<!-- SIDEBAR -->
+<div class="flex h-screen overflow-hidden">
+    <aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-1 overflow-y-auto">
+        <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
+            <i class="fas fa-chart-line text-[#3B82F6]"></i>
+            <span class="hidden md:inline text-white">Trade<span class="text-[#3B82F6]">Vault</span></span>
+        </div>
+        <div class="w-full border-b border-[#1F2937] my-1"></div>
+        <nav class="w-full space-y-0.5 text-sm">
+            <button class="nav-link active-nav" data-page="dashboard"><i class="fas fa-th-large"></i><span class="hidden md:inline">Dashboard</span></button>
+            <button class="nav-link" data-page="trades"><i class="fas fa-exchange-alt"></i><span class="hidden md:inline">Trades</span></button>
+            <button class="nav-link" data-page="backtesting"><i class="fas fa-flask"></i><span class="hidden md:inline">Backtesting</span></button>
+            <button class="nav-link" data-page="journal"><i class="fas fa-book-open"></i><span class="hidden md:inline">Journal</span></button>
+            <button class="nav-link" data-page="reports"><i class="fas fa-chart-pie"></i><span class="hidden md:inline">Reports</span></button>
+            <button class="nav-link" data-page="analytics"><i class="fas fa-activity"></i><span class="hidden md:inline">Analytics</span></button>
+            <button class="nav-link" data-page="calendar"><i class="fas fa-calendar-alt"></i><span class="hidden md:inline">Calendar</span></button>
+            <button class="nav-link" data-page="rules"><i class="fas fa-shield-alt"></i><span class="hidden md:inline">Trading Rules</span></button>
+            <button class="nav-link" data-page="checklist"><i class="fas fa-clipboard-list"></i><span class="hidden md:inline">Checklist</span></button>
+            <button class="nav-link" data-page="plan"><i class="fas fa-flag-checkered"></i><span class="hidden md:inline">Trading Plan</span></button>
+            <button class="nav-link" data-page="settings"><i class="fas fa-cog"></i><span class="hidden md:inline">Settings</span></button>
+        </nav>
+        <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8] space-y-1.5">
+            <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
+            <div class="flex items-center gap-2"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$10,000</span></div>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-user"></i>
+                <span class="hidden md:inline truncate max-w-[100px]">Trader@email.com</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0B1120] space-y-6">
+
+        <!-- ===== PAGE: DASHBOARD ===== -->
+        <div id="page-dashboard" class="page active space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Dashboard</h2>
+                    <p class="text-sm text-[#94A3B8]">Real-time trading performance overview</p>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-[#94A3B8]">
+                    <i class="fas fa-calendar-alt text-[#3B82F6]"></i>
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="dashboardStats">
+                <!-- Stats populated by JS -->
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
+                        <span>Equity Curve</span>
+                        <i class="fas fa-chart-line text-[#3B82F6]"></i>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="equityChart"></canvas></div>
+                </div>
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium flex justify-between items-center mb-2">
+                        <span>P/L Distribution</span>
+                        <i class="fas fa-chart-bar text-[#3B82F6]"></i>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="plChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="glass-card p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-calendar-alt text-[#3B82F6] mr-2"></i>Trading Calendar</span>
+                </div>
+                <div id="miniCalendar" class="grid grid-cols-7 gap-1"></div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: TRADES ===== -->
+        <div id="page-trades" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
+            <p class="text-sm text-[#94A3B8]">Manage all your trades with the Universal Lot Size Calculator</p>
+
+            <!-- Quick Trade -->
+            <div class="glass-card p-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-bolt text-[#3B82F6] mr-1"></i>Quick Trade</span>
+                    <select id="quickRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
+                        <option value="1:1">1:1</option>
+                        <option value="1:2" selected>1:2</option>
+                        <option value="1:3">1:3</option>
+                        <option value="1:4">1:4</option>
+                        <option value="1:5">1:5</option>
+                    </select>
+                    <button class="btn-success btn-sm" onclick="quickTrade('win')"><i class="fas fa-check"></i> Win <span id="quickWinLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">+2R</span></button>
+                    <button class="btn-danger btn-sm" onclick="quickTrade('loss')"><i class="fas fa-times"></i> Loss <span id="quickLossLabel" class="text-xs bg-white/10 px-2 py-0.5 rounded-full">-1R</span></button>
+                </div>
+            </div>
+
+            <!-- Add Trade -->
+            <div class="glass-card p-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-plus-circle text-[#3B82F6] mr-1"></i>Add Trade</span>
+                    <select id="tradeType" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
+                        <option value="win">Win</option>
+                        <option value="loss">Loss</option>
+                    </select>
+                    <input type="number" id="tradeAmount" class="glass-input" placeholder="$" value="100" style="width:90px;" />
+                    <input type="text" id="tradeDirection" class="glass-input" placeholder="Dir" value="BUY" style="width:60px;" />
+                    <select id="tradeRR" class="glass-input" style="width:auto; padding:0.3rem 1rem;">
+                        <option value="1:1">1:1</option>
+                        <option value="1:2" selected>1:2</option>
+                        <option value="1:3">1:3</option>
+                        <option value="1:4">1:4</option>
+                        <option value="1:5">1:5</option>
+                    </select>
+                    <input type="text" id="tradePair" class="glass-input" placeholder="Pair" value="XAUUSD" style="width:80px;" />
+                    <button class="btn-primary btn-sm" onclick="manualAddTrade()"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+
+            <!-- Lot Size Calculator -->
+            <div class="glass-card p-4">
+                <span class="text-sm font-bold text-white"><i class="fas fa-calculator text-[#3B82F6] mr-2"></i>Universal Lot Size Calculator</span>
+                <p class="text-xs text-[#94A3B8] mt-1 mb-3">Automatically calculates lot size for any instrument</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Account Balance ($)</label>
+                        <input type="number" id="calcBalance" class="glass-input" value="10000" oninput="calculateLotSize()" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Risk (%)</label>
+                        <input type="number" id="calcRisk" class="glass-input" value="2" step="0.1" oninput="calculateLotSize()" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Instrument</label>
+                        <select id="calcInstrument" class="glass-input" onchange="calculateLotSize()">
+                            <option value="XAUUSD">XAUUSD (Gold)</option>
+                            <option value="EURUSD">EURUSD</option>
+                            <option value="GBPUSD">GBPUSD</option>
+                            <option value="USDJPY">USDJPY</option>
+                            <option value="BTCUSD">BTCUSD</option>
+                            <option value="NAS100">NAS100</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Entry Price</label>
+                        <input type="number" id="calcEntry" class="glass-input" value="3350.00" step="0.01" oninput="calculateLotSize()" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Stop Loss Price</label>
+                        <input type="number" id="calcSL" class="glass-input" value="3345.00" step="0.01" oninput="calculateLotSize()" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Custom Pip Value</label>
+                        <input type="number" id="calcPipValue" class="glass-input" value="0.1" step="0.01" oninput="calculateLotSize()" /></div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4" id="lotResults">
+                    <div class="lot-result text-center"><div class="text-xs text-[#94A3B8]">Lot Size</div><div class="value text-[#22C55E]" id="resultLot">0.00</div></div>
+                    <div class="lot-result text-center"><div class="text-xs text-[#94A3B8]">Risk Amount</div><div class="value text-[#F59E0B]" id="resultRisk">$0.00</div></div>
+                    <div class="lot-result text-center"><div class="text-xs text-[#94A3B8]">SL Distance</div><div class="value text-[#3B82F6]" id="resultSL">0.00</div></div>
+                    <div class="lot-result text-center"><div class="text-xs text-[#94A3B8]">Pip Value</div><div class="value text-[#3B82F6]" id="resultPipValue">$0.00</div></div>
+                    <div class="lot-result text-center"><div class="text-xs text-[#94A3B8]">Position Size</div><div class="value text-[#F8FAFC]" id="resultUnits">0</div></div>
+                </div>
+                <div class="mt-3"><button class="btn-primary btn-sm" onclick="applyLotToTrade()"><i class="fas fa-arrow-right"></i> Apply to Trade</button></div>
+            </div>
+
+            <!-- Trade History -->
+            <div class="glass-card p-4">
+                <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
+                    <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-list-ul text-[#3B82F6] mr-1"></i>Trade History (<span id="tradeCount">0</span>)</span>
+                    <button class="btn-danger btn-xs" onclick="clearAllTrades()">Clear All</button>
+                </div>
+                <div class="table-wrap text-xs">
+                    <table class="w-full text-left">
+                        <thead class="text-[10px] uppercase text-[#94A3B8] border-b border-[#1F2937] sticky top-0 bg-[#111827]">
+                            <tr><th>#</th><th>Date</th><th>Pair</th><th>Dir</th><th>Result</th><th>P/L</th><th>RR</th><th class="text-center">Action</th></tr>
+                        </thead>
+                        <tbody id="tradeHistoryBody"><tr><td colspan="8" class="text-center text-[#4B5563] py-3">No trades yet</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: BACKTESTING ===== -->
+        <div id="page-backtesting" class="page space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flask text-[#3B82F6] mr-3"></i>Backtesting</h2>
+                    <p class="text-sm text-[#94A3B8]">Review, analyze, and store every trade with screenshots</p>
+                </div>
+                <button class="btn-primary" onclick="showBacktestForm()"><i class="fas fa-plus"></i> New Backtest</button>
+            </div>
+
+            <!-- Backtest Form -->
+            <div id="backtestForm" class="glass-card p-4" style="display:none;">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>Add Backtest Entry</span>
+                    <button class="btn-secondary btn-xs" onclick="hideBacktestForm()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Pair</label>
+                        <select id="btPair" class="glass-input"><option value="XAUUSD">XAUUSD</option><option value="EURUSD">EURUSD</option><option value="GBPUSD">GBPUSD</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Direction</label>
+                        <select id="btDirection" class="glass-input"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Date</label>
+                        <input type="date" id="btDate" class="glass-input" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Timeframe</label>
+                        <select id="btTimeframe" class="glass-input"><option value="15M">15M</option><option value="1H">1H</option><option value="4H">4H</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Session</label>
+                        <select id="btSession" class="glass-input"><option value="London">London</option><option value="New York">New York</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">RR Ratio</label>
+                        <select id="btRR" class="glass-input"><option value="1:1">1:1</option><option value="1:2" selected>1:2</option><option value="1:3">1:3</option><option value="1:4">1:4</option><option value="1:5">1:5</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Result</label>
+                        <select id="btResult" class="glass-input"><option value="Win">Win</option><option value="Loss">Loss</option><option value="BE">BE</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Strategy</label>
+                        <input type="text" id="btStrategy" class="glass-input" placeholder="Breakout" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Grade</label>
+                        <select id="btGrade" class="glass-input"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Confidence (1-10)</label>
+                        <input type="number" id="btConfidence" class="glass-input" min="1" max="10" value="7" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Emotions</label>
+                        <select id="btEmotions" class="glass-input"><option value="Calm">Calm</option><option value="Nervous">Nervous</option><option value="Confident">Confident</option></select></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Mistakes</label>
+                        <input type="text" id="btMistakes" class="glass-input" placeholder="Moved SL" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Lessons</label>
+                        <input type="text" id="btLessons" class="glass-input" placeholder="Trust the setup" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Tags</label>
+                        <input type="text" id="btTags" class="glass-input" placeholder="Breakout, FVG" /></div>
+                </div>
+                <div class="mt-3">
+                    <label class="text-xs text-[#94A3B8] block mb-1">Notes</label>
+                    <textarea id="btNotes" class="glass-input" rows="2" placeholder="Detailed notes..."></textarea>
+                </div>
+                <div class="mt-3">
+                    <label class="text-xs text-[#94A3B8] block mb-1">Screenshots</label>
+                    <div id="btDropZone" class="drop-zone" onclick="document.getElementById('btImages').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag & drop images or click to upload</p>
+                        <p class="text-xs text-[#4B5563]">PNG, JPG, JPEG, WEBP</p>
+                    </div>
+                    <input type="file" id="btImages" multiple accept="image/*" style="display:none" onchange="handleBacktestImageUpload(event)" />
+                    <div id="btImagePreview" class="image-gallery mt-2"></div>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <button class="btn-primary" onclick="saveBacktest()"><i class="fas fa-save"></i> Save</button>
+                    <button class="btn-secondary" onclick="hideBacktestForm()">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Backtest Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="btStats">
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btTotal">0</div><div class="text-xs text-[#94A3B8]">Total</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btAvgRR">0.0R</div><div class="text-xs text-[#94A3B8]">Avg RR</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btBestStrategy">-</div><div class="text-xs text-[#94A3B8]">Best Strategy</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btBestPair">-</div><div class="text-xs text-[#94A3B8]">Best Pair</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btAplus">0%</div><div class="text-xs text-[#94A3B8]">A+ Win Rate</div></div>
+            </div>
+
+            <!-- Backtest Gallery -->
+            <div id="btGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- ===== PAGE: JOURNAL ===== -->
+        <div id="page-journal" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-book-open text-[#3B82F6] mr-3"></i>Journal</h2>
+            <p class="text-sm text-[#94A3B8]">Rich text journal entries with screenshots and attachments</p>
+
+            <div class="glass-card p-4">
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="journalSearch" class="glass-input" placeholder="Search journal..." style="max-width:300px;" oninput="filterJournal()" />
+                    <button class="btn-primary btn-sm" onclick="showJournalForm()"><i class="fas fa-plus"></i> New Entry</button>
+                    <button class="btn-secondary btn-sm" onclick="exportJournal()"><i class="fas fa-download"></i> Export</button>
+                </div>
+
+                <!-- Journal Form -->
+                <div id="journalForm" style="display:none;" class="mb-4 p-4 border border-[#1F2937] rounded-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>New Journal Entry</span>
+                        <button class="btn-secondary btn-xs" onclick="hideJournalForm()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="text-xs text-[#94A3B8] block mb-1">Title</label>
+                            <input type="text" id="journalTitle" class="glass-input" placeholder="Entry title..." /></div>
+                        <div><label class="text-xs text-[#94A3B8] block mb-1">Date</label>
+                            <input type="date" id="journalDate" class="glass-input" /></div>
+                        <div><label class="text-xs text-[#94A3B8] block mb-1">Emotions</label>
+                            <select id="journalEmotions" class="glass-input"><option value="Calm">Calm</option><option value="Confident">Confident</option><option value="Anxious">Anxious</option></select></div>
+                        <div><label class="text-xs text-[#94A3B8] block mb-1">Tags</label>
+                            <input type="text" id="journalTags" class="glass-input" placeholder="Reversal, FVG..." /></div>
+                    </div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Content</label>
+                        <textarea id="journalContent" class="glass-input" rows="4" placeholder="Write your thoughts about today's trading..."></textarea></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Mistakes</label>
+                        <input type="text" id="journalMistakes" class="glass-input" placeholder="What went wrong?" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Lessons</label>
+                        <input type="text" id="journalLessons" class="glass-input" placeholder="What did you learn?" /></div>
+                    <div class="mt-2">
+                        <label class="text-xs text-[#94A3B8] block mb-1">Screenshots</label>
+                        <div class="drop-zone" onclick="document.getElementById('journalImages').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload images</p>
+                        </div>
+                        <input type="file" id="journalImages" multiple accept="image/*" style="display:none" onchange="handleJournalImageUpload(event)" />
+                        <div id="journalImagePreview" class="image-gallery mt-2"></div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <button class="btn-primary" onclick="saveJournalEntry()"><i class="fas fa-save"></i> Save Entry</button>
+                        <button class="btn-secondary" onclick="hideJournalForm()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Journal Entries -->
+                <div id="journalEntries" class="space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: REPORTS ===== -->
+        <div id="page-reports" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Reports</h2>
+            <p class="text-sm text-[#94A3B8]">Comprehensive performance reports and analytics</p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="reportStats">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Weekday</div>
+                    <div class="chart-wrapper" style="height:200px;"><canvas id="reportWeekdayChart"></canvas></div>
+                </div>
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Session</div>
+                    <div class="chart-wrapper" style="height:200px;"><canvas id="reportSessionChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium mb-2">Performance by Strategy</div>
+                    <div class="chart-wrapper" style="height:200px;"><canvas id="reportStrategyChart"></canvas></div>
+                </div>
+                <div class="glass-card p-4">
+                    <div class="text-xs text-[#94A3B8] font-medium mb-2">Setup Grade Distribution</div>
+                    <div class="chart-wrapper" style="height:200px;"><canvas id="reportGradeChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="glass-card p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-medium text-[#94A3B8]">Trade Export</span>
+                    <div class="flex gap-2">
+                        <button class="btn-secondary btn-sm" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                        <button class="btn-secondary btn-sm" onclick="exportReport('json')"><i class="fas fa-file-code"></i> JSON</button>
+                        <button class="btn-primary btn-sm" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: ANALYTICS ===== -->
+        <div id="page-analytics" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-activity text-[#3B82F6] mr-3"></i>Analytics</h2>
+            <p class="text-sm text-[#94A3B8]">Advanced analytics and insights</p>
+            <div class="glass-card p-4"><p class="text-[#94A3B8]">Advanced analytics dashboard coming soon...</p></div>
+        </div>
+
+        <!-- ===== PAGE: CALENDAR ===== -->
+        <div id="page-calendar" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-calendar-alt text-[#3B82F6] mr-3"></i>Calendar</h2>
+            <p class="text-sm text-[#94A3B8]">Complete trading calendar with daily performance</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-card p-4 md:col-span-2">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-medium">Monthly View</span>
+                        <div class="flex gap-2">
+                            <button class="btn-secondary btn-xs" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <span class="text-sm font-medium" id="calMonthYear">July 2026</span>
+                            <button class="btn-secondary btn-xs" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div id="calGrid" class="calendar-grid"></div>
+                </div>
+                <div class="glass-card p-4">
+                    <span class="text-xs font-medium text-[#94A3B8]">Day Details</span>
+                    <div id="calDayDetails" class="mt-3 text-sm text-[#94A3B8]">Select a day to view details</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="calMonthTotal">0</div><div class="text-xs text-[#94A3B8]">Trades</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="calMonthWin">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
+                <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="calMonthPL">$0</div><div class="text-xs text-[#94A3B8]">P/L</div></div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: TRADING RULES ===== -->
+        <div id="page-rules" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-shield-alt text-[#3B82F6] mr-3"></i>Trading Rules</h2>
+            <p class="text-sm text-[#94A3B8]">Clear, structured trading rules to maintain discipline</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-card p-4">
+                    <h3 class="text-lg font-bold text-[#3B82F6] mb-3"><i class="fas fa-clock mr-2"></i>Session Rules</h3>
+                    <div class="rule-card"><div class="rule-title">Market</div><div class="rule-desc">Trade only XAUUSD (Gold) for optimal liquidity</div></div>
+                    <div class="rule-card"><div class="rule-title">Trading Sessions</div><div class="rule-desc">London: 08:00-16:00 GMT | New York: 13:00-21:00 GMT</div></div>
+                    <div class="rule-card"><div class="rule-title">Max Trades Per Day</div><div class="rule-desc">Maximum 3 trades per day</div></div>
+                </div>
+                <div class="glass-card p-4">
+                    <h3 class="text-lg font-bold text-[#EF4444] mb-3"><i class="fas fa-shield-alt mr-2"></i>Risk Management</h3>
+                    <div class="rule-card warning"><div class="rule-title">Risk Per Trade</div><div class="rule-desc">Risk exactly 2.5% of current balance</div></div>
+                    <div class="rule-card warning"><div class="rule-title">Max Daily Loss</div><div class="rule-desc">Stop when daily loss reaches 7.5%</div></div>
+                    <div class="rule-card warning"><div class="rule-title">Never Move Stop Loss</div><div class="rule-desc">Set SL and never move it</div></div>
+                </div>
+                <div class="glass-card p-4">
+                    <h3 class="text-lg font-bold text-[#22C55E] mb-3"><i class="fas fa-sign-in-alt mr-2"></i>Entry Rules</h3>
+                    <div class="rule-card success"><div class="rule-title">1H Trend</div><div class="rule-desc">EMA50 above/below EMA100 determines direction</div></div>
+                    <div class="rule-card success"><div class="rule-title">15M Confirmation</div><div class="rule-desc">Price aligned with EMA50 on 15M</div></div>
+                    <div class="rule-card success"><div class="rule-title">3M Pullback</div><div class="rule-desc">Wait for pullback to key level</div></div>
+                </div>
+                <div class="glass-card p-4">
+                    <h3 class="text-lg font-bold text-[#F59E0B] mb-3"><i class="fas fa-sign-out-alt mr-2"></i>Exit Rules</h3>
+                    <div class="rule-card"><div class="rule-title">Stop Loss</div><div class="rule-desc">Below previous swing low/high</div></div>
+                    <div class="rule-card"><div class="rule-title">Take Profit</div><div class="rule-desc">Target 4x risk (1:4 RR)</div></div>
+                    <div class="rule-card"><div class="rule-title">Partial Takes</div><div class="rule-desc">50% at 2R, move SL to BE</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: CHECKLIST ===== -->
+        <div id="page-checklist" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-clipboard-list text-[#3B82F6] mr-3"></i>Pre-Trade Checklist</h2>
+            <div class="glass-card p-4">
+                <p class="text-sm text-[#94A3B8] mb-4">Complete all items before entering a trade</p>
+                <div id="checklistContainer" class="space-y-1">
+                    <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk1" class="accent-[#3B82F6]" /><label for="chk1">News Checked</label></div>
+                    <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk2" class="accent-[#3B82F6]" /><label for="chk2">1H Trend Confirmed</label></div>
+                    <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk3" class="accent-[#3B82F6]" /><label for="chk3">15M EMA Confirmed</label></div>
+                    <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk4" class="accent-[#3B82F6]" /><label for="chk4">3M Pullback</label></div>
+                    <div class="flex items-center gap-3 p-2 border-b border-[#1F2937]"><input type="checkbox" id="chk5" class="accent-[#3B82F6]" /><label for="chk5">1M Confirmation</label></div>
+                </div>
+                <div id="checklistStatus" class="mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">✅ All checks passed - Ready to trade</div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: PLAN ===== -->
+        <div id="page-plan" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-flag-checkered text-[#3B82F6] mr-3"></i>Trading Plan</h2>
+            <div class="glass-card p-4">
+                <p class="text-[#94A3B8]">Your trading plan and goals</p>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><h4 class="text-[#3B82F6] font-bold mb-2">Goals</h4>
+                        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• Monthly Return: +8%</li><li>• Max Drawdown: -6%</li><li>• Target Win Rate: 55%</li></ul>
+                    </div>
+                    <div><h4 class="text-[#3B82F6] font-bold mb-2">Risk Framework</h4>
+                        <ul class="space-y-1 text-sm text-[#94A3B8]"><li>• Risk 1% per trade</li><li>• Max 3% total exposure</li><li>• Reduce size after 2 losses</li></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAGE: SETTINGS ===== -->
+        <div id="page-settings" class="page space-y-6">
+            <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-cog text-[#3B82F6] mr-3"></i>Settings</h2>
+            <div class="glass-card p-6">
+                <h3 class="text-lg font-bold text-[#F59E0B] mb-4">Account Settings</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Starting Balance ($)</label>
+                        <input type="number" id="startBalanceInput" class="glass-input" value="10000" step="100" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Risk Per Trade (%)</label>
+                        <input type="number" id="riskPercentInput" class="glass-input" value="2.5" step="0.1" /></div>
+                    <div><label class="text-xs text-[#94A3B8] block mb-1">Max Daily Loss (%)</label>
+                        <input type="number" id="maxDailyLossInput" class="glass-input" value="7.5" step="0.1" /></div>
+                    <div><button class="btn-primary w-full" onclick="saveSettings()"><i class="fas fa-save"></i> Save</button></div>
+                </div>
+                <div id="settingsMessage" class="mt-4 text-sm text-[#22C55E] hidden">✅ Settings saved!</div>
+            </div>
+        </div>
+
+        <div class="text-center text-[10px] text-[#1F2937] border-t border-[#1F2937] pt-4">TradeVault · Premium Trading Journal</div>
+    </main>
 </div>
 
 <script>
-// ========== STATE ==========
-let state = {
-  balance: 1000,
-  trades: [],
-  rrTrades: [],
-  netR: 0,
-  backtests: [],
-  journalEntries: [],
-  calendarMonth: new Date().getMonth(),
-  calendarYear: new Date().getFullYear(),
-  currentUser: null,
-  users: {},
-  aplusScores: [92]
-};
+    // ========== STATE ==========
+    let trades = [];
+    let rrTrades = [];
+    let netR = 0;
+    let balance = 10000;
+    let totalTrades = 0;
+    let wins = 0;
+    let losses = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let totalProfit = 0;
+    let totalLoss = 0;
 
-// ========== USER MANAGEMENT ==========
-function loadUsers() {
-  try { const saved = localStorage.getItem('trading_users'); if (saved) state.users = JSON.parse(saved); } catch(e) {}
-}
-function saveUsers() { try { localStorage.setItem('trading_users', JSON.stringify(state.users)); } catch(e) {} }
+    // Backtesting state
+    let backtests = [];
+    let btImages = [];
+    let editingBtIndex = -1;
 
-function showSignup() {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('signupForm').style.display = 'block';
-  document.getElementById('loginSubtitle').textContent = 'Create your account';
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('loginSuccess').style.display = 'none';
-}
+    // Journal state
+    let journalEntries = [];
+    let journalImages = [];
 
-function showLogin() {
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('signupForm').style.display = 'none';
-  document.getElementById('loginSubtitle').textContent = 'Sign in to your trading journal';
-  document.getElementById('signupError').style.display = 'none';
-  document.getElementById('signupSuccess').style.display = 'none';
-}
+    // Calendar state
+    let calMonth = new Date().getMonth();
+    let calYear = new Date().getFullYear();
 
-function handleSignup() {
-  const name = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
-  const password = document.getElementById('signupPassword').value;
-  const confirm = document.getElementById('signupConfirm').value;
-  const errorDiv = document.getElementById('signupError');
-  const successDiv = document.getElementById('signupSuccess');
+    // Chart instances
+    let equityChartInstance = null;
+    let plChartInstance = null;
+    let reportWeekdayChart = null;
+    let reportSessionChart = null;
+    let reportStrategyChart = null;
+    let reportGradeChart = null;
 
-  errorDiv.style.display = 'none';
-  successDiv.style.display = 'none';
+    // ========== NAVIGATION ==========
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
+            this.classList.add('active-nav');
+            const page = this.dataset.page;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            if (page === 'backtesting') updateBacktestingUI();
+            if (page === 'journal') updateJournalUI();
+            if (page === 'reports') updateReportsUI();
+            if (page === 'calendar') updateCalendarFull();
+        });
+    });
 
-  if (!name || !email || !password || !confirm) {
-    errorDiv.textContent = 'Please fill in all fields';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (password.length < 6) {
-    errorDiv.textContent = 'Password must be at least 6 characters';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (password !== confirm) {
-    errorDiv.textContent = 'Passwords do not match';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (state.users[email]) {
-    errorDiv.textContent = 'Email already registered';
-    errorDiv.style.display = 'block';
-    return;
-  }
+    // ========== DATE ==========
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+    });
 
-  state.users[email] = { name, email, password, created: new Date().toISOString() };
-  saveUsers();
-  successDiv.textContent = '✅ Account created! Please sign in.';
-  successDiv.style.display = 'block';
-  document.getElementById('signupName').value = '';
-  document.getElementById('signupEmail').value = '';
-  document.getElementById('signupPassword').value = '';
-  document.getElementById('signupConfirm').value = '';
-
-  setTimeout(() => {
-    showLogin();
-    document.getElementById('loginEmail').value = email;
-    successDiv.style.display = 'none';
-  }, 2000);
-}
-
-function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
-  const errorDiv = document.getElementById('loginError');
-
-  errorDiv.style.display = 'none';
-
-  if (!email || !password) {
-    errorDiv.textContent = 'Please enter email and password';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (!state.users[email]) {
-    errorDiv.textContent = 'Email not found. Please create an account.';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (state.users[email].password !== password) {
-    errorDiv.textContent = 'Invalid password';
-    errorDiv.style.display = 'block';
-    return;
-  }
-
-  state.currentUser = email;
-  document.getElementById('userEmailDisplay').textContent = email;
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPassword').value = '';
-  loadUserData(email);
-}
-
-function handleLogout() {
-  if (confirm('Logout? Your data will be saved.')) {
-    saveUserData(state.currentUser);
-    state.currentUser = null;
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
-  }
-}
-
-// ========== DATA MANAGEMENT ==========
-function getUserDataKey(email) { return `tradevault_data_${email}`; }
-
-function saveUserData(email) {
-  try {
-    const data = {
-      email,
-      balance: state.balance,
-      trades: state.trades,
-      rrTrades: state.rrTrades,
-      netR: state.netR,
-      backtests: state.backtests,
-      journalEntries: state.journalEntries,
-      aplusScores: state.aplusScores,
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem(getUserDataKey(email), JSON.stringify(data));
-  } catch(e) { console.error('Error saving data:', e); }
-}
-
-function loadUserData(email) {
-  try {
-    const saved = localStorage.getItem(getUserDataKey(email));
-    if (saved) {
-      const data = JSON.parse(saved);
-      if (data.balance !== undefined) state.balance = data.balance;
-      if (data.trades) state.trades = data.trades;
-      if (data.rrTrades) state.rrTrades = data.rrTrades;
-      if (data.netR !== undefined) state.netR = data.netR;
-      if (data.backtests) state.backtests = data.backtests;
-      if (data.journalEntries) state.journalEntries = data.journalEntries;
-      if (data.aplusScores) state.aplusScores = data.aplusScores;
-    } else {
-      // Sample data
-      state.trades = [];
-      state.rrTrades = [];
-      state.netR = 0;
-      state.backtests = [];
-      state.journalEntries = [];
-      state.aplusScores = [92];
+    // ========== QUICK TRADE ==========
+    function updateQuickLabels() {
+        const rr = document.getElementById('quickRR').value;
+        const reward = parseInt(rr.split(':')[1]);
+        document.getElementById('quickWinLabel').textContent = `+${reward}R`;
+        document.getElementById('quickLossLabel').textContent = '-1R';
     }
-    document.getElementById('startBalanceInput').value = 1000;
-    updateAll();
-  } catch(e) { console.error('Error loading data:', e); }
-}
+    document.getElementById('quickRR').addEventListener('change', updateQuickLabels);
+    updateQuickLabels();
 
-// ========== THEME ==========
-function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  const icon = document.querySelector('.theme-toggle i');
-  icon.classList.toggle('fa-moon');
-  icon.classList.toggle('fa-sun');
-}
-
-// ========== DATE ==========
-document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-});
-
-// ========== QUICK TRADE ==========
-function updateQuickLabels() {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  document.getElementById('quickWinLabel').textContent = `+${reward}R`;
-  document.getElementById('quickLossLabel').textContent = '-1R';
-}
-document.getElementById('quickRR').addEventListener('change', updateQuickLabels);
-updateQuickLabels();
-
-function quickTrade(result) {
-  const rr = document.getElementById('quickRR').value;
-  const reward = parseInt(rr.split(':')[1]);
-  const riskAmount = (state.balance * 2.5) / 100;
-  const amount = result === 'win' ? riskAmount * reward : riskAmount;
-  addTrade(result, amount, result === 'win' ? 'BUY' : 'SELL', rr);
-}
-
-function manualAddTrade() {
-  const type = document.getElementById('tradeType').value;
-  const amount = parseFloat(document.getElementById('tradeAmount').value) || 100;
-  const dir = document.getElementById('tradeDirection').value.toUpperCase() || 'BUY';
-  const rr = document.getElementById('tradeRR').value;
-  addTrade(type, amount, dir, rr);
-}
-
-function addTrade(result, amount, dir, rr) {
-  const isWin = result === 'win';
-  const reward = parseInt(rr.split(':')[1]);
-  const rValue = isWin ? reward : -1;
-  
-  state.balance += isWin ? amount : -amount;
-  state.trades.push({
-    id: Date.now(),
-    date: new Date().toISOString().slice(0,10),
-    dir: dir,
-    result: isWin ? 'win' : 'loss',
-    amount: amount,
-    rr: rr,
-    rValue: rValue
-  });
-  
-  state.netR += rValue;
-  state.rrTrades.push({
-    id: Date.now(),
-    ratio: rr,
-    result: isWin ? 'win' : 'loss',
-    rValue: rValue,
-    runningR: state.netR
-  });
-  
-  state.aplusScores.push(Math.min(100, Math.floor(60 + Math.random() * 40)));
-  updateAll();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
-
-// ========== RR TRACKER ==========
-function addRRTrade() {
-  const ratio = document.getElementById('rrRatio').value;
-  const result = document.getElementById('rrResult').value;
-  const reward = parseInt(ratio.split(':')[1]);
-  const rValue = result === 'win' ? reward : -1;
-  state.netR += rValue;
-  state.rrTrades.push({
-    id: Date.now(),
-    ratio: ratio,
-    result: result,
-    rValue: rValue,
-    runningR: state.netR
-  });
-  updateAll();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
-
-function clearRRTracker() {
-  if (confirm('Clear all RR trades?')) {
-    state.rrTrades = [];
-    state.netR = 0;
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-// ========== UPDATE ALL ==========
-function updateAll() {
-  updateDashboard();
-  updateTradesPage();
-  updateRRTable();
-  updateTradeHistory();
-  updateBacktestingUI();
-  updateCalendar();
-  updateAnalytics();
-  updateLotSize();
-  updateScore();
-}
-
-// ========== UPDATE DASHBOARD ==========
-function updateDashboard() {
-  const total = state.trades.length;
-  const wins = state.trades.filter(t => t.result === 'win').length;
-  const losses = total - wins;
-  const winRate = total > 0 ? (wins / total * 100) : 0;
-  const totalProfit = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  const avgWin = wins > 0 ? state.trades.filter(t => t.result === 'win').reduce((a, t) => a + t.amount, 0) / wins : 0;
-  const avgLoss = losses > 0 ? state.trades.filter(t => t.result === 'loss').reduce((a, t) => a + t.amount, 0) / losses : 0;
-  const pf = losses > 0 ? (wins / losses) : (wins > 0 ? wins : 0);
-  const expectancy = total > 0 ? totalProfit / total : 0;
-  const streak = total > 0 ? (state.trades[state.trades.length - 1]?.result === 'win' ? 1 : -1) : 0;
-  const avgRR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
-  const aplusRate = state.aplusScores.length > 0 ? state.aplusScores.filter(s => s >= 90).length / state.aplusScores.length * 100 : 0;
-
-  document.getElementById('dashBalance').textContent = `$${state.balance.toFixed(0)}`;
-  document.getElementById('dashTotalProfit').textContent = `$${totalProfit.toFixed(0)}`;
-  document.getElementById('dashNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
-  document.getElementById('dashWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('dashProfitFactor').textContent = pf.toFixed(2);
-  document.getElementById('dashExpectancy').textContent = `$${expectancy.toFixed(2)}`;
-  document.getElementById('dashAvgWin').textContent = `$${avgWin.toFixed(0)}`;
-  document.getElementById('dashAvgLoss').textContent = `$${avgLoss.toFixed(0)}`;
-  document.getElementById('dashStreak').textContent = streak;
-  document.getElementById('dashBestStreak').textContent = Math.max(state.trades.reduce((a, t) => {
-    if (t.result === 'win') { a++; return a; }
-    return 0;
-  }, 0), 0);
-  document.getElementById('dashConsistency').textContent = state.rrTrades.length > 0 ? '100%' : '100%';
-  document.getElementById('dashTotalTrades').textContent = total;
-  document.getElementById('dashAplus').textContent = `${aplusRate.toFixed(1)}%`;
-  document.getElementById('dashAvgRR').textContent = `${avgRR.toFixed(1)}R`;
-}
-
-// ========== UPDATE TRADES PAGE ==========
-function updateTradesPage() {
-  document.getElementById('tradesNetR').textContent = `${state.netR > 0 ? '+' : ''}${state.netR.toFixed(1)}R`;
-  const avgR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
-  document.getElementById('tradesAvgR').textContent = avgR.toFixed(1);
-  document.getElementById('tradeCount').textContent = state.trades.length;
-}
-
-function updateRRTable() {
-  const tbody = document.getElementById('rrTableBody');
-  if (state.rrTrades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-[#4B5563] py-3">No RR trades yet</td></tr>';
-    return;
-  }
-  tbody.innerHTML = state.rrTrades.map((t, i) => {
-    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    const rClass = t.rValue > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    const runClass = t.runningR > 0 ? 'text-[#22C55E]' : (t.runningR < 0 ? 'text-[#EF4444]' : 'text-[#F59E0B]');
-    const rDisplay = t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`;
-    return `<tr>
-      <td>${i+1}</td>
-      <td>${t.ratio}</td>
-      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-      <td class="${rClass}">${rDisplay}</td>
-      <td class="${runClass}">${t.runningR > 0 ? '+' : ''}${t.runningR.toFixed(1)}R</td>
-      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteRRTrade(${i})"><i class="fas fa-trash-alt"></i></button></td>
-    </tr>`;
-  }).join('');
-}
-
-function deleteRRTrade(index) {
-  if (confirm('Delete this RR trade?')) {
-    state.netR -= state.rrTrades[index].rValue;
-    state.rrTrades.splice(index, 1);
-    let running = 0;
-    state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-function updateTradeHistory() {
-  const tbody = document.getElementById('tradeHistoryBody');
-  if (state.trades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-[#4B5563] py-3">No trades yet</td></tr>';
-    return;
-  }
-  const search = document.getElementById('tradeSearch')?.value?.toLowerCase() || '';
-  const filtered = state.trades.filter(t => 
-    t.pair?.toLowerCase().includes(search) || 
-    t.strategy?.toLowerCase().includes(search) ||
-    t.rr?.includes(search)
-  );
-  const data = filtered.length > 0 ? filtered : state.trades;
-  tbody.innerHTML = data.slice().reverse().map((t, i) => {
-    const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
-    return `<tr>
-      <td>${state.trades.length - i}</td>
-      <td>${t.date}</td>
-      <td>${t.dir}</td>
-      <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
-      <td class="${resultClass}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
-      <td>${t.rr}</td>
-      <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteTrade(${state.trades.indexOf(t)})"><i class="fas fa-trash-alt"></i></button></td>
-    </tr>`;
-  }).join('');
-}
-
-function deleteTrade(index) {
-  if (confirm('Delete this trade?')) {
-    const t = state.trades[index];
-    state.balance -= t.result === 'win' ? t.amount : -t.amount;
-    state.trades.splice(index, 1);
-    // Remove corresponding RR trade
-    if (index < state.rrTrades.length) {
-      state.netR -= state.rrTrades[index].rValue;
-      state.rrTrades.splice(index, 1);
-      let running = 0;
-      state.rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
+    function quickTrade(result) {
+        const rr = document.getElementById('quickRR').value;
+        const reward = parseInt(rr.split(':')[1]);
+        const riskAmount = balance * 0.025;
+        const amount = result === 'win' ? riskAmount * reward : riskAmount;
+        addTrade(result, amount, result === 'win' ? 'BUY' : 'SELL', rr);
     }
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
 
-function filterTrades() { updateTradeHistory(); }
-
-function clearAllTrades() {
-  if (confirm('Clear all trades? This cannot be undone!')) {
-    state.trades = [];
-    state.rrTrades = [];
-    state.netR = 0;
-    state.balance = 1000;
-    updateAll();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-// ========== UPDATE LOT SIZE ==========
-function updateLotSize() {
-  try {
-    const riskPct = 2.5;
-    const slPts = parseFloat(document.getElementById('slInput').value) || 200;
-    const riskAmount = (state.balance * riskPct) / 100;
-    const lotSize = riskAmount / slPts * 10;
-    document.getElementById('lotDisplay').textContent = `Risk $${riskAmount.toFixed(2)} · Lot ${lotSize.toFixed(2)}`;
-    document.getElementById('riskInput').value = riskPct;
-  } catch(e) { console.error('Lot size error:', e); }
-}
-
-// ========== UPDATE SCORE ==========
-function updateScore() {
-  const score = state.aplusScores.length > 0 ? state.aplusScores[state.aplusScores.length - 1] : 92;
-  document.getElementById('scoreDisplay').textContent = score;
-  const label = document.getElementById('scoreLabel');
-  if (score >= 90) { label.textContent = 'A+ Trade'; label.className = 'text-xs text-[#22C55E]'; }
-  else if (score >= 70) { label.textContent = 'Acceptable'; label.className = 'text-xs text-[#F59E0B]'; }
-  else { label.textContent = 'Skip Trade'; label.className = 'text-xs text-[#EF4444]'; }
-}
-
-// ========== BACKTESTING ==========
-let backtestImages = [];
-let editingBacktestIndex = -1;
-
-function toggleBacktestForm() {
-  const form = document.getElementById('backtestForm');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
-  if (form.style.display === 'block') {
-    document.getElementById('btDate').value = new Date().toISOString().slice(0, 10);
-    document.getElementById('imagePreviewContainer').innerHTML = '';
-    backtestImages = [];
-  }
-}
-
-function handleImageUpload(event) {
-  const files = event.target.files;
-  for (let file of files) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      backtestImages.push(e.target.result);
-      renderImagePreviews();
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function renderImagePreviews() {
-  const container = document.getElementById('imagePreviewContainer');
-  container.innerHTML = backtestImages.map((img, i) => `
-    <div class="relative">
-      <img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />
-      <button class="absolute top-1 right-1 bg-[#EF4444] text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-[#DC2626] transition-colors" onclick="removeImage(${i})">&times;</button>
-    </div>
-  `).join('');
-}
-
-function removeImage(index) {
-  backtestImages.splice(index, 1);
-  renderImagePreviews();
-}
-
-// Drag and drop
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
-dropZone.addEventListener('drop', function(e) {
-  e.preventDefault();
-  this.classList.remove('dragover');
-  const files = e.dataTransfer.files;
-  for (let file of files) {
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        backtestImages.push(e.target.result);
-        renderImagePreviews();
-      };
-      reader.readAsDataURL(file);
+    function manualAddTrade() {
+        const type = document.getElementById('tradeType').value;
+        const amount = parseFloat(document.getElementById('tradeAmount').value) || 100;
+        const dir = document.getElementById('tradeDirection').value.toUpperCase() || 'BUY';
+        const rr = document.getElementById('tradeRR').value;
+        const pair = document.getElementById('tradePair').value || 'XAUUSD';
+        addTrade(type, amount, dir, rr, pair);
     }
-  }
-});
 
-function saveBacktest() {
-  const bt = {
-    id: Date.now(),
-    pair: document.getElementById('btPair').value,
-    direction: document.getElementById('btDirection').value,
-    date: document.getElementById('btDate').value,
-    timeframe: document.getElementById('btTimeframe').value,
-    session: document.getElementById('btSession').value,
-    rr: document.getElementById('btRR').value,
-    result: document.getElementById('btResult').value,
-    entry: parseFloat(document.getElementById('btEntry').value) || 0,
-    sl: parseFloat(document.getElementById('btSL').value) || 0,
-    tp: parseFloat(document.getElementById('btTP').value) || 0,
-    lot: parseFloat(document.getElementById('btLot').value) || 0,
-    strategy: document.getElementById('btStrategy').value || 'Unknown',
-    grade: document.getElementById('btGrade').value,
-    confidence: parseInt(document.getElementById('btConfidence').value) || 7,
-    emotions: document.getElementById('btEmotions').value,
-    mistakes: document.getElementById('btMistakes').value || 'None',
-    lessons: document.getElementById('btLessons').value || 'None',
-    notes: document.getElementById('btNotes').value || '',
-    tags: document.getElementById('btTags').value.split(',').map(t => t.trim()).filter(t => t),
-    images: [...backtestImages]
-  };
-  const reward = parseInt(bt.rr.split(':')[1]);
-  bt.netR = bt.result === 'Win' ? `+${reward}R` : (bt.result === 'Loss' ? '-1R' : '0R');
+    function addTrade(result, amount, dir, rr, pair = 'XAUUSD') {
+        const isWin = result === 'win';
+        const reward = parseInt(rr.split(':')[1]);
+        const rValue = isWin ? reward : -1;
+        
+        balance += isWin ? amount : -amount;
+        totalTrades++;
+        isWin ? wins++ : losses++;
+        isWin ? totalProfit += amount : totalLoss += amount;
+        
+        if (isWin) {
+            streak = streak > 0 ? streak + 1 : 1;
+            if (streak > bestStreak) bestStreak = streak;
+        } else {
+            streak = streak < 0 ? streak - 1 : -1;
+        }
+        
+        trades.push({
+            id: Date.now(),
+            date: new Date().toISOString().slice(0,10),
+            pair: pair,
+            dir: dir,
+            result: isWin ? 'win' : 'loss',
+            amount: amount,
+            rr: rr,
+            rValue: rValue
+        });
+        
+        netR += rValue;
+        rrTrades.push({
+            id: Date.now(),
+            ratio: rr,
+            result: isWin ? 'win' : 'loss',
+            rValue: rValue,
+            runningR: netR
+        });
+        
+        updateAll();
+    }
 
-  if (editingBacktestIndex >= 0) {
-    state.backtests[editingBacktestIndex] = bt;
-    editingBacktestIndex = -1;
-  } else {
-    state.backtests.push(bt);
-  }
+    function deleteTrade(index) {
+        if (confirm('Delete this trade?')) {
+            const t = trades[index];
+            balance -= t.result === 'win' ? t.amount : -t.amount;
+            totalTrades--;
+            t.result === 'win' ? wins-- : losses--;
+            t.result === 'win' ? totalProfit -= t.amount : totalLoss -= t.amount;
+            trades.splice(index, 1);
+            
+            if (index < rrTrades.length) {
+                netR -= rrTrades[index].rValue;
+                rrTrades.splice(index, 1);
+                let running = 0;
+                rrTrades.forEach(t => { running += t.rValue; t.runningR = running; });
+            }
+            
+            recalculateStreak();
+            updateAll();
+        }
+    }
 
-  backtestImages = [];
-  document.getElementById('imagePreviewContainer').innerHTML = '';
-  toggleBacktestForm();
-  updateBacktestingUI();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
+    function recalculateStreak() {
+        streak = 0;
+        bestStreak = 0;
+        let currentStreak = 0;
+        trades.forEach(t => {
+            if (t.result === 'win') {
+                currentStreak = currentStreak > 0 ? currentStreak + 1 : 1;
+                if (currentStreak > bestStreak) bestStreak = currentStreak;
+                streak = currentStreak;
+            } else {
+                currentStreak = currentStreak < 0 ? currentStreak - 1 : -1;
+                streak = currentStreak;
+            }
+        });
+    }
 
-function editBacktest(index) {
-  const bt = state.backtests[index];
-  editingBacktestIndex = index;
-  document.getElementById('btPair').value = bt.pair;
-  document.getElementById('btDirection').value = bt.direction;
-  document.getElementById('btDate').value = bt.date;
-  document.getElementById('btTimeframe').value = bt.timeframe;
-  document.getElementById('btSession').value = bt.session;
-  document.getElementById('btRR').value = bt.rr;
-  document.getElementById('btResult').value = bt.result;
-  document.getElementById('btEntry').value = bt.entry || '';
-  document.getElementById('btSL').value = bt.sl || '';
-  document.getElementById('btTP').value = bt.tp || '';
-  document.getElementById('btLot').value = bt.lot || '';
-  document.getElementById('btStrategy').value = bt.strategy || '';
-  document.getElementById('btGrade').value = bt.grade || 'B';
-  document.getElementById('btConfidence').value = bt.confidence || 7;
-  document.getElementById('btEmotions').value = bt.emotions || 'Calm';
-  document.getElementById('btMistakes').value = bt.mistakes || '';
-  document.getElementById('btLessons').value = bt.lessons || '';
-  document.getElementById('btNotes').value = bt.notes || '';
-  document.getElementById('btTags').value = (bt.tags || []).join(', ');
-  backtestImages = bt.images || [];
-  renderImagePreviews();
-  toggleBacktestForm();
-}
+    function clearAllTrades() {
+        if (confirm('Clear all trades?')) {
+            trades = [];
+            rrTrades = [];
+            netR = 0;
+            balance = 10000;
+            totalTrades = 0;
+            wins = 0;
+            losses = 0;
+            streak = 0;
+            bestStreak = 0;
+            totalProfit = 0;
+            totalLoss = 0;
+            updateAll();
+        }
+    }
 
-function deleteBacktest(index) {
-  if (confirm('Delete this backtest entry?')) {
-    state.backtests.splice(index, 1);
-    updateBacktestingUI();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
+    // ========== LOT SIZE CALCULATOR ==========
+    function calculateLotSize() {
+        const bal = parseFloat(document.getElementById('calcBalance').value) || 10000;
+        const riskPct = parseFloat(document.getElementById('calcRisk').value) || 2;
+        const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
+        const sl = parseFloat(document.getElementById('calcSL').value) || 0;
+        const pipValue = parseFloat(document.getElementById('calcPipValue').value) || 0.1;
+        
+        if (entry === 0 || sl === 0 || entry === sl) {
+            document.getElementById('resultLot').textContent = '0.00';
+            document.getElementById('resultRisk').textContent = '$0.00';
+            document.getElementById('resultSL').textContent = '0.00';
+            document.getElementById('resultPipValue').textContent = '$0.00';
+            document.getElementById('resultUnits').textContent = '0';
+            return;
+        }
+        
+        const riskAmount = bal * (riskPct / 100);
+        const slDistance = Math.abs(entry - sl);
+        const pipDistance = slDistance / pipValue;
+        const lotSize = riskAmount / (pipDistance * 10);
+        
+        document.getElementById('resultLot').textContent = Math.max(0.01, lotSize).toFixed(2);
+        document.getElementById('resultRisk').textContent = `$${riskAmount.toFixed(2)}`;
+        document.getElementById('resultSL').textContent = pipDistance.toFixed(2);
+        document.getElementById('resultPipValue').textContent = `$${pipValue.toFixed(4)}`;
+        document.getElementById('resultUnits').textContent = Math.round(lotSize * 100000);
+    }
 
-function getFilteredBacktests() {
-  const search = document.getElementById('btSearch')?.value?.toLowerCase() || '';
-  const pair = document.getElementById('btFilterPair')?.value || '';
-  const result = document.getElementById('btFilterResult')?.value || '';
-  return state.backtests.filter(bt => {
-    if (search && !bt.pair.toLowerCase().includes(search) && !bt.strategy.toLowerCase().includes(search) && !bt.tags.some(t => t.toLowerCase().includes(search))) return false;
-    if (pair && bt.pair !== pair) return false;
-    if (result && bt.result !== result) return false;
-    return true;
-  });
-}
+    function applyLotToTrade() {
+        const lot = parseFloat(document.getElementById('resultLot').textContent) || 0;
+        const risk = parseFloat(document.getElementById('resultRisk').textContent.replace('$', '')) || 0;
+        if (lot > 0) {
+            document.getElementById('tradeAmount').value = risk.toFixed(2);
+            alert(`✅ Lot size ${lot.toFixed(2)} applied with risk $${risk.toFixed(2)}`);
+        }
+    }
 
-function filterBacktests() { updateBacktestingUI(); }
-function resetFilters() {
-  document.getElementById('btSearch').value = '';
-  document.getElementById('btFilterPair').value = '';
-  document.getElementById('btFilterResult').value = '';
-  updateBacktestingUI();
-}
+    // ========== UPDATE ALL ==========
+    function updateAll() {
+        updateDashboard();
+        updateTradeHistory();
+        calculateLotSize();
+        updateCharts();
+        updateMiniCalendar();
+        updateSidebar();
+        updateReportsUI();
+        updateBacktestingUI();
+        updateJournalUI();
+    }
 
-function updateBacktestingUI() {
-  const filtered = getFilteredBacktests();
-  const total = filtered.length;
-  const wins = filtered.filter(b => b.result === 'Win').length;
-  const winRate = total > 0 ? (wins / total * 100) : 0;
-  let totalRR = 0;
-  filtered.forEach(b => {
-    const reward = parseInt(b.rr.split(':')[1]);
-    if (b.result === 'Win') totalRR += reward;
-    else if (b.result === 'Loss') totalRR -= 1;
-  });
-  const avgRR = total > 0 ? totalRR / total : 0;
+    function updateDashboard() {
+        const winRate = totalTrades > 0 ? (wins / totalTrades * 100) : 0;
+        const pf = losses > 0 ? (wins / losses) : (wins > 0 ? wins : 0);
+        const avgWin = wins > 0 ? totalProfit / wins : 0;
+        const avgLoss = losses > 0 ? totalLoss / losses : 0;
+        const avgRR = rrTrades.length > 0 ? rrTrades.reduce((a, t) => a + t.rValue, 0) / rrTrades.length : 0;
+        const expectancy = totalTrades > 0 ? (totalProfit - totalLoss) / totalTrades : 0;
+        
+        const stats = [
+            { label: 'Balance', value: `$${balance.toFixed(0)}`, icon: 'fa-wallet', color: '#3B82F6' },
+            { label: 'Total Profit', value: `$${(totalProfit - totalLoss).toFixed(0)}`, icon: 'fa-chart-line', color: totalProfit - totalLoss >= 0 ? '#22C55E' : '#EF4444' },
+            { label: 'Net RR', value: `${netR >= 0 ? '+' : ''}${netR.toFixed(1)}R`, icon: 'fa-bullseye', color: '#F59E0B' },
+            { label: 'Win Rate', value: `${winRate.toFixed(1)}%`, icon: 'fa-percent', color: '#22C55E' },
+            { label: 'Profit Factor', value: pf.toFixed(2), icon: 'fa-trophy', color: '#F59E0B' },
+            { label: 'Expectancy', value: `$${expectancy.toFixed(2)}`, icon: 'fa-activity', color: '#3B82F6' },
+            { label: 'Avg Win', value: `$${avgWin.toFixed(0)}`, icon: 'fa-arrow-up', color: '#22C55E' },
+            { label: 'Avg Loss', value: `$${avgLoss.toFixed(0)}`, icon: 'fa-arrow-down', color: '#EF4444' },
+            { label: 'Current Streak', value: `${streak >= 0 ? streak : Math.abs(streak)} ${streak >= 0 ? 'W' : 'L'}`, icon: 'fa-fire', color: streak >= 0 ? '#22C55E' : '#EF4444' },
+            { label: 'Best Streak', value: `${bestStreak} W`, icon: 'fa-star', color: '#F59E0B' },
+            { label: 'Total Trades', value: totalTrades, icon: 'fa-layer-group', color: '#3B82F6' },
+            { label: 'Avg RR', value: `${avgRR.toFixed(1)}R`, icon: 'fa-arrows-left-right', color: '#3B82F6' },
+        ];
+        
+        const container = document.getElementById('dashboardStats');
+        container.innerHTML = stats.map(s => `
+            <div class="summary-card">
+                <div class="flex items-center justify-center gap-2" style="color:${s.color}">
+                    <i class="fas ${s.icon}"></i>
+                </div>
+                <div class="value" style="color:${s.color}">${s.value}</div>
+                <div class="label">${s.label}</div>
+            </div>
+        `).join('');
+    }
 
-  const strategyStats = {};
-  filtered.forEach(b => {
-    if (!strategyStats[b.strategy]) strategyStats[b.strategy] = { wins: 0, total: 0 };
-    strategyStats[b.strategy].total++;
-    if (b.result === 'Win') strategyStats[b.strategy].wins++;
-  });
-  let bestStrategy = '-', bestRate = 0;
-  Object.keys(strategyStats).forEach(s => {
-    const rate = strategyStats[s].wins / strategyStats[s].total * 100;
-    if (rate > bestRate && strategyStats[s].total >= 2) { bestRate = rate; bestStrategy = s; }
-  });
+    function updateTradeHistory() {
+        const tbody = document.getElementById('tradeHistoryBody');
+        document.getElementById('tradeCount').textContent = trades.length;
+        if (trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-[#4B5563] py-3">No trades yet</td></tr>';
+            return;
+        }
+        tbody.innerHTML = trades.slice().reverse().map((t, i) => {
+            const resultClass = t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]';
+            const index = trades.indexOf(t);
+            return `<tr>
+                <td>${trades.length - i}</td>
+                <td>${t.date}</td>
+                <td>${t.pair}</td>
+                <td>${t.dir}</td>
+                <td class="${resultClass}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
+                <td class="${resultClass}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</td>
+                <td>${t.rr}</td>
+                <td class="text-center"><button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteTrade(${index})"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+        }).join('');
+    }
 
-  const pairStats = {};
-  filtered.forEach(b => {
-    if (!pairStats[b.pair]) pairStats[b.pair] = { wins: 0, total: 0 };
-    pairStats[b.pair].total++;
-    if (b.result === 'Win') pairStats[b.pair].wins++;
-  });
-  let bestPair = '-', bestPairRate = 0;
-  Object.keys(pairStats).forEach(p => {
-    const rate = pairStats[p].wins / pairStats[p].total * 100;
-    if (rate > bestPairRate && pairStats[p].total >= 2) { bestPairRate = rate; bestPair = p; }
-  });
+    // ========== CHARTS ==========
+    function updateCharts() {
+        const ctx1 = document.getElementById('equityChart').getContext('2d');
+        const ctx2 = document.getElementById('plChart').getContext('2d');
+        
+        let eqData = [10000];
+        let eq = 10000;
+        trades.forEach(t => {
+            eq += t.result === 'win' ? t.amount : -t.amount;
+            eqData.push(eq);
+        });
+        const labels = eqData.map((_, i) => i === 0 ? 'Start' : `T${i}`);
+        
+        if (equityChartInstance) equityChartInstance.destroy();
+        equityChartInstance = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels.slice(-20),
+                datasets: [{
+                    label: 'Equity',
+                    data: eqData.slice(-20),
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.06)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            }
+        });
 
-  const aplusWins = filtered.filter(b => b.grade === 'A+' && b.result === 'Win').length;
-  const aplusTotal = filtered.filter(b => b.grade === 'A+').length;
-  const aplusRate = aplusTotal > 0 ? (aplusWins / aplusTotal * 100) : 0;
+        const plData = trades.reduce((acc, t) => {
+            const key = t.date;
+            if (!acc[key]) acc[key] = 0;
+            acc[key] += t.result === 'win' ? t.amount : -t.amount;
+            return acc;
+        }, {});
+        const plLabels = Object.keys(plData).slice(-10);
+        const plValues = plLabels.map(k => plData[k]);
+        
+        if (plChartInstance) plChartInstance.destroy();
+        plChartInstance = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: plLabels.map(d => d.slice(5)),
+                datasets: [{
+                    label: 'P/L',
+                    data: plValues,
+                    backgroundColor: plValues.map(v => v >= 0 ? '#22C55E' : '#EF4444'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            }
+        });
+    }
 
-  document.getElementById('btStatTotal').textContent = total;
-  document.getElementById('btStatWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('btStatAvgRR').textContent = `${avgRR.toFixed(1)}R`;
-  document.getElementById('btStatBestStrategy').textContent = bestStrategy;
-  document.getElementById('btStatBestPair').textContent = bestPair;
-  document.getElementById('btStatAplus').textContent = `${aplusRate.toFixed(1)}%`;
+    // ========== MINI CALENDAR ==========
+    function updateMiniCalendar() {
+        const container = document.getElementById('miniCalendar');
+        const today = new Date();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const byDay = {};
+        trades.forEach(t => {
+            if (!byDay[t.date]) byDay[t.date] = [];
+            byDay[t.date].push(t);
+        });
+        
+        let html = '';
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        dayNames.forEach(d => {
+            html += `<div class="text-center text-xs text-[#4B5563] font-medium py-1">${d}</div>`;
+        });
+        
+        for (let i = 0; i < firstDay; i++) {
+            html += `<div class="text-center text-xs text-[#1F2937] py-2"></div>`;
+        }
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = new Date(year, month, d).toISOString().slice(0, 10);
+            const dayTrades = byDay[dateStr] || [];
+            const pnl = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+            const isToday = dateStr === new Date().toISOString().slice(0, 10);
+            
+            let cls = 'text-center text-xs py-1 rounded cursor-pointer transition-colors';
+            if (dayTrades.length > 0) {
+                cls += pnl >= 0 ? ' bg-[#22C55E]/20 text-[#22C55E]' : ' bg-[#EF4444]/20 text-[#EF4444]';
+            } else {
+                cls += ' text-[#4B5563]';
+            }
+            if (isToday) cls += ' ring-1 ring-[#3B82F6]';
+            
+            html += `<div class="${cls}" onclick="showDayTrades('${dateStr}')">
+                ${d}
+                ${dayTrades.length > 0 ? `<div class="text-[9px] font-bold">${pnl >= 0 ? '+' : ''}$${Math.round(pnl)}</div>` : ''}
+            </div>`;
+        }
+        
+        container.innerHTML = html;
+    }
 
-  // Gallery
-  const gallery = document.getElementById('btGallery');
-  if (filtered.length === 0) {
-    gallery.innerHTML = '<div class="col-span-full text-center text-[#4B5563] py-6">No backtests match your filters</div>';
-    return;
-  }
-  gallery.innerHTML = filtered.map((bt, i) => {
-    const resultClass = bt.result === 'Win' ? 'badge-win' : (bt.result === 'Loss' ? 'badge-loss' : 'badge-neutral');
-    const gradeClass = bt.grade === 'A+' ? 'badge-aplus' : (bt.grade === 'A' ? 'badge-a' : (bt.grade === 'B' ? 'badge-b' : 'badge-c'));
-    const img = bt.images && bt.images.length > 0 ? bt.images[0] : 'https://via.placeholder.com/300x200/1F2937/94A3B8?text=No+Image';
-    const realIndex = state.backtests.indexOf(bt);
-    return `
-      <div class="backtest-card" onclick="openBacktestDetail(${realIndex})">
-        <img src="${img}" class="thumbnail" alt="${bt.pair}" />
-        <div class="mt-2 flex justify-between items-center">
-          <span class="font-bold text-sm">${bt.pair}</span>
-          <span class="badge ${resultClass}">${bt.result}</span>
-        </div>
-        <div class="flex justify-between text-xs text-[#94A3B8] mt-1">
-          <span>${bt.rr}</span>
-          <span>${bt.date}</span>
-        </div>
-        <div class="flex justify-between text-xs mt-1">
-          <span class="badge ${gradeClass}">${bt.grade}</span>
-          <span class="text-[#94A3B8]">${bt.strategy}</span>
-        </div>
-        <div class="flex gap-1 mt-2">
-          <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); editBacktest(${realIndex})"><i class="fas fa-edit"></i></button>
-          <button class="btn-danger btn-xs" onclick="event.stopPropagation(); deleteBacktest(${realIndex})"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
+    function showDayTrades(date) {
+        const dayTrades = trades.filter(t => t.date === date);
+        if (dayTrades.length === 0) {
+            alert(`No trades on ${date}`);
+            return;
+        }
+        const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+        let msg = `📊 Trades on ${date}\n\nTotal P/L: ${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}\n\n`;
+        dayTrades.forEach(t => {
+            msg += `${t.pair} ${t.dir} → ${t.result === 'win' ? '✅ Win' : '❌ Loss'} | $${t.amount.toFixed(2)} | ${t.rr}\n`;
+        });
+        alert(msg);
+    }
 
-function openBacktestDetail(index) {
-  const bt = state.backtests[index];
-  if (!bt) return;
-  const detail = `
+    // ========== SIDEBAR ==========
+    function updateSidebar() {
+        document.getElementById('sidebarBalance').textContent = `$${balance.toFixed(0)}`;
+    }
+
+    // ========== SETTINGS ==========
+    function saveSettings() {
+        const newBalance = parseFloat(document.getElementById('startBalanceInput').value) || 10000;
+        balance = newBalance;
+        document.getElementById('settingsMessage').textContent = '✅ Settings saved successfully!';
+        document.getElementById('settingsMessage').className = 'mt-4 text-sm text-[#22C55E]';
+        document.getElementById('settingsMessage').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('settingsMessage').style.display = 'none';
+        }, 3000);
+        updateAll();
+    }
+
+    // ========== CHECKLIST ==========
+    document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+            const allChecked = Array.from(checks).every(c => c.checked);
+            const status = document.getElementById('checklistStatus');
+            if (allChecked) {
+                status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20';
+                status.innerHTML = '✅ All checks passed - Ready to trade';
+            } else {
+                status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20';
+                status.innerHTML = '⚠️ Complete all checklist items before trading';
+            }
+        });
+    });
+
+    // ========== BACKTESTING ==========
+    function showBacktestForm() {
+        document.getElementById('backtestForm').style.display = 'block';
+        document.getElementById('btDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('btImagePreview').innerHTML = '';
+        btImages = [];
+    }
+
+    function hideBacktestForm() {
+        document.getElementById('backtestForm').style.display = 'none';
+        btImages = [];
+    }
+
+    function handleBacktestImageUpload(event) {
+        const files = event.target.files;
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                btImages.push(e.target.result);
+                renderBtImagePreviews();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function renderBtImagePreviews() {
+        const container = document.getElementById('btImagePreview');
+        container.innerHTML = btImages.map((img, i) => `
+            <div class="relative">
+                <img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />
+                <button class="absolute top-1 right-1 bg-[#EF4444] text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-[#DC2626] transition-colors" onclick="removeBtImage(${i})">&times;</button>
+            </div>
+        `).join('');
+    }
+
+    function removeBtImage(index) {
+        btImages.splice(index, 1);
+        renderBtImagePreviews();
+    }
+
+    // Drag and drop for backtesting
+    const btDropZone = document.getElementById('btDropZone');
+    btDropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+    btDropZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+    btDropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    btImages.push(e.target.result);
+                    renderBtImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+    function saveBacktest() {
+        const bt = {
+            id: Date.now(),
+            pair: document.getElementById('btPair').value,
+            direction: document.getElementById('btDirection').value,
+            date: document.getElementById('btDate').value,
+            timeframe: document.getElementById('btTimeframe').value,
+            session: document.getElementById('btSession').value,
+            rr: document.getElementById('btRR').value,
+            result: document.getElementById('btResult').value,
+            strategy: document.getElementById('btStrategy').value || 'Unknown',
+            grade: document.getElementById('btGrade').value,
+            confidence: parseInt(document.getElementById('btConfidence').value) || 7,
+            emotions: document.getElementById('btEmotions').value,
+            mistakes: document.getElementById('btMistakes').value || 'None',
+            lessons: document.getElementById('btLessons').value || 'None',
+            notes: document.getElementById('btNotes').value || '',
+            tags: document.getElementById('btTags').value.split(',').map(t => t.trim()).filter(t => t),
+            images: [...btImages]
+        };
+        const reward = parseInt(bt.rr.split(':')[1]);
+        bt.netR = bt.result === 'Win' ? `+${reward}R` : (bt.result === 'Loss' ? '-1R' : '0R');
+
+        if (editingBtIndex >= 0) {
+            backtests[editingBtIndex] = bt;
+            editingBtIndex = -1;
+        } else {
+            backtests.push(bt);
+        }
+
+        btImages = [];
+        hideBacktestForm();
+        updateBacktestingUI();
+    }
+
+    function editBacktest(index) {
+        const bt = backtests[index];
+        editingBtIndex = index;
+        document.getElementById('btPair').value = bt.pair;
+        document.getElementById('btDirection').value = bt.direction;
+        document.getElementById('btDate').value = bt.date;
+        document.getElementById('btTimeframe').value = bt.timeframe;
+        document.getElementById('btSession').value = bt.session;
+        document.getElementById('btRR').value = bt.rr;
+        document.getElementById('btResult').value = bt.result;
+        document.getElementById('btStrategy').value = bt.strategy || '';
+        document.getElementById('btGrade').value = bt.grade || 'B';
+        document.getElementById('btConfidence').value = bt.confidence || 7;
+        document.getElementById('btEmotions').value = bt.emotions || 'Calm';
+        document.getElementById('btMistakes').value = bt.mistakes || '';
+        document.getElementById('btLessons').value = bt.lessons || '';
+        document.getElementById('btNotes').value = bt.notes || '';
+        document.getElementById('btTags').value = (bt.tags || []).join(', ');
+        btImages = bt.images || [];
+        renderBtImagePreviews();
+        showBacktestForm();
+    }
+
+    function deleteBacktest(index) {
+        if (confirm('Delete this backtest entry?')) {
+            backtests.splice(index, 1);
+            updateBacktestingUI();
+        }
+    }
+
+    function updateBacktestingUI() {
+        const total = backtests.length;
+        const wins = backtests.filter(b => b.result === 'Win').length;
+        const winRate = total > 0 ? (wins / total * 100) : 0;
+        let totalRR = 0;
+        backtests.forEach(b => {
+            const reward = parseInt(b.rr.split(':')[1]);
+            if (b.result === 'Win') totalRR += reward;
+            else if (b.result === 'Loss') totalRR -= 1;
+        });
+        const avgRR = total > 0 ? totalRR / total : 0;
+
+        // Best strategy
+        const strategyStats = {};
+        backtests.forEach(b => {
+            if (!strategyStats[b.strategy]) strategyStats[b.strategy] = { wins: 0, total: 0 };
+            strategyStats[b.strategy].total++;
+            if (b.result === 'Win') strategyStats[b.strategy].wins++;
+        });
+        let bestStrategy = '-', bestRate = 0;
+        Object.keys(strategyStats).forEach(s => {
+            const rate = strategyStats[s].wins / strategyStats[s].total * 100;
+            if (rate > bestRate && strategyStats[s].total >= 2) { bestRate = rate; bestStrategy = s; }
+        });
+
+        // Best pair
+        const pairStats = {};
+        backtests.forEach(b => {
+            if (!pairStats[b.pair]) pairStats[b.pair] = { wins: 0, total: 0 };
+            pairStats[b.pair].total++;
+            if (b.result === 'Win') pairStats[b.pair].wins++;
+        });
+        let bestPair = '-', bestPairRate = 0;
+        Object.keys(pairStats).forEach(p => {
+            const rate = pairStats[p].wins / pairStats[p].total * 100;
+            if (rate > bestPairRate && pairStats[p].total >= 2) { bestPairRate = rate; bestPair = p; }
+        });
+
+        const aplusWins = backtests.filter(b => b.grade === 'A+' && b.result === 'Win').length;
+        const aplusTotal = backtests.filter(b => b.grade === 'A+').length;
+        const aplusRate = aplusTotal > 0 ? (aplusWins / aplusTotal * 100) : 0;
+
+        document.getElementById('btTotal').textContent = total;
+        document.getElementById('btWinRate').textContent = `${winRate.toFixed(1)}%`;
+        document.getElementById('btAvgRR').textContent = `${avgRR.toFixed(1)}R`;
+        document.getElementById('btBestStrategy').textContent = bestStrategy;
+        document.getElementById('btBestPair').textContent = bestPair;
+        document.getElementById('btAplus').textContent = `${aplusRate.toFixed(1)}%`;
+
+        // Gallery
+        const gallery = document.getElementById('btGallery');
+        if (backtests.length === 0) {
+            gallery.innerHTML = '<div class="col-span-full text-center text-[#4B5563] py-6">No backtests yet. Click "New Backtest" to start.</div>';
+            return;
+        }
+        gallery.innerHTML = backtests.map((bt, i) => {
+            const resultClass = bt.result === 'Win' ? 'badge-win' : (bt.result === 'Loss' ? 'badge-loss' : 'badge-neutral');
+            const gradeClass = bt.grade === 'A+' ? 'badge-aplus' : (bt.grade === 'A' ? 'badge-a' : (bt.grade === 'B' ? 'badge-b' : 'badge-c'));
+            const img = bt.images && bt.images.length > 0 ? bt.images[0] : 'https://via.placeholder.com/300x200/1F2937/94A3B8?text=No+Image';
+            return `
+                <div class="backtest-card" onclick="openBacktestDetail(${i})">
+                    <img src="${img}" class="thumbnail" alt="${bt.pair}" />
+                    <div class="mt-2 flex justify-between items-center">
+                        <span class="font-bold text-sm">${bt.pair}</span>
+                        <span class="badge ${resultClass}">${bt.result}</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-[#94A3B8] mt-1">
+                        <span>${bt.rr}</span>
+                        <span>${bt.date}</span>
+                    </div>
+                    <div class="flex justify-between text-xs mt-1">
+                        <span class="badge ${gradeClass}">${bt.grade}</span>
+                        <span class="text-[#94A3B8]">${bt.strategy}</span>
+                    </div>
+                    <div class="flex gap-1 mt-2">
+                        <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); editBacktest(${i})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-danger btn-xs" onclick="event.stopPropagation(); deleteBacktest(${i})"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function openBacktestDetail(index) {
+        const bt = backtests[index];
+        if (!bt) return;
+        const detail = `
 📊 BACKTEST DETAIL\n\n
 Pair: ${bt.pair}
 Direction: ${bt.direction}
@@ -1703,10 +1526,6 @@ Session: ${bt.session}
 RR: ${bt.rr}
 Result: ${bt.result}
 Net R: ${bt.netR}
-Entry: ${bt.entry || 'N/A'}
-SL: ${bt.sl || 'N/A'}
-TP: ${bt.tp || 'N/A'}
-Lot: ${bt.lot || 'N/A'}
 Strategy: ${bt.strategy}
 Grade: ${bt.grade}
 Confidence: ${bt.confidence}/10
@@ -1715,409 +1534,489 @@ Mistakes: ${bt.mistakes}
 Lessons: ${bt.lessons}
 Tags: ${(bt.tags || []).join(', ')}
 Notes: ${bt.notes || 'No notes'}`;
-  alert(detail);
-}
+        alert(detail);
+    }
 
-function exportBacktests(format) {
-  const data = getFilteredBacktests();
-  if (data.length === 0) { alert('No backtests to export'); return; }
-  if (format === 'csv') {
-    const headers = ['Date','Pair','Direction','Timeframe','Session','RR','Result','NetR','Entry','SL','TP','Lot','Strategy','Grade','Confidence','Emotions','Mistakes','Lessons','Tags','Notes'];
-    const rows = data.map(b => [b.date, b.pair, b.direction, b.timeframe, b.session, b.rr, b.result, b.netR, b.entry||'', b.sl||'', b.tp||'', b.lot||'', b.strategy, b.grade, b.confidence, b.emotions, b.mistakes, b.lessons, (b.tags||[]).join(';'), b.notes||'']);
-    let csv = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backtests_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } else if (format === 'json') {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backtests_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-}
+    // ========== JOURNAL ==========
+    function showJournalForm() {
+        document.getElementById('journalForm').style.display = 'block';
+        document.getElementById('journalDate').value = new Date().toISOString().slice(0, 10);
+    }
 
-// ========== CALENDAR ==========
-function buildCalendar(month, year, targetId) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const grid = document.getElementById(targetId);
-  let html = '';
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  days.forEach(d => html += `<div class="text-xs text-[#4B5563] text-center font-medium py-1">${d}</div>`);
-  for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day empty"></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTrades = state.trades.filter(t => t.date === dateStr);
-    const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-    let cls = 'calendar-day';
-    if (totalPL > 0) cls += ' profit';
-    else if (totalPL < 0) cls += ' loss';
-    if (dateStr === new Date().toISOString().slice(0,10)) cls += ' today';
-    html += `<div class="${cls}" onclick="showDayDetails('${dateStr}')">
-      <span class="day-number">${d}</span>
-      ${dayTrades.length > 0 ? `<span class="day-pl ${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(0)}</span>` : ''}
-    </div>`;
-  }
-  grid.innerHTML = html;
-  document.getElementById('calendarMonthYear').textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-}
+    function hideJournalForm() {
+        document.getElementById('journalForm').style.display = 'none';
+        journalImages = [];
+        document.getElementById('journalImagePreview').innerHTML = '';
+    }
 
-function buildCalendarFull(month, year) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const grid = document.getElementById('calGrid');
-  let html = '';
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  days.forEach(d => html += `<div class="text-xs text-[#4B5563] text-center font-medium py-1">${d}</div>`);
-  for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day empty"></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTrades = state.trades.filter(t => t.date === dateStr);
-    const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-    let cls = 'calendar-day';
-    if (totalPL > 0) cls += ' profit';
-    else if (totalPL < 0) cls += ' loss';
-    if (dateStr === new Date().toISOString().slice(0,10)) cls += ' today';
-    html += `<div class="${cls}" onclick="showDayDetailsFull('${dateStr}')">
-      <span class="day-number">${d}</span>
-      ${dayTrades.length > 0 ? `<span class="day-pl ${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(0)}</span>` : ''}
-    </div>`;
-  }
-  grid.innerHTML = html;
-  document.getElementById('calMonthYear').textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-  
-  // Month stats
-  const monthTrades = state.trades.filter(t => t.date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`));
-  const monthWins = monthTrades.filter(t => t.result === 'win').length;
-  const monthPL = monthTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  document.getElementById('calMonthTotal').textContent = monthTrades.length;
-  document.getElementById('calMonthWin').textContent = monthTrades.length > 0 ? `${(monthWins / monthTrades.length * 100).toFixed(1)}%` : '0%';
-  document.getElementById('calMonthPL').textContent = `$${monthPL.toFixed(0)}`;
-}
-
-function changeMonth(delta) {
-  state.calendarMonth += delta;
-  if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
-  if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
-  buildCalendar(state.calendarMonth, state.calendarYear, 'calendarGrid');
-  buildCalendarFull(state.calendarMonth, state.calendarYear);
-}
-
-function showDayDetails(dateStr) {
-  const dayTrades = state.trades.filter(t => t.date === dateStr);
-  const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  const details = document.getElementById('calDayDetails');
-  if (dayTrades.length === 0) {
-    details.innerHTML = `<div class="text-[#4B5563]">No trades on ${dateStr}</div>`;
-    return;
-  }
-  details.innerHTML = `
-    <div class="font-bold text-[#F8FAFC]">${dateStr}</div>
-    <div class="text-sm">Trades: ${dayTrades.length} | P/L: <span class="${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(2)}</span></div>
-    <div class="mt-2 space-y-1 text-xs">
-      ${dayTrades.map(t => `<div class="flex justify-between border-b border-[#1F2937] py-1">
-        <span>${t.dir}</span>
-        <span class="${t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</span>
-        <span>${t.rr}</span>
-      </div>`).join('')}
-    </div>
-  `;
-}
-
-function showDayDetailsFull(dateStr) {
-  showDayDetails(dateStr);
-}
-
-function updateCalendar() {
-  buildCalendar(state.calendarMonth, state.calendarYear, 'calendarGrid');
-  buildCalendarFull(state.calendarMonth, state.calendarYear);
-}
-
-// ========== JOURNAL ==========
-function addJournalEntry() {
-  const entry = {
-    id: Date.now(),
-    date: new Date().toISOString().slice(0,10),
-    title: 'Journal Entry ' + (state.journalEntries.length + 1),
-    content: 'Write your thoughts about today\'s trading...',
-    emotions: 'Calm',
-    mistakes: '',
-    lessons: '',
-    tags: []
-  };
-  state.journalEntries.push(entry);
-  updateJournal();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
-
-function updateJournal() {
-  const container = document.getElementById('journalEntries');
-  if (state.journalEntries.length === 0) {
-    container.innerHTML = '<div class="text-center text-[#4B5563] py-6">No journal entries yet. Click "New Entry" to start.</div>';
-    return;
-  }
-  container.innerHTML = state.journalEntries.slice().reverse().map((entry, i) => `
-    <div class="glass-card p-3">
-      <div class="flex justify-between items-start">
-        <div>
-          <span class="font-bold">${entry.title}</span>
-          <span class="text-xs text-[#94A3B8] ml-2">${entry.date}</span>
-        </div>
-        <button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteJournalEntry(${state.journalEntries.length - 1 - i})"><i class="fas fa-trash-alt"></i></button>
-      </div>
-      <p class="text-sm text-[#94A3B8] mt-1">${entry.content}</p>
-      <div class="flex gap-2 mt-2">
-        <span class="text-xs text-[#94A3B8]">Emotions: ${entry.emotions}</span>
-        ${entry.mistakes ? `<span class="text-xs text-[#EF4444]">Mistakes: ${entry.mistakes}</span>` : ''}
-        ${entry.lessons ? `<span class="text-xs text-[#22C55E]">Lessons: ${entry.lessons}</span>` : ''}
-      </div>
-      ${entry.tags.length > 0 ? `<div class="flex gap-1 mt-1">${entry.tags.map(t => `<span class="badge badge-neutral">${t}</span>`).join('')}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-function deleteJournalEntry(index) {
-  if (confirm('Delete this journal entry?')) {
-    state.journalEntries.splice(index, 1);
-    updateJournal();
-    if (state.currentUser) saveUserData(state.currentUser);
-  }
-}
-
-// ========== ANALYTICS ==========
-function updateAnalytics() {
-  const total = state.trades.length;
-  const wins = state.trades.filter(t => t.result === 'win').length;
-  const winRate = total > 0 ? (wins / total * 100) : 0;
-  const totalProfit = state.trades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
-  const avgRR = state.rrTrades.length > 0 ? state.rrTrades.reduce((a, t) => a + t.rValue, 0) / state.rrTrades.length : 0;
-  
-  document.getElementById('anaTotal').textContent = total;
-  document.getElementById('anaWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('anaAvgRR').textContent = `${avgRR.toFixed(1)}R`;
-  document.getElementById('anaProfit').textContent = `$${totalProfit.toFixed(0)}`;
-}
-
-// ========== CHARTS ==========
-let charts = {};
-
-function initCharts() {
-  try {
-    // Equity Chart
-    const ctx1 = document.getElementById('dashEquityChart');
-    if (ctx1) {
-      charts.equity = new Chart(ctx1.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: ['Start'],
-          datasets: [{
-            label: 'Equity',
-            data: [1000],
-            borderColor: '#3B82F6',
-            backgroundColor: 'rgba(59, 130, 246, 0.06)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 2,
-            pointBackgroundColor: '#3B82F6',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
-            x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
-          }
+    function handleJournalImageUpload(event) {
+        const files = event.target.files;
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                journalImages.push(e.target.result);
+                renderJournalImagePreviews();
+            };
+            reader.readAsDataURL(file);
         }
-      });
     }
 
-    // Daily Chart
-    const ctx2 = document.getElementById('dashDailyChart');
-    if (ctx2) {
-      charts.daily = new Chart(ctx2.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{
-            label: 'P/L',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: '#3B82F6',
-            borderRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
-            x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 9 } } }
-          }
+    function renderJournalImagePreviews() {
+        const container = document.getElementById('journalImagePreview');
+        container.innerHTML = journalImages.map((img, i) => `
+            <div class="relative">
+                <img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />
+                <button class="absolute top-1 right-1 bg-[#EF4444] text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-[#DC2626] transition-colors" onclick="removeJournalImage(${i})">&times;</button>
+            </div>
+        `).join('');
+    }
+
+    function removeJournalImage(index) {
+        journalImages.splice(index, 1);
+        renderJournalImagePreviews();
+    }
+
+    function saveJournalEntry() {
+        const entry = {
+            id: Date.now(),
+            title: document.getElementById('journalTitle').value || 'Journal Entry',
+            date: document.getElementById('journalDate').value || new Date().toISOString().slice(0, 10),
+            content: document.getElementById('journalContent').value || '',
+            emotions: document.getElementById('journalEmotions').value,
+            tags: document.getElementById('journalTags').value.split(',').map(t => t.trim()).filter(t => t),
+            mistakes: document.getElementById('journalMistakes').value || '',
+            lessons: document.getElementById('journalLessons').value || '',
+            images: [...journalImages]
+        };
+        journalEntries.push(entry);
+        journalImages = [];
+        hideJournalForm();
+        updateJournalUI();
+    }
+
+    function deleteJournalEntry(index) {
+        if (confirm('Delete this journal entry?')) {
+            journalEntries.splice(index, 1);
+            updateJournalUI();
         }
-      });
-    }
-  } catch(e) { console.error('Chart init error:', e); }
-}
-
-function updateCharts() {
-  try {
-    // Update equity chart
-    let eqData = [1000];
-    let eq = 1000;
-    state.trades.forEach(t => {
-      eq += t.result === 'win' ? t.amount : -t.amount;
-      eqData.push(eq);
-    });
-    const labels = eqData.map((_, i) => i === 0 ? 'Start' : `T${i}`);
-    if (charts.equity) {
-      charts.equity.data.labels = labels;
-      charts.equity.data.datasets[0].data = eqData;
-      charts.equity.update();
     }
 
-    // Update daily chart
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dailyPL = [0, 0, 0, 0, 0, 0, 0];
-    state.trades.forEach(t => {
-      const day = new Date(t.date).getDay();
-      dailyPL[day] += t.result === 'win' ? t.amount : -t.amount;
-    });
-    if (charts.daily) {
-      charts.daily.data.datasets[0].data = dailyPL;
-      charts.daily.update();
+    function filterJournal() {
+        updateJournalUI();
     }
-  } catch(e) { console.error('Chart update error:', e); }
-}
 
-// ========== SAVE SETTINGS ==========
-function saveSettings() {
-  const newBalance = parseFloat(document.getElementById('startBalanceInput').value) || 1000;
-  const newRisk = parseFloat(document.getElementById('riskPercentInput').value) || 2.5;
-  const newMaxLoss = parseFloat(document.getElementById('maxDailyLossInput').value) || 7.5;
-  if (newBalance < 1) { alert('Balance must be at least $1'); return; }
-  if (newRisk < 0.1 || newRisk > 20) { alert('Risk % must be 0.1-20'); return; }
-  if (newMaxLoss < 0.1 || newMaxLoss > 50) { alert('Max Daily Loss % must be 0.1-50'); return; }
-  state.balance = newBalance;
-  document.getElementById('settingsMessage').textContent = '✅ Settings saved successfully!';
-  document.getElementById('settingsMessage').className = 'mt-4 text-sm text-[#22C55E]';
-  document.getElementById('settingsMessage').style.display = 'block';
-  setTimeout(() => { document.getElementById('settingsMessage').style.display = 'none'; }, 3000);
-  updateAll();
-  if (state.currentUser) saveUserData(state.currentUser);
-}
+    function exportJournal() {
+        const dataStr = JSON.stringify(journalEntries, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `journal_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
-// ========== EXPORT/IMPORT ==========
-function exportAllData() {
-  try {
-    const data = {
-      balance: state.balance,
-      trades: state.trades,
-      rrTrades: state.rrTrades,
-      netR: state.netR,
-      backtests: state.backtests,
-      journalEntries: state.journalEntries,
-      aplusScores: state.aplusScores,
-      exportDate: new Date().toISOString()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tradevault_data_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch(e) { alert('Error exporting: ' + e.message); }
-}
+    function updateJournalUI() {
+        const container = document.getElementById('journalEntries');
+        const search = document.getElementById('journalSearch').value.toLowerCase();
+        const filtered = journalEntries.filter(e => 
+            e.title.toLowerCase().includes(search) || 
+            e.content.toLowerCase().includes(search) ||
+            e.tags.some(t => t.toLowerCase().includes(search))
+        );
 
-function handleImport(event) {
-  try {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (data.balance !== undefined) state.balance = data.balance;
-        if (data.trades) state.trades = data.trades;
-        if (data.rrTrades) state.rrTrades = data.rrTrades;
-        if (data.netR !== undefined) state.netR = data.netR;
-        if (data.backtests) state.backtests = data.backtests;
-        if (data.journalEntries) state.journalEntries = data.journalEntries;
-        if (data.aplusScores) state.aplusScores = data.aplusScores;
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-center text-[#4B5563] py-6">No journal entries yet. Click "New Entry" to start.</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map((entry, i) => {
+            const index = journalEntries.indexOf(entry);
+            return `
+                <div class="journal-entry">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-bold">${entry.title}</span>
+                            <span class="text-xs text-[#94A3B8] ml-2">${entry.date}</span>
+                        </div>
+                        <button class="text-[#94A3B8] hover:text-[#EF4444] transition-colors" onclick="deleteJournalEntry(${index})"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    ${entry.images && entry.images.length > 0 ? `
+                        <div class="image-gallery mt-2">
+                            ${entry.images.map(img => `<img src="${img}" class="gallery-img" onclick="openLightbox('${img}')" />`).join('')}
+                        </div>
+                    ` : ''}
+                    <p class="text-sm text-[#94A3B8] mt-2">${entry.content}</p>
+                    <div class="flex gap-2 mt-2 flex-wrap">
+                        <span class="text-xs text-[#94A3B8]">Emotions: ${entry.emotions}</span>
+                        ${entry.mistakes ? `<span class="text-xs text-[#EF4444]">Mistakes: ${entry.mistakes}</span>` : ''}
+                        ${entry.lessons ? `<span class="text-xs text-[#22C55E]">Lessons: ${entry.lessons}</span>` : ''}
+                    </div>
+                    ${entry.tags.length > 0 ? `<div class="flex gap-1 mt-1">${entry.tags.map(t => `<span class="badge badge-neutral">${t}</span>`).join('')}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ========== REPORTS ==========
+    function updateReportsUI() {
+        const winRate = totalTrades > 0 ? (wins / totalTrades * 100) : 0;
+        const pf = losses > 0 ? (wins / losses) : (wins > 0 ? wins : 0);
+        const avgRR = rrTrades.length > 0 ? rrTrades.reduce((a, t) => a + t.rValue, 0) / rrTrades.length : 0;
+        const expectancy = totalTrades > 0 ? (totalProfit - totalLoss) / totalTrades : 0;
+
+        const stats = [
+            { label: 'Total Trades', value: totalTrades, color: '#3B82F6' },
+            { label: 'Win Rate', value: `${winRate.toFixed(1)}%`, color: '#22C55E' },
+            { label: 'Profit Factor', value: pf.toFixed(2), color: '#F59E0B' },
+            { label: 'Avg RR', value: `${avgRR.toFixed(1)}R`, color: '#3B82F6' },
+            { label: 'Expectancy', value: `$${expectancy.toFixed(2)}`, color: '#22C55E' },
+        ];
+        document.getElementById('reportStats').innerHTML = stats.map(s => `
+            <div class="summary-card">
+                <div class="value" style="color:${s.color}">${s.value}</div>
+                <div class="label">${s.label}</div>
+            </div>
+        `).join('');
+
+        // Charts
+        updateReportCharts();
+    }
+
+    function updateReportCharts() {
+        // Weekday chart
+        const weekdayData = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => {
+            const dayTrades = trades.filter(t => new Date(t.date).toLocaleString('en', { weekday: 'short' }) === day);
+            const pnl = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+            return { day, pnl };
+        });
+
+        if (reportWeekdayChart) reportWeekdayChart.destroy();
+        reportWeekdayChart = new Chart(document.getElementById('reportWeekdayChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: weekdayData.map(d => d.day),
+                datasets: [{
+                    label: 'P/L',
+                    data: weekdayData.map(d => d.pnl),
+                    backgroundColor: weekdayData.map(d => d.pnl >= 0 ? '#22C55E' : '#EF4444'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8' } }, x: { grid: { display: false }, ticks: { color: '#94A3B8' } } }
+            }
+        });
+
+        // Session chart
+        const sessionData = {};
+        trades.forEach(t => {
+            if (!sessionData[t.session]) sessionData[t.session] = 0;
+            sessionData[t.session] += t.result === 'win' ? t.amount : -t.amount;
+        });
+        const sessionLabels = Object.keys(sessionData);
+        const sessionValues = sessionLabels.map(k => sessionData[k]);
+
+        if (reportSessionChart) reportSessionChart.destroy();
+        reportSessionChart = new Chart(document.getElementById('reportSessionChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: sessionLabels,
+                datasets: [{
+                    data: sessionValues.map(Math.abs),
+                    backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B', '#8B5CF6', '#EF4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94A3B8' } }
+                }
+            }
+        });
+
+        // Strategy chart
+        const strategyData = {};
+        trades.forEach(t => {
+            if (!strategyData[t.strategy]) strategyData[t.strategy] = 0;
+            strategyData[t.strategy] += t.result === 'win' ? t.amount : -t.amount;
+        });
+        const strategyLabels = Object.keys(strategyData);
+        const strategyValues = strategyLabels.map(k => strategyData[k]);
+
+        if (reportStrategyChart) reportStrategyChart.destroy();
+        reportStrategyChart = new Chart(document.getElementById('reportStrategyChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: strategyLabels,
+                datasets: [{
+                    label: 'P/L',
+                    data: strategyValues,
+                    backgroundColor: strategyValues.map(v => v >= 0 ? '#22C55E' : '#EF4444'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94A3B8', maxRotation: 45 } }
+                }
+            }
+        });
+
+        // Grade chart
+        const gradeData = ['A+', 'A', 'B', 'C'].map(g => {
+            const count = trades.filter(t => t.grade === g).length;
+            return { grade: g, count };
+        });
+
+        if (reportGradeChart) reportGradeChart.destroy();
+        reportGradeChart = new Chart(document.getElementById('reportGradeChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: gradeData.map(d => d.grade),
+                datasets: [{
+                    label: 'Count',
+                    data: gradeData.map(d => d.count),
+                    backgroundColor: ['#22C55E', '#3B82F6', '#F59E0B', '#EF4444'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94A3B8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+                }
+            }
+        });
+    }
+
+    function exportReport(format) {
+        if (format === 'csv') {
+            let csv = 'Date,Pair,Direction,Result,P/L,RR,Strategy\n';
+            trades.forEach(t => {
+                csv += `${t.date},${t.pair},${t.dir},${t.result === 'win' ? 'Win' : 'Loss'},${t.amount},${t.rr},${t.strategy || ''}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trades_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else if (format === 'json') {
+            const dataStr = JSON.stringify(trades, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trades_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else if (format === 'pdf') {
+            const win = window.open('', '_blank');
+            const reportHTML = `
+                <html><head><title>Trading Report</title>
+                <style>body{font-family:Arial;padding:20px;background:#0B1120;color:#F8FAFC;}
+                table{width:100%;border-collapse:collapse;margin-top:20px;}
+                th,td{padding:8px 12px;border:1px solid #1F2937;text-align:left;}
+                th{background:#1F2937;}
+                .win{color:#22C55E;}.loss{color:#EF4444;}</style></head>
+                <body><h1>Trading Report</h1><p>Generated: ${new Date().toLocaleString()}</p>
+                <p>Total Trades: ${totalTrades} | Win Rate: ${totalTrades > 0 ? (wins/totalTrades*100).toFixed(1) : 0}%</p>
+                <table><tr><th>#</th><th>Date</th><th>Pair</th><th>Direction</th><th>Result</th><th>P/L</th><th>RR</th></tr>
+                ${trades.map((t,i) => `<tr><td>${i+1}</td><td>${t.date}</td><td>${t.pair}</td><td>${t.dir}</td>
+                    <td class="${t.result === 'win' ? 'win' : 'loss'}">${t.result === 'win' ? 'Win' : 'Loss'}</td>
+                    <td>$${t.amount.toFixed(2)}</td><td>${t.rr}</td></tr>`).join('')}
+                </table></body></html>
+            `;
+            win.document.write(reportHTML);
+            win.document.close();
+            setTimeout(() => { win.print(); }, 500);
+        }
+    }
+
+    // ========== CALENDAR FULL ==========
+    function buildCalendar(month, year, targetId) {
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const grid = document.getElementById(targetId);
+        let html = '';
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        days.forEach(d => html += `<div class="text-xs text-[#4B5563] text-center font-medium py-1">${d}</div>`);
+        for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day empty"></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dayTrades = trades.filter(t => t.date === dateStr);
+            const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+            let cls = 'calendar-day';
+            if (totalPL > 0) cls += ' profit';
+            else if (totalPL < 0) cls += ' loss';
+            if (dateStr === new Date().toISOString().slice(0,10)) cls += ' today';
+            html += `<div class="${cls}" onclick="showDayDetails('${dateStr}')">
+                <span class="day-number">${d}</span>
+                ${dayTrades.length > 0 ? `<span class="day-pl ${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(0)}</span>` : ''}
+            </div>`;
+        }
+        grid.innerHTML = html;
+        document.getElementById('calMonthYear').textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+    }
+
+    function buildCalendarFull() {
+        buildCalendar(calMonth, calYear, 'calGrid');
+        const monthTrades = trades.filter(t => t.date.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`));
+        const monthWins = monthTrades.filter(t => t.result === 'win').length;
+        const monthPL = monthTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+        document.getElementById('calMonthTotal').textContent = monthTrades.length;
+        document.getElementById('calMonthWin').textContent = monthTrades.length > 0 ? `${(monthWins / monthTrades.length * 100).toFixed(1)}%` : '0%';
+        document.getElementById('calMonthPL').textContent = `$${monthPL.toFixed(0)}`;
+    }
+
+    function updateCalendarFull() {
+        buildCalendarFull();
+    }
+
+    function changeMonth(delta) {
+        calMonth += delta;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        buildCalendarFull();
+    }
+
+    function showDayDetails(dateStr) {
+        const dayTrades = trades.filter(t => t.date === dateStr);
+        const totalPL = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
+        const details = document.getElementById('calDayDetails');
+        if (dayTrades.length === 0) {
+            details.innerHTML = `<div class="text-[#4B5563]">No trades on ${dateStr}</div>`;
+            return;
+        }
+        details.innerHTML = `
+            <div class="font-bold text-[#F8FAFC]">${dateStr}</div>
+            <div class="text-sm">Trades: ${dayTrades.length} | P/L: <span class="${totalPL > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${totalPL > 0 ? '+' : ''}$${totalPL.toFixed(2)}</span></div>
+            <div class="mt-2 space-y-1 text-xs">
+                ${dayTrades.map(t => `<div class="flex justify-between border-b border-[#1F2937] py-1">
+                    <span>${t.pair} ${t.dir}</span>
+                    <span class="${t.result === 'win' ? 'text-[#22C55E]' : 'text-[#EF4444]'}">${t.result === 'win' ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</span>
+                    <span>${t.rr}</span>
+                </div>`).join('')}
+            </div>
+        `;
+    }
+
+    // ========== LIGHTBOX ==========
+    function openLightbox(src) {
+        document.getElementById('lightboxImage').src = src;
+        document.getElementById('lightbox').classList.add('active');
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+    }
+
+    // ========== SAMPLE DATA ==========
+    function generateSampleData() {
+        const pairs = ['XAUUSD', 'EURUSD', 'GBPUSD', 'BTCUSD', 'US30'];
+        const dirs = ['BUY', 'SELL'];
+        const rrs = ['1:1', '1:2', '1:3', '1:4'];
+        const strategies = ['Breakout', 'Reversal', 'Trend Following', 'Supply/Demand', 'Scalp'];
+        const grades = ['A+', 'A', 'B', 'C'];
+        const sessions = ['London', 'New York', 'Asia', 'London/NY Overlap'];
+        const today = new Date();
+        
+        for (let i = 0; i < 35; i++) {
+            const daysAgo = Math.floor(Math.random() * 45);
+            const date = new Date(today);
+            date.setDate(date.getDate() - daysAgo);
+            const isWin = Math.random() > 0.42;
+            const rr = rrs[Math.floor(Math.random() * rrs.length)];
+            const reward = parseInt(rr.split(':')[1]);
+            const riskAmount = 50 + Math.random() * 120;
+            const amount = isWin ? riskAmount * reward : riskAmount;
+            const pair = pairs[Math.floor(Math.random() * pairs.length)];
+            const dir = dirs[Math.floor(Math.random() * dirs.length)];
+            const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+            const grade = grades[Math.floor(Math.random() * grades.length)];
+            const session = sessions[Math.floor(Math.random() * sessions.length)];
+            
+            const rValue = isWin ? reward : -1;
+            
+            balance += isWin ? amount : -amount;
+            totalTrades++;
+            isWin ? wins++ : losses++;
+            isWin ? totalProfit += amount : totalLoss += amount;
+            
+            trades.push({
+                id: Date.now() + i,
+                date: date.toISOString().slice(0,10),
+                pair: pair,
+                dir: dir,
+                result: isWin ? 'win' : 'loss',
+                amount: amount,
+                rr: rr,
+                rValue: rValue,
+                strategy: strategy,
+                grade: grade,
+                session: session,
+                confidence: Math.floor(3 + Math.random() * 4),
+                emotion: ['Calm', 'Confident', 'Anxious', 'Focused'][Math.floor(Math.random() * 4)]
+            });
+            
+            netR += rValue;
+            rrTrades.push({
+                id: Date.now() + i,
+                ratio: rr,
+                result: isWin ? 'win' : 'loss',
+                rValue: rValue,
+                runningR: netR
+            });
+        }
+        
+        // Sample journal entries
+        journalEntries = [
+            {
+                id: Date.now() + 100,
+                title: 'Week 1 Review',
+                date: new Date(Date.now() - 7 * 86400000).toISOString().slice(0,10),
+                content: 'This week was solid. I focused on high-conviction setups and avoided over-trading. The FVG strategy worked well.',
+                emotions: 'Confident',
+                tags: ['FVG', 'Breakout'],
+                mistakes: 'None',
+                lessons: 'Patience pays off',
+                images: []
+            },
+            {
+                id: Date.now() + 200,
+                title: 'Market Analysis - XAUUSD',
+                date: new Date(Date.now() - 3 * 86400000).toISOString().slice(0,10),
+                content: 'Gold broke out of the range on liquidity sweep. Entered on the pullback with 1:3 RR.',
+                emotions: 'Focused',
+                tags: ['XAUUSD', 'Liquidity'],
+                mistakes: 'Entered slightly early',
+                lessons: 'Wait for full candle close',
+                images: []
+            }
+        ];
+
+        recalculateStreak();
         updateAll();
-        alert('✅ Data imported successfully!');
-        if (state.currentUser) saveUserData(state.currentUser);
-      } catch(error) { alert('Error parsing file: ' + error.message); }
-    };
-    reader.readAsText(file);
-  } catch(e) { alert('Error importing: ' + e.message); }
-  event.target.value = '';
-}
-
-// ========== LIGHTBOX ==========
-function openLightbox(src) {
-  document.getElementById('lightboxImage').src = src;
-  document.getElementById('lightbox').classList.add('active');
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('active');
-}
-
-// ========== NAVIGATION ==========
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-    const pageId = this.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active-nav'));
-    this.classList.add('active-nav');
-    if (pageId === 'backtesting') updateBacktestingUI();
-    if (pageId === 'calendar') updateCalendar();
-    if (pageId === 'analytics') updateAnalytics();
-    if (pageId === 'journal') updateJournal();
-  });
-});
-
-// ========== CHECKLIST ==========
-document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(cb => {
-  cb.addEventListener('change', function() {
-    const checks = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
-    const allChecked = Array.from(checks).every(c => c.checked);
-    const status = document.getElementById('checklistStatus');
-    if (allChecked) {
-      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20';
-      status.innerHTML = '✅ All checks passed - Ready to trade';
-    } else {
-      status.className = 'mt-4 p-3 rounded-xl text-center text-sm bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20';
-      status.innerHTML = '⚠️ Complete all checklist items before trading';
     }
-  });
-});
 
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded', function() {
-  loadUsers();
-  initCharts();
-  updateAll();
-  updateCalendar();
-  updateJournal();
-  
-  // Auto-save every 30 seconds
-  setInterval(() => {
-    if (state.currentUser) saveUserData(state.currentUser);
-  }, 30000);
-});
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        generateSampleData();
+        buildCalendarFull();
+    });
 </script>
 </body>
 </html>
