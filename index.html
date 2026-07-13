@@ -185,13 +185,9 @@ cursor: pointer;
   transition: 0.15s;
 }
 .logout-btn:hover { background: #ef4444; color: white; }
-.toggle-login {
-  color: #3b82f6;
-  cursor: pointer;
-  text-decoration: underline;
-  font-size: 0.9rem;
-}
-.toggle-login:hover { color: #60a5fa; }
+.rr-positive { color: #22c55e; }
+.rr-negative { color: #ef4444; }
+.rr-neutral { color: #f5c542; }
 @media (max-width: 640px) { .stat-number { font-size: 1.1rem; } }
 </style>
 </head>
@@ -308,7 +304,7 @@ cursor: pointer;
     <div><span class="text-gray-400 text-xs">Drawdown</span><div class="text-red-300 text-sm font-semibold" id="drawdownPct">0%</div></div>
     <div><span class="text-gray-400 text-xs">Streak</span><div class="text-gold text-sm font-semibold" id="streakDisplay">0</div></div>
     <div><span class="text-gray-400 text-xs">Total Trades</span><div class="text-blue-300 text-sm font-semibold" id="totalTradesDisplay">0</div></div>
-    <div><span class="text-gray-400 text-xs">Daily Loss</span><div class="text-red-300 text-sm font-semibold" id="dailyLossDisplay">$0.00 / $75.00</div></div>
+    <div><span class="text-gray-400 text-xs">Net R</span><div class="text-gold text-sm font-semibold" id="netRDisplay">0.0</div></div>
   </div>
 </div>
 
@@ -360,6 +356,54 @@ cursor: pointer;
       <input type="number" id="quickLossPercent" class="glass-input-sm glass-input" value="2.5" step="0.1" min="0.1" max="20" style="width:60px;" />
       <button class="btn-primary text-xs" onclick="updateQuickPercentages()"><i class="fas fa-save"></i> Update</button>
     </div>
+  </div>
+</div>
+
+<!-- RR TRACKER TABLE -->
+<div class="glass-card p-4">
+  <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+    <span class="text-xs text-gray-400"><i class="fas fa-arrows-left-right text-gold"></i> RR Tracker</span>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-gray-400">Net R: <span id="netRTotal" class="text-gold font-bold text-sm">0.0</span></span>
+      <span class="text-xs text-gray-400">Trades: <span id="rrTradeCount" class="text-blue-300 font-bold">0</span></span>
+      <button onclick="clearRRTracker()" class="btn-danger btn-sm">Clear RR</button>
+    </div>
+  </div>
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <select id="rrRatio" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
+      <option value="1:1">1:1</option>
+      <option value="1:2" selected>1:2</option>
+      <option value="1:3">1:3</option>
+      <option value="1:4">1:4</option>
+      <option value="1:5">1:5</option>
+      <option value="1:6">1:6</option>
+      <option value="1:7">1:7</option>
+      <option value="1:8">1:8</option>
+      <option value="1:9">1:9</option>
+      <option value="1:10">1:10</option>
+    </select>
+    <select id="rrResult" class="glass-input text-xs" style="width:auto; padding: 0.3rem 1rem;">
+      <option value="win">Win</option>
+      <option value="loss">Loss</option>
+    </select>
+    <button onclick="addRRTrade()" class="btn-primary text-xs"><i class="fas fa-plus"></i> Add RR Trade</button>
+  </div>
+  <div class="table-wrap mt-1 text-xs">
+    <table class="w-full text-left text-gray-300">
+      <thead class="text-[10px] uppercase text-gray-500 border-b border-[#1f2a3a] sticky top-0 bg-[#0d121c]">
+        <tr>
+          <th>#</th>
+          <th>RR Ratio</th>
+          <th>Result</th>
+          <th>R Value</th>
+          <th>Running R</th>
+          <th class="text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody id="rrTableBody">
+        <tr><td colspan="6" class="text-center text-gray-500">No RR trades yet</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -595,6 +639,10 @@ let config = {
   currentBalance: 1000
 };
 
+// ========== RR TRACKER STATE ==========
+let rrTrades = [];
+let netR = 0;
+
 // ========== USER MANAGEMENT ==========
 let currentUser = null;
 let users = {};
@@ -750,6 +798,8 @@ function saveUserData(email) {
       email: email,
       config: config,
       state: state,
+      rrTrades: rrTrades,
+      netR: netR,
       timestamp: new Date().toISOString()
     };
     const key = getUserDataKey(email);
@@ -787,6 +837,10 @@ function loadUserData(email) {
         state.maxBalance = data.state.maxBalance || config.startBalance;
         config.currentBalance = state.balance;
       }
+      if (data.rrTrades) {
+        rrTrades = data.rrTrades;
+        netR = data.netR || 0;
+      }
       
       document.getElementById('startBalanceInput').value = config.startBalance;
       document.getElementById('riskPercentInput').value = config.riskPercent;
@@ -798,6 +852,7 @@ function loadUserData(email) {
       
       updateQuickPercentages();
       updateUI();
+      updateRRTracker();
     } else {
       state = {
         balance: config.startBalance,
@@ -813,11 +868,94 @@ function loadUserData(email) {
         maxBalance: config.startBalance,
         editingIndex: -1
       };
+      rrTrades = [];
+      netR = 0;
       updateUI();
+      updateRRTracker();
     }
   } catch (e) {
     console.error('Error loading data:', e);
   }
+}
+
+// ========== RR TRACKER FUNCTIONS ==========
+function addRRTrade() {
+  const ratio = document.getElementById('rrRatio').value;
+  const result = document.getElementById('rrResult').value;
+  const reward = parseInt(ratio.split(':')[1]);
+  
+  let rValue = 0;
+  let colorClass = '';
+  
+  if (result === 'win') {
+    rValue = reward;
+    colorClass = 'rr-positive';
+  } else {
+    rValue = -1;
+    colorClass = 'rr-negative';
+  }
+  
+  netR += rValue;
+  
+  rrTrades.push({
+    id: Date.now(),
+    ratio: ratio,
+    result: result,
+    rValue: rValue,
+    runningR: netR
+  });
+  
+  updateRRTracker();
+  if (currentUser) saveUserData(currentUser);
+}
+
+function deleteRRTrade(index) {
+  if (confirm('Delete this RR trade?')) {
+    const trade = rrTrades[index];
+    netR -= trade.rValue;
+    rrTrades.splice(index, 1);
+    updateRRTracker();
+    if (currentUser) saveUserData(currentUser);
+  }
+}
+
+function clearRRTracker() {
+  if (confirm('Clear all RR trades?')) {
+    rrTrades = [];
+    netR = 0;
+    updateRRTracker();
+    if (currentUser) saveUserData(currentUser);
+  }
+}
+
+function updateRRTracker() {
+  const tbody = document.getElementById('rrTableBody');
+  document.getElementById('netRTotal').textContent = netR.toFixed(1);
+  document.getElementById('rrTradeCount').textContent = rrTrades.length;
+  
+  if (rrTrades.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">No RR trades yet</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = rrTrades.map((t, index) => {
+    const resultText = t.result === 'win' ? 'Win' : 'Loss';
+    const resultClass = t.result === 'win' ? 'rr-positive' : 'rr-negative';
+    const rClass = t.rValue > 0 ? 'rr-positive' : 'rr-negative';
+    const runningClass = t.runningR > 0 ? 'rr-positive' : (t.runningR < 0 ? 'rr-negative' : 'rr-neutral');
+    const rDisplay = t.rValue > 0 ? `+${t.rValue}R` : `${t.rValue}R`;
+    
+    return `<tr>
+      <td>${index + 1}</td>
+      <td>${t.ratio}</td>
+      <td class="${resultClass}">${resultText}</td>
+      <td class="${rClass}">${rDisplay}</td>
+      <td class="${runningClass}">${t.runningR > 0 ? '+' : ''}${t.runningR.toFixed(1)}R</td>
+      <td class="text-center">
+        <button class="journal-delete" onclick="deleteRRTrade(${index})" title="Delete"><i class="fas fa-trash-alt"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 // ========== QUICK PERCENTAGES ==========
@@ -839,6 +977,8 @@ function exportData() {
       email: currentUser,
       config: config,
       state: state,
+      rrTrades: rrTrades,
+      netR: netR,
       exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -893,14 +1033,19 @@ function handleImport(event) {
           state.lossCount = data.state.lossCount || 0;
           state.maxBalance = data.state.maxBalance || config.startBalance;
           config.currentBalance = state.balance;
-          updateUI();
-          document.getElementById('settingsMessage').textContent = '✅ Data imported successfully!';
-          document.getElementById('settingsMessage').className = 'mt-4 text-sm text-green-400';
-          document.getElementById('settingsMessage').style.display = 'block';
-          setTimeout(() => {
-            document.getElementById('settingsMessage').style.display = 'none';
-          }, 3000);
         }
+        if (data.rrTrades) {
+          rrTrades = data.rrTrades;
+          netR = data.netR || 0;
+        }
+        updateUI();
+        updateRRTracker();
+        document.getElementById('settingsMessage').textContent = '✅ Data imported successfully!';
+        document.getElementById('settingsMessage').className = 'mt-4 text-sm text-green-400';
+        document.getElementById('settingsMessage').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('settingsMessage').style.display = 'none';
+        }, 3000);
       } catch (error) {
         alert('Error parsing file: ' + error.message);
       }
@@ -1101,7 +1246,6 @@ function initCharts() {
 
 // ========== GET MAX DAILY LOSS AMOUNT ==========
 function getMaxDailyLossAmount() {
-  // 7.5% of CURRENT BALANCE
   return (state.balance * config.maxDailyLossPercent) / 100;
 }
 
@@ -1139,6 +1283,7 @@ function updateUI() {
 
     document.getElementById('streakDisplay').textContent = state.streak;
     document.getElementById('totalTradesDisplay').textContent = totalTrades;
+    document.getElementById('netRDisplay').textContent = netR.toFixed(1);
     
     // DAILY LOSS - 7.5% OF CURRENT BALANCE
     const maxDailyLossAmount = getMaxDailyLossAmount();
@@ -1150,7 +1295,6 @@ function updateUI() {
     const alertDiv = document.getElementById('dailyLossAlert');
     const progressDiv = document.getElementById('dailyLossProgress');
     
-    // Calculate percentage of daily loss used
     const lossPercentage = maxDailyLossAmount > 0 ? (state.dailyLoss / maxDailyLossAmount * 100) : 0;
     
     if (state.dailyLoss >= maxDailyLossAmount && maxDailyLossAmount > 0) {
@@ -1527,7 +1671,6 @@ function addTrade(result, customAmount = null, customDir = null) {
     if (!isWin && (state.dailyLoss + amount) > maxDailyLossAmount) {
       const warningMsg = `⚠️ WARNING: This trade would exceed your daily loss limit!\n\nCurrent Daily Loss: $${state.dailyLoss.toFixed(2)}\nMax Daily Loss (7.5% of balance): $${maxDailyLossAmount.toFixed(2)}\nThis trade: -$${amount.toFixed(2)}\nNew Daily Loss: $${(state.dailyLoss + amount).toFixed(2)}\n\nYou can still take this trade, but be careful!`;
       alert(warningMsg);
-      // Don't return - allow the trade to proceed
     }
 
     // Execute the trade
@@ -1574,8 +1717,10 @@ function addTrade(result, customAmount = null, customDir = null) {
 // ========== QUICK TRADE FUNCTIONS ==========
 function addQuickWin() {
   const winPct = parseFloat(document.getElementById('quickWinPercent').value) || 2.5;
+  // Win = 4x the risk amount (1:4 RR)
   const riskAmount = (state.balance * winPct) / 100;
-  addTrade('win', riskAmount * 4, 'BUY');
+  const winAmount = riskAmount * 4;
+  addTrade('win', winAmount, 'BUY');
 }
 
 function addQuickLoss() {
@@ -1625,12 +1770,15 @@ function resetAll() {
         maxBalance: config.startBalance,
         editingIndex: -1
       };
+      rrTrades = [];
+      netR = 0;
       document.getElementById('scoreDisplay').textContent = '92';
       document.getElementById('scoreLabel').textContent = 'A+ Trade';
       document.getElementById('scoreLabel').className = 'text-xs text-green-300';
       document.querySelectorAll('#checklistContainer input[type="checkbox"]').forEach(c => c.checked = false);
       updateChecklistStatus();
       updateUI();
+      updateRRTracker();
       if (currentUser) saveUserData(currentUser);
     }
   } catch (error) {
@@ -1664,6 +1812,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   initCharts();
   updateUI();
+  updateRRTracker();
 });
 
 // Auto-save every 30 seconds
