@@ -183,10 +183,6 @@
         .badge-win { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
         .badge-loss { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
         .badge-neutral { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-        .badge-aplus { background: rgba(34, 197, 94, 0.2); color: #22C55E; }
-        .badge-a { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
-        .badge-b { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
-        .badge-c { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
         .rule-card { 
             border-left: 3px solid #3B82F6; 
@@ -239,7 +235,6 @@
         }
         .drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; }
 
-        /* Lightbox */
         .lightbox {
             display: none;
             position: fixed;
@@ -356,6 +351,99 @@
         }
         .journal-entry:hover { border-color: #3B82F6; }
 
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 17, 32, 0.97);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(20px);
+        }
+        .login-box {
+            background: #111827;
+            border: 1px solid #1F2937;
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        }
+        .login-box h2 {
+            background: linear-gradient(135deg, #3B82F6, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            font-size: 1.8rem;
+        }
+        .login-box .subtitle {
+            color: #94A3B8;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        .login-input {
+            background: #0B1120;
+            border: 1px solid #1F2937;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            color: #F8FAFC;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .login-input:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .login-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: #3B82F6;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+        .login-btn:hover { background: #2563EB; transform: translateY(-1px); }
+        .login-btn-secondary {
+            width: 100%;
+            padding: 0.8rem;
+            background: transparent;
+            border: 1px solid #1F2937;
+            border-radius: 12px;
+            color: #94A3B8;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .login-btn-secondary:hover { background: rgba(59, 130, 246, 0.05); border-color: #3B82F6; color: #F8FAFC; }
+        .login-error { color: #EF4444; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+        .login-success { color: #22C55E; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; display: none; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94A3B8;
+            font-size: 0.75rem;
+        }
+        .user-info i { color: #3B82F6; }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #1F2937;
+            color: #94A3B8;
+            padding: 0.15rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .logout-btn:hover { border-color: #EF4444; color: #EF4444; }
+
         @media (max-width: 640px) {
             .summary-card .value { font-size: 1.2rem; }
             .summary-card { padding: 0.75rem; }
@@ -369,14 +457,34 @@
 </head>
 <body>
 
-<!-- LIGHTBOX -->
-<div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <span class="close-lightbox">&times;</span>
-    <img id="lightboxImage" src="" alt="Screenshot" />
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+        <h2><i class="fas fa-chart-line"></i> Trade<span style="-webkit-text-fill-color:#F8FAFC;">Vault</span></h2>
+        <p class="subtitle" id="loginSubtitle">Sign in to your trading journal</p>
+        <div id="loginForm">
+            <input type="email" id="loginEmail" class="login-input" placeholder="Email address" />
+            <input type="password" id="loginPassword" class="login-input" placeholder="Password (min 6 chars)" />
+            <button class="login-btn" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+            <button class="login-btn-secondary" onclick="showSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
+            <div id="loginError" class="login-error">Invalid credentials</div>
+            <div id="loginSuccess" class="login-success">Account created! Please sign in.</div>
+        </div>
+        <div id="signupForm" style="display:none;">
+            <input type="text" id="signupName" class="login-input" placeholder="Full Name" />
+            <input type="email" id="signupEmail" class="login-input" placeholder="Email address" />
+            <input type="password" id="signupPassword" class="login-input" placeholder="Password (min 6 chars)" />
+            <input type="password" id="signupConfirm" class="login-input" placeholder="Confirm Password" />
+            <button class="login-btn" onclick="handleSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
+            <button class="login-btn-secondary" onclick="showLogin()"><i class="fas fa-arrow-left"></i> Back to Sign In</button>
+            <div id="signupError" class="login-error"></div>
+            <div id="signupSuccess" class="login-success">Account created! Please sign in.</div>
+        </div>
+    </div>
 </div>
 
 <!-- SIDEBAR -->
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden" id="appContainer" style="display:none;">
     <aside class="w-20 md:w-56 flex-shrink-0 bg-[#0B1120] border-r border-[#1F2937] p-3 flex flex-col items-center md:items-start space-y-1 overflow-y-auto">
         <div class="flex items-center gap-2 text-xl font-extrabold tracking-tight mt-2 px-1">
             <i class="fas fa-chart-line text-[#3B82F6]"></i>
@@ -399,9 +507,10 @@
         <div class="mt-auto w-full border-t border-[#1F2937] pt-3 text-xs text-[#94A3B8] space-y-1.5">
             <div class="flex items-center gap-2"><span class="status-dot green"></span> Live</div>
             <div class="flex items-center gap-2"><i class="fas fa-wallet text-[#3B82F6]"></i> <span id="sidebarBalance">$10,000</span></div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 user-info">
                 <i class="fas fa-user"></i>
-                <span class="hidden md:inline truncate max-w-[100px]">Trader@email.com</span>
+                <span id="sidebarUserEmail" class="hidden md:inline truncate max-w-[100px]">trader@email.com</span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
         </div>
     </aside>
@@ -456,7 +565,6 @@
             <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-exchange-alt text-[#3B82F6] mr-3"></i>Trades</h2>
             <p class="text-sm text-[#94A3B8]">Manage all your trades with the Universal Lot Size Calculator</p>
 
-            <!-- Quick Trade -->
             <div class="glass-card p-4">
                 <div class="flex flex-wrap items-center gap-4">
                     <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-bolt text-[#3B82F6] mr-1"></i>Quick Trade</span>
@@ -472,7 +580,6 @@
                 </div>
             </div>
 
-            <!-- Add Trade -->
             <div class="glass-card p-4">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-plus-circle text-[#3B82F6] mr-1"></i>Add Trade</span>
@@ -494,7 +601,6 @@
                 </div>
             </div>
 
-            <!-- Lot Size Calculator -->
             <div class="glass-card p-4">
                 <span class="text-sm font-bold text-white"><i class="fas fa-calculator text-[#3B82F6] mr-2"></i>Universal Lot Size Calculator</span>
                 <p class="text-xs text-[#94A3B8] mt-1 mb-3">Automatically calculates lot size for any instrument</p>
@@ -530,7 +636,6 @@
                 <div class="mt-3"><button class="btn-primary btn-sm" onclick="applyLotToTrade()"><i class="fas fa-arrow-right"></i> Apply to Trade</button></div>
             </div>
 
-            <!-- Trade History -->
             <div class="glass-card p-4">
                 <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
                     <span class="text-xs font-medium text-[#94A3B8]"><i class="fas fa-list-ul text-[#3B82F6] mr-1"></i>Trade History (<span id="tradeCount">0</span>)</span>
@@ -557,7 +662,6 @@
                 <button class="btn-primary" onclick="showBacktestForm()"><i class="fas fa-plus"></i> New Backtest</button>
             </div>
 
-            <!-- Backtest Form -->
             <div id="backtestForm" class="glass-card p-4" style="display:none;">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>Add Backtest Entry</span>
@@ -602,7 +706,6 @@
                     <div id="btDropZone" class="drop-zone" onclick="document.getElementById('btImages').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Drag & drop images or click to upload</p>
-                        <p class="text-xs text-[#4B5563]">PNG, JPG, JPEG, WEBP</p>
                     </div>
                     <input type="file" id="btImages" multiple accept="image/*" style="display:none" onchange="handleBacktestImageUpload(event)" />
                     <div id="btImagePreview" class="image-gallery mt-2"></div>
@@ -613,7 +716,6 @@
                 </div>
             </div>
 
-            <!-- Backtest Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="btStats">
                 <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#3B82F6]" id="btTotal">0</div><div class="text-xs text-[#94A3B8]">Total</div></div>
                 <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#22C55E]" id="btWinRate">0%</div><div class="text-xs text-[#94A3B8]">Win Rate</div></div>
@@ -623,10 +725,7 @@
                 <div class="glass-card p-3 text-center"><div class="text-lg font-bold text-[#F59E0B]" id="btAplus">0%</div><div class="text-xs text-[#94A3B8]">A+ Win Rate</div></div>
             </div>
 
-            <!-- Backtest Gallery -->
-            <div id="btGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <!-- Populated by JS -->
-            </div>
+            <div id="btGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         </div>
 
         <!-- ===== PAGE: JOURNAL ===== -->
@@ -641,7 +740,6 @@
                     <button class="btn-secondary btn-sm" onclick="exportJournal()"><i class="fas fa-download"></i> Export</button>
                 </div>
 
-                <!-- Journal Form -->
                 <div id="journalForm" style="display:none;" class="mb-4 p-4 border border-[#1F2937] rounded-xl">
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-sm font-bold"><i class="fas fa-pen text-[#3B82F6] mr-2"></i>New Journal Entry</span>
@@ -678,10 +776,7 @@
                     </div>
                 </div>
 
-                <!-- Journal Entries -->
-                <div id="journalEntries" class="space-y-3">
-                    <!-- Populated by JS -->
-                </div>
+                <div id="journalEntries" class="space-y-3"></div>
             </div>
         </div>
 
@@ -690,9 +785,7 @@
             <h2 class="text-2xl font-extrabold text-white"><i class="fas fa-chart-pie text-[#3B82F6] mr-3"></i>Reports</h2>
             <p class="text-sm text-[#94A3B8]">Comprehensive performance reports and analytics</p>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="reportStats">
-                <!-- Populated by JS -->
-            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="reportStats"></div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div class="glass-card p-4">
@@ -852,6 +945,200 @@
 </div>
 
 <script>
+    // ========== USER MANAGEMENT ==========
+    let currentUser = null;
+    let users = {};
+
+    function loadUsers() {
+        try {
+            const saved = localStorage.getItem('tradevault_users');
+            if (saved) users = JSON.parse(saved);
+        } catch(e) { console.error('Error loading users:', e); }
+    }
+
+    function saveUsers() {
+        try {
+            localStorage.setItem('tradevault_users', JSON.stringify(users));
+        } catch(e) { console.error('Error saving users:', e); }
+    }
+
+    function showSignup() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupForm').style.display = 'block';
+        document.getElementById('loginSubtitle').textContent = 'Create your account';
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('loginSuccess').style.display = 'none';
+    }
+
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('loginSubtitle').textContent = 'Sign in to your trading journal';
+        document.getElementById('signupError').style.display = 'none';
+        document.getElementById('signupSuccess').style.display = 'none';
+    }
+
+    function handleSignup() {
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+        const errorDiv = document.getElementById('signupError');
+        const successDiv = document.getElementById('signupSuccess');
+
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+
+        if (!name || !email || !password || !confirm) {
+            errorDiv.textContent = 'Please fill in all fields';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (password.length < 6) {
+            errorDiv.textContent = 'Password must be at least 6 characters';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (password !== confirm) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (users[email]) {
+            errorDiv.textContent = 'Email already registered';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        users[email] = { name, email, password, created: new Date().toISOString() };
+        saveUsers();
+        successDiv.textContent = '✅ Account created! Please sign in.';
+        successDiv.style.display = 'block';
+        document.getElementById('signupName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupPassword').value = '';
+        document.getElementById('signupConfirm').value = '';
+
+        setTimeout(() => {
+            showLogin();
+            document.getElementById('loginEmail').value = email;
+            successDiv.style.display = 'none';
+        }, 2000);
+    }
+
+    function handleLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        const errorDiv = document.getElementById('loginError');
+
+        errorDiv.style.display = 'none';
+
+        if (!email || !password) {
+            errorDiv.textContent = 'Please enter email and password';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (!users[email]) {
+            errorDiv.textContent = 'Email not found. Please create an account.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (users[email].password !== password) {
+            errorDiv.textContent = 'Invalid password';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        currentUser = email;
+        document.getElementById('sidebarUserEmail').textContent = email;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'flex';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        loadUserData(email);
+    }
+
+    function handleLogout() {
+        if (confirm('Logout? Your data will be saved.')) {
+            saveUserData(currentUser);
+            currentUser = null;
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            // Reset app state
+            trades = [];
+            rrTrades = [];
+            netR = 0;
+            balance = 10000;
+            totalTrades = 0;
+            wins = 0;
+            losses = 0;
+            streak = 0;
+            bestStreak = 0;
+            totalProfit = 0;
+            totalLoss = 0;
+            backtests = [];
+            journalEntries = [];
+            updateAll();
+        }
+    }
+
+    // ========== DATA MANAGEMENT (per email) ==========
+    function getUserDataKey(email) {
+        return `tradevault_data_${email}`;
+    }
+
+    function saveUserData(email) {
+        try {
+            const data = {
+                balance: balance,
+                trades: trades,
+                rrTrades: rrTrades,
+                netR: netR,
+                totalTrades: totalTrades,
+                wins: wins,
+                losses: losses,
+                streak: streak,
+                bestStreak: bestStreak,
+                totalProfit: totalProfit,
+                totalLoss: totalLoss,
+                backtests: backtests,
+                journalEntries: journalEntries
+            };
+            localStorage.setItem(getUserDataKey(email), JSON.stringify(data));
+            console.log('Data saved for:', email);
+        } catch(e) { console.error('Error saving data:', e); }
+    }
+
+    function loadUserData(email) {
+        try {
+            const saved = localStorage.getItem(getUserDataKey(email));
+            if (saved) {
+                const data = JSON.parse(saved);
+                balance = data.balance || 10000;
+                trades = data.trades || [];
+                rrTrades = data.rrTrades || [];
+                netR = data.netR || 0;
+                totalTrades = data.totalTrades || 0;
+                wins = data.wins || 0;
+                losses = data.losses || 0;
+                streak = data.streak || 0;
+                bestStreak = data.bestStreak || 0;
+                totalProfit = data.totalProfit || 0;
+                totalLoss = data.totalLoss || 0;
+                backtests = data.backtests || [];
+                journalEntries = data.journalEntries || [];
+                console.log('Data loaded for:', email, 'Trades:', trades.length);
+            } else {
+                // Generate sample data for new user
+                generateSampleData();
+                console.log('New user data created for:', email);
+            }
+            updateAll();
+        } catch(e) { console.error('Error loading data:', e); }
+    }
+
     // ========== STATE ==========
     let trades = [];
     let rrTrades = [];
@@ -864,17 +1151,11 @@
     let bestStreak = 0;
     let totalProfit = 0;
     let totalLoss = 0;
-
-    // Backtesting state
     let backtests = [];
-    let btImages = [];
-    let editingBtIndex = -1;
-
-    // Journal state
     let journalEntries = [];
+    let btImages = [];
     let journalImages = [];
-
-    // Calendar state
+    let editingBtIndex = -1;
     let calMonth = new Date().getMonth();
     let calYear = new Date().getFullYear();
 
@@ -897,7 +1178,7 @@
             if (page === 'backtesting') updateBacktestingUI();
             if (page === 'journal') updateJournalUI();
             if (page === 'reports') updateReportsUI();
-            if (page === 'calendar') updateCalendarFull();
+            if (page === 'calendar') buildCalendarFull();
         });
     });
 
@@ -971,6 +1252,7 @@
         });
         
         updateAll();
+        if (currentUser) saveUserData(currentUser);
     }
 
     function deleteTrade(index) {
@@ -991,6 +1273,7 @@
             
             recalculateStreak();
             updateAll();
+            if (currentUser) saveUserData(currentUser);
         }
     }
 
@@ -1024,6 +1307,7 @@
             totalProfit = 0;
             totalLoss = 0;
             updateAll();
+            if (currentUser) saveUserData(currentUser);
         }
     }
 
@@ -1287,6 +1571,7 @@
             document.getElementById('settingsMessage').style.display = 'none';
         }, 3000);
         updateAll();
+        if (currentUser) saveUserData(currentUser);
     }
 
     // ========== CHECKLIST ==========
@@ -1345,25 +1630,26 @@
         renderBtImagePreviews();
     }
 
-    // Drag and drop for backtesting
     const btDropZone = document.getElementById('btDropZone');
-    btDropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
-    btDropZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
-    btDropZone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        for (let file of files) {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    btImages.push(e.target.result);
-                    renderBtImagePreviews();
-                };
-                reader.readAsDataURL(file);
+    if (btDropZone) {
+        btDropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+        btDropZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+        btDropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        btImages.push(e.target.result);
+                        renderBtImagePreviews();
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
-        }
-    });
+        });
+    }
 
     function saveBacktest() {
         const bt = {
@@ -1398,6 +1684,7 @@
         btImages = [];
         hideBacktestForm();
         updateBacktestingUI();
+        if (currentUser) saveUserData(currentUser);
     }
 
     function editBacktest(index) {
@@ -1427,6 +1714,7 @@
         if (confirm('Delete this backtest entry?')) {
             backtests.splice(index, 1);
             updateBacktestingUI();
+            if (currentUser) saveUserData(currentUser);
         }
     }
 
@@ -1442,7 +1730,6 @@
         });
         const avgRR = total > 0 ? totalRR / total : 0;
 
-        // Best strategy
         const strategyStats = {};
         backtests.forEach(b => {
             if (!strategyStats[b.strategy]) strategyStats[b.strategy] = { wins: 0, total: 0 };
@@ -1455,7 +1742,6 @@
             if (rate > bestRate && strategyStats[s].total >= 2) { bestRate = rate; bestStrategy = s; }
         });
 
-        // Best pair
         const pairStats = {};
         backtests.forEach(b => {
             if (!pairStats[b.pair]) pairStats[b.pair] = { wins: 0, total: 0 };
@@ -1479,7 +1765,6 @@
         document.getElementById('btBestPair').textContent = bestPair;
         document.getElementById('btAplus').textContent = `${aplusRate.toFixed(1)}%`;
 
-        // Gallery
         const gallery = document.getElementById('btGallery');
         if (backtests.length === 0) {
             gallery.innerHTML = '<div class="col-span-full text-center text-[#4B5563] py-6">No backtests yet. Click "New Backtest" to start.</div>';
@@ -1592,12 +1877,14 @@ Notes: ${bt.notes || 'No notes'}`;
         journalImages = [];
         hideJournalForm();
         updateJournalUI();
+        if (currentUser) saveUserData(currentUser);
     }
 
     function deleteJournalEntry(index) {
         if (confirm('Delete this journal entry?')) {
             journalEntries.splice(index, 1);
             updateJournalUI();
+            if (currentUser) saveUserData(currentUser);
         }
     }
 
@@ -1679,12 +1966,10 @@ Notes: ${bt.notes || 'No notes'}`;
             </div>
         `).join('');
 
-        // Charts
         updateReportCharts();
     }
 
     function updateReportCharts() {
-        // Weekday chart
         const weekdayData = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => {
             const dayTrades = trades.filter(t => new Date(t.date).toLocaleString('en', { weekday: 'short' }) === day);
             const pnl = dayTrades.reduce((a, t) => a + (t.result === 'win' ? t.amount : -t.amount), 0);
@@ -1711,7 +1996,6 @@ Notes: ${bt.notes || 'No notes'}`;
             }
         });
 
-        // Session chart
         const sessionData = {};
         trades.forEach(t => {
             if (!sessionData[t.session]) sessionData[t.session] = 0;
@@ -1733,13 +2017,10 @@ Notes: ${bt.notes || 'No notes'}`;
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#94A3B8' } }
-                }
+                plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8' } } }
             }
         });
 
-        // Strategy chart
         const strategyData = {};
         trades.forEach(t => {
             if (!strategyData[t.strategy]) strategyData[t.strategy] = 0;
@@ -1771,7 +2052,6 @@ Notes: ${bt.notes || 'No notes'}`;
             }
         });
 
-        // Grade chart
         const gradeData = ['A+', 'A', 'B', 'C'].map(g => {
             const count = trades.filter(t => t.grade === g).length;
             return { grade: g, count };
@@ -1846,7 +2126,7 @@ Notes: ${bt.notes || 'No notes'}`;
         }
     }
 
-    // ========== CALENDAR FULL ==========
+    // ========== CALENDAR ==========
     function buildCalendar(month, year, targetId) {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1880,10 +2160,6 @@ Notes: ${bt.notes || 'No notes'}`;
         document.getElementById('calMonthTotal').textContent = monthTrades.length;
         document.getElementById('calMonthWin').textContent = monthTrades.length > 0 ? `${(monthWins / monthTrades.length * 100).toFixed(1)}%` : '0%';
         document.getElementById('calMonthPL').textContent = `$${monthPL.toFixed(0)}`;
-    }
-
-    function updateCalendarFull() {
-        buildCalendarFull();
     }
 
     function changeMonth(delta) {
@@ -1929,27 +2205,21 @@ Notes: ${bt.notes || 'No notes'}`;
         const pairs = ['XAUUSD', 'EURUSD', 'GBPUSD', 'BTCUSD', 'US30'];
         const dirs = ['BUY', 'SELL'];
         const rrs = ['1:1', '1:2', '1:3', '1:4'];
-        const strategies = ['Breakout', 'Reversal', 'Trend Following', 'Supply/Demand', 'Scalp'];
+        const strategies = ['Breakout', 'Reversal', 'Trend Following', 'Supply/Demand'];
         const grades = ['A+', 'A', 'B', 'C'];
-        const sessions = ['London', 'New York', 'Asia', 'London/NY Overlap'];
-        const today = new Date();
+        const sessions = ['London', 'New York', 'Asia'];
         
-        for (let i = 0; i < 35; i++) {
-            const daysAgo = Math.floor(Math.random() * 45);
-            const date = new Date(today);
+        for (let i = 0; i < 25; i++) {
+            const daysAgo = Math.floor(Math.random() * 30);
+            const date = new Date();
             date.setDate(date.getDate() - daysAgo);
             const isWin = Math.random() > 0.42;
             const rr = rrs[Math.floor(Math.random() * rrs.length)];
             const reward = parseInt(rr.split(':')[1]);
-            const riskAmount = 50 + Math.random() * 120;
+            const riskAmount = 50 + Math.random() * 100;
             const amount = isWin ? riskAmount * reward : riskAmount;
             const pair = pairs[Math.floor(Math.random() * pairs.length)];
             const dir = dirs[Math.floor(Math.random() * dirs.length)];
-            const strategy = strategies[Math.floor(Math.random() * strategies.length)];
-            const grade = grades[Math.floor(Math.random() * grades.length)];
-            const session = sessions[Math.floor(Math.random() * sessions.length)];
-            
-            const rValue = isWin ? reward : -1;
             
             balance += isWin ? amount : -amount;
             totalTrades++;
@@ -1964,58 +2234,24 @@ Notes: ${bt.notes || 'No notes'}`;
                 result: isWin ? 'win' : 'loss',
                 amount: amount,
                 rr: rr,
-                rValue: rValue,
-                strategy: strategy,
-                grade: grade,
-                session: session,
-                confidence: Math.floor(3 + Math.random() * 4),
-                emotion: ['Calm', 'Confident', 'Anxious', 'Focused'][Math.floor(Math.random() * 4)]
+                rValue: isWin ? reward : -1,
+                strategy: strategies[Math.floor(Math.random() * strategies.length)],
+                grade: grades[Math.floor(Math.random() * grades.length)],
+                session: sessions[Math.floor(Math.random() * sessions.length)]
             });
             
-            netR += rValue;
-            rrTrades.push({
-                id: Date.now() + i,
-                ratio: rr,
-                result: isWin ? 'win' : 'loss',
-                rValue: rValue,
-                runningR: netR
-            });
+            netR += isWin ? reward : -1;
         }
         
-        // Sample journal entries
-        journalEntries = [
-            {
-                id: Date.now() + 100,
-                title: 'Week 1 Review',
-                date: new Date(Date.now() - 7 * 86400000).toISOString().slice(0,10),
-                content: 'This week was solid. I focused on high-conviction setups and avoided over-trading. The FVG strategy worked well.',
-                emotions: 'Confident',
-                tags: ['FVG', 'Breakout'],
-                mistakes: 'None',
-                lessons: 'Patience pays off',
-                images: []
-            },
-            {
-                id: Date.now() + 200,
-                title: 'Market Analysis - XAUUSD',
-                date: new Date(Date.now() - 3 * 86400000).toISOString().slice(0,10),
-                content: 'Gold broke out of the range on liquidity sweep. Entered on the pullback with 1:3 RR.',
-                emotions: 'Focused',
-                tags: ['XAUUSD', 'Liquidity'],
-                mistakes: 'Entered slightly early',
-                lessons: 'Wait for full candle close',
-                images: []
-            }
-        ];
-
         recalculateStreak();
-        updateAll();
     }
 
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', function() {
-        generateSampleData();
-        buildCalendarFull();
+        loadUsers();
+        // Show login by default
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
     });
 </script>
 </body>
